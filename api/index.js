@@ -1,12 +1,12 @@
 const serverlesswp = require('serverlesswp');
 
 const { validate } = require('../util/install.js');
-const { setup } = require('../util/directory.js');
+const { setup, tmpPath } = require('../util/directory.js');
 const sqliteS3 = require('../util/sqliteS3.js');
 
 const { register } = require('../util/goldilock.js');
 
-const pathToWP = '/tmp/wp';
+const pathToWP = tmpPath();
 let initSqliteS3 = false;
 
 // Move the /wp directory to /tmp/wp so that it is writeable.
@@ -65,7 +65,11 @@ exports.handler = async function (event, context, callback) {
 
     // Send the request (event object) to the serverlesswp library.
     // It includes the PHP server that allows WordPress to handle the request.
-    let response = await serverlesswp({docRoot: pathToWP, event: event});
+    let response = await serverlesswp({
+        docRoot: pathToWP,
+        event: event,
+        routerScript: pathToWP + '/router.php'
+    });
     
     // Check to see if the database environment variables are in place.
     let checkInstall = validate(response);

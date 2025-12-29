@@ -3,8 +3,13 @@
   "version": "1.0.0",
   "description": "",
   "license": "MIT",
+  "scripts": {
+    "build": "echo \"No build step for ServerlessWP; ready to run\"",
+    "start": "node local-server.js"
+  },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.772.0",
+    "dotenv": "^16.4.5",
     "serverlesswp": "^0.4.0",
     "sqlite3": "^5.1.7"
   },

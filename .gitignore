@@ -1,3 +1,11 @@
 node_modules/
 package-lock.json
 .serverless
+.env
+.vercel
+.env*.local
+.wp-tmp/
+/tmp/wp
+wp/wp-content/debug.log
+*.log
+certs/
