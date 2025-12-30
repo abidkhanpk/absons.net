@@ -1,0 +1,73 @@
+.rbea-image-size-control-wrapper {
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 24px;
+    label {
+        font-family: 'Roboto';
+        font-size: 14px;
+        font-weight: 400;
+        line-height: 16.41px;
+        text-align: left;
+        color: #666;
+    }
+    .rbea-image-size-options {
+        width: 100%;
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        grid-template-rows: repeat(2, 1fr);
+        gap: 10px;
+        margin-top: 8px;
+        .rbea-image-size-option {
+            width: 100px;
+            height: 100px;
+            border: solid 1px #D9D9D9;
+            border-radius: 4px;
+            cursor: pointer;
+            
+            .full-size {
+                position: relative;
+                width: 100px;
+                height: 100px;
+                left: 0px;
+                top: 0px;
+
+                svg {
+                    border-radius: 4px;
+                }
+            }
+        
+            .thumbnail {
+                position: relative;
+                width: 30px;
+                height: 30px;
+                left: 35%;
+                top: 35%;
+                svg {
+                    border-radius: 4px;
+                }
+            }
+        
+            .large {
+                position: relative;
+                width: 80px;
+                height: 80px;
+                left: 10%;
+                top: 10%;
+                svg {
+                    border-radius: 4px;
+                }
+            }
+        
+            .medium {
+                position: relative;
+                width: 50px;
+                height: 50px;
+                left: 25%;
+                top: 25%;
+                svg {
+                    border-radius: 4px;
+                }
+            }
+        }
+    }
+}

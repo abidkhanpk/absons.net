@@ -1,0 +1,61 @@
+.wp-block-responsive-block-editor-addons-accordion {
+  &.responsive-block-editor-addons-accordion-layout-accordion
+    .responsive-block-editor-addons-accordion-item__outer-wrap
+    .responsive-block-editor-addons-accordion-titles-button {
+    cursor: pointer;
+  }
+}
+.responsive-block-editor-addons-accordion-layout-grid.responsive-block-editor-addons-accordion-equal-height
+  .responsive-block-editor-addons-accordion__wrap {
+  .responsive-block-editor-addons-accordion-item__outer-wrap,
+  .responsive-block-editor-addons-accordion-item__wrapper,
+  .responsive-block-editor-addons-accordion-item {
+    height: 100%;
+  }
+}
+.wp-block-cover .responsive-block-editor-addons-accordion-item__outer-wrap {
+  color: #333;
+}
+
+.responsive-block-editor-addons-accordion-alignment-container {
+  width: 100%;
+  display: flex;
+  justify-content: space-around;
+  border: 1px solid #C9C8C8;
+
+  .components-button {
+    width: 100%;
+  }
+
+  .components-button.is-pressed {
+    &:hover{
+      background: #007CBA;
+    }
+    background: #007CBA;
+  }
+}
+
+
+.responsive-size-type-field-tabs {
+  .responsive-block-editor-addons-icon-size-unit-container {
+      .components-button-group {
+          .components-button.responsive-block-editor-addons-size-btn {
+              color: #666666;
+              box-shadow: none;
+              font-family: Roboto;
+              font-size: 12px;
+              font-weight: 300;
+              line-height: 14.06px;
+              text-align: center;
+              background-color: #ffffff;
+              padding: 0px 4px;
+              text-transform: uppercase;
+          }
+          .components-button.responsive-block-editor-addons-size-btn.is-pressed {
+              background-color: #ffffff;
+              color: #007CBA;
+              box-shadow: none;
+          }
+      }
+  }
+}

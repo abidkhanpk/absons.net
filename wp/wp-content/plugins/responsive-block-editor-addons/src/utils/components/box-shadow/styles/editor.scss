@@ -1,0 +1,100 @@
+.res-typography-option-actions {
+  margin-bottom: 1.5em;
+  margin-top: 1.5em;
+
+  button {
+    margin: 0;
+    float: right;
+  }
+}
+
+button.components-button {
+  z-index: 1;
+}
+
+.responsive-block-editor-addons-box-shadow-advanced {
+  box-shadow: 0 3px 30px rgba(25, 30, 35, 0.1);
+  border: 1px solid #e2e4e7;
+  background: #fff;
+  padding: 10px;
+  margin-top: 10px;
+  margin-bottom: 10px;
+  position: relative;
+}
+
+.responsive-block-editor-addons-setting-label {
+  .component-color-indicator {
+    vertical-align: middle;
+    background-color: transparent;
+  }
+}
+
+.rbea-inspector-tab{
+  .rbea-box-shadow-position-control {
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 24px;
+
+    >label , .components-radio-control__label {
+      font-family: Roboto;
+      font-size: 13px;
+      font-weight: 400;
+      line-height: 16.41px;
+      color: #666666;
+
+    }
+
+    .rbea-box-shadow-position-selector {
+      display: inline-flex;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      overflow: hidden;
+      margin-top: 8px;
+  
+      .components-radio-control__option {
+        flex: 1 1;
+        text-align: center;
+        border: none;
+        margin-bottom: 0px;
+      }
+      
+      .components-radio-control__option:first-child {
+        border-right: 1px solid #ccc;
+      }
+    
+      
+      .components-radio-control__option label {
+        display: block;
+        border-radius: 0;
+      }
+  
+      
+      .components-flex.components-h-stack.components-v-stack {
+        flex-direction: row;
+        width: 100%;
+      }
+      
+      .components-base-control__field {
+        width: 100%;
+      }
+      
+      .components-radio-control__option{
+        padding: 0px;
+        margin: 0px 0px;
+        
+        .components-radio-control__label {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          height: 32px;
+        }
+      }
+      
+      .components-radio-control__option input:checked+label{
+        background-color: #007cba;
+        color: #fff;
+      }
+
+    }
+  }
+}

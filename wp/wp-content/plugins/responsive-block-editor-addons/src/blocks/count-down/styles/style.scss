@@ -1,0 +1,86 @@
+.responsive-block-editor-addons-countdown-items {
+	display: flex;
+	flex: 1;
+	line-height: 1.8;
+}
+.responsive-block-editor-addons-countdown-item {
+	list-style: none;
+	border: 3px;
+	display: flex;
+	align-items: center;
+}
+
+.responsive-block-editor-addons-countdown-items {
+	margin-left: 0px;
+}
+
+.responsive-block-editor-addons-countdown-days,
+.responsive-block-editor-addons-countdown-hours,
+.responsive-block-editor-addons-countdown-minutes,
+.responsive-block-editor-addons-countdown-seconds {
+	height: 100%;
+	width: 100%;
+}
+
+// Typography style
+.responsive-block-editor-addons-typography-base div {
+	display: flex;
+	justify-content: space-between;
+}
+
+
+.responsive-block-editor-addons-alignment {
+    max-height: 32px;
+    height: 100%;
+    margin-top: 8px;
+
+    .components-toolbar {
+      width: 100%;
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      justify-items: center;
+      min-height: 32px;
+      max-height: 32px;
+      height: 100%;
+      border: 1px solid #C9C8C8;
+      border-radius: 4px;
+    
+      > div {
+        width: 100%;
+        max-height: 32px;
+        height: 100%;
+
+        // First child styling
+        &:first-child {
+          border-right: 1px solid #C9C8C8;
+        }
+      
+        // Last child styling
+        &:last-child {
+          border-left: 1px solid #C9C8C8;
+        }
+      
+        .components-toolbar__control {
+          width: 100%;
+          max-height: 32px;
+          height: 100%;
+          &::before {
+            width: 100%;
+            left: 0px;
+            right: 0px;
+          }
+        }
+      
+        .components-toolbar__control.is-pressed {
+          &::before {
+            background: #007CBA;
+            width: 100%;
+            left: 0px;
+            right: 0px;
+            max-height: 32px;
+            height: 100%;
+          }
+        }
+      }
+    }
+  }

@@ -1,0 +1,269 @@
+/**
+ * Returns Dynamic Generated CSS
+ */
+
+import generateCSS from "../../../generateCSS";
+import generateCSSUnit from "../../../generateCSSUnit";
+
+function EditorStyles(props) {
+  const {
+    block_id,
+    pricingList,
+    priceColor,
+    descColor,
+    titleColor,
+    titleFontFamily,
+    titleFontSize,
+    titleFontWeight,
+    titleLineHeight,
+    descriptionFontFamily,
+    descriptionFontSize,
+    descriptionFontWeight,
+    descriptionLineHeight,
+    priceFontFamily,
+    priceFontSize,
+    priceFontWeight,
+    priceLineHeight,
+    titleSpace,
+    titleSpaceMobile,
+    titleSpaceTablet,
+    columns,
+    rowGap,
+    rowGapMobile,
+    rowGapTablet,
+    columnGap,
+    columnGapMobile,
+    columnGapTablet,
+    contentAlign,
+    blockTopPadding,
+    blockBottomPadding,
+    blockLeftPadding,
+    blockRightPadding,
+    blockTopPaddingMobile,
+    blockBottomPaddingMobile,
+    blockLeftPaddingMobile,
+    blockRightPaddingMobile,
+    blockTopPaddingTablet,
+    blockBottomPaddingTablet,
+    blockLeftPaddingTablet,
+    blockRightPaddingTablet,
+    seperatorStyle,
+    seperatorWidth,
+    seperatorThickness,
+    seperatorColor,
+    imagePosition,
+    imageSize,
+    imageWidth,
+	titleFontSizeMobile,
+	titleFontSizeTablet,
+	descriptionFontSizeMobile,
+	descriptionFontSizeTablet,
+	priceFontSizeMobile,
+	priceFontSizeTablet,
+	topPadding, // For compatibility with v1.3.2.
+	bottomPadding, // For compatibility with v1.3.2.
+	leftPadding, // For compatibility with v1.3.2.
+	rightPadding, // For compatibility with v1.3.2.
+  hideWidget,
+  hideWidgetTablet,
+  hideWidgetMobile,
+  pricingTopMargin,
+  pricingBottomMargin,
+  pricingLeftMargin,
+  pricingRightMargin,
+  pricingTopMarginTablet,
+  pricingBottomMarginTablet,
+  pricingLeftMarginTablet,
+  pricingRightMarginTablet,
+  pricingTopMarginMobile,
+  pricingBottomMarginMobile,
+  pricingLeftMarginMobile,
+  pricingRightMarginMobile,
+  pricingTopPadding,
+  pricingTopPaddingMobile,
+  pricingTopPaddingTablet,
+  pricingBottomPadding,
+  pricingBottomPaddingMobile,
+  pricingBottomPaddingTablet,
+  pricingLeftPadding,
+  pricingLeftPaddingMobile,
+  pricingLeftPaddingTablet,
+  pricingRightPadding,
+  pricingRightPaddingMobile,
+  pricingRightPaddingTablet,
+  priceTypographyColor,
+  descriptionTypographyColor,
+  titleTypographyColor,
+  titleBottomSpacing,
+  titleBottomSpacingMobile,
+  titleBottomSpacingTablet,
+  titleTextTransform,
+  titleFontStyle,
+  descriptionTextTransform,
+  descriptionFontStyle,
+  priceTextTransform,
+  priceFontStyle,
+  } = props.attributes;
+
+  var align = contentAlign;
+  if ("left" === align) {
+    align = "flex-start";
+  } else if ("right" === align) {
+    align = "flex-end";
+  }
+  const isOn = responsive_globals?.is_responsive_conditions_on ?? 1;
+
+  var selectors = {
+    " ": {
+      "opacity": hideWidget && isOn ? 0.2 : 1,
+      'padding-top': generateCSSUnit(pricingTopPadding, "px"),
+      'padding-right': generateCSSUnit(pricingRightPadding, "px"),
+      'padding-bottom': generateCSSUnit(pricingBottomPadding, "px"),
+      'padding-left': generateCSSUnit(pricingLeftPadding, "px"),
+      'margin-top': generateCSSUnit(pricingTopMargin, "px"),
+      'margin-right': generateCSSUnit(pricingRightMargin, "px"),
+      'margin-bottom': generateCSSUnit(pricingBottomMargin, "px"),
+      'margin-left': generateCSSUnit(pricingLeftMargin, "px"),
+    },
+    " .responsive-block-editior-addons-pricing-list-item-wrap": {
+      "margin-bottom": generateCSSUnit(rowGap, "px"),
+      "padding-left": generateCSSUnit(columnGap / 2, "px"),
+      "padding-right": generateCSSUnit(columnGap / 2, "px"),
+    },
+    " .responsive-block-editior-addons-pricing-list-item-wrap .responsive-block-editior-addons-pricing-list-item-content": {
+      "padding-top": topPadding !== 999 && blockTopPadding === 5 ? generateCSSUnit(topPadding, "px") : generateCSSUnit(blockTopPadding, "px"), // For compatibility with v1.3.2.
+      "padding-bottom": bottomPadding !== 999 && blockBottomPadding === 5 ? generateCSSUnit(bottomPadding, "px") : generateCSSUnit(blockBottomPadding, "px"), // For compatibility with v1.3.2.
+      "padding-left": leftPadding !== 999 && blockLeftPadding === 5 ? generateCSSUnit(leftPadding, "px") : generateCSSUnit(blockLeftPadding, "px"), // For compatibility with v1.3.2.
+      "padding-right": rightPadding !== 999 && blockRightPadding === 5 ? generateCSSUnit(rightPadding, "px") : generateCSSUnit(blockRightPadding, "px"), // For compatibility with v1.3.2.
+      "text-align": contentAlign,
+    },
+    " .responsive-block-editior-addons-pricing-list-item-image-wrap .responsive-block-editior-addons-pricing-list-item-image": {
+      height: "auto",
+      width: generateCSSUnit(imageWidth, "px"),
+      "max-width": generateCSSUnit(imageWidth, "px"),
+    },
+    " .responsive-block-editior-addons-pricing-list-item-title": {
+      "color": titleTypographyColor,
+      "text-transform": titleTextTransform,
+      "font-style": titleFontStyle,
+      "line-height": titleLineHeight,
+      "font-weight": titleFontWeight,
+      "font-size": generateCSSUnit(titleFontSize, "px"),
+      "font-family": titleFontFamily,
+      "margin-bottom": generateCSSUnit(titleBottomSpacing, "px"),
+    },
+    " .responsive-block-editior-addons-pricing-list-item-description": {
+      "color": descriptionTypographyColor,
+      "text-transform": descriptionTextTransform,
+      "font-style": descriptionFontStyle,
+      "line-height": descriptionLineHeight,
+      "font-weight": descriptionFontWeight,
+      "font-size": generateCSSUnit(descriptionFontSize, "px"),
+      "font-family": descriptionFontFamily,
+    },
+    " .responsive-block-editior-addons-pricing-list-item-price-wrap": {
+      "color": priceTypographyColor,
+      "text-transform": priceTextTransform,
+      "font-style": priceFontStyle,
+      "line-height": priceLineHeight,
+      "font-weight": priceFontWeight,
+      "font-size": generateCSSUnit(priceFontSize, "px"),
+      "font-family": priceFontFamily,
+    },
+    " .responsive-block-editior-addons-pricing-list-item-image-wrap responsive-block-editior-addons-pricing-list-item-image": {
+      height: "auto",
+      width: generateCSSUnit(imageWidth, "px"),
+      "max-width": generateCSSUnit(imageWidth, "px"),
+    },
+    " .responsive-block-editior-addons-pricing-list-item-separator-wrap": {
+      "justify-content": align,
+    },
+    " .responsive-block-editior-addons-pricing-list-item-separator": {
+      "border-top-color": seperatorColor,
+      "border-top-style": seperatorStyle,
+      "border-top-width": generateCSSUnit(seperatorThickness, "px"),
+      width: seperatorWidth + "%",
+    },
+  };
+
+  var mobile_selectors = {
+    " ": {
+      "opacity": hideWidgetMobile && isOn ? 0.2 : 1,
+      'padding-top': generateCSSUnit(pricingTopPaddingMobile, "px"),
+      'padding-right': generateCSSUnit(pricingRightPaddingMobile, "px"),
+      'padding-bottom': generateCSSUnit(pricingBottomPaddingMobile, "px"),
+      'padding-left': generateCSSUnit(pricingLeftPaddingMobile, "px"),
+      'margin-top': generateCSSUnit(pricingTopMarginMobile, "px"),
+      'margin-right': generateCSSUnit(pricingRightMarginMobile, "px"),
+      'margin-bottom': generateCSSUnit(pricingBottomMarginMobile, "px"),
+      'margin-left': generateCSSUnit(pricingLeftMarginMobile, "px"),
+    },
+    " .responsive-block-editior-addons-pricing-list-item-wrap": {
+      "margin-bottom": generateCSSUnit(rowGapMobile, "px"),
+      "padding-left": generateCSSUnit(columnGapMobile / 2, "px"),
+      "padding-right": generateCSSUnit(columnGapMobile / 2, "px"),
+    },
+    " .responsive-block-editior-addons-pricing-list-item-wrap .responsive-block-editior-addons-pricing-list-item-content": {
+      "padding-top": generateCSSUnit(blockTopPaddingMobile, "px"),
+      "padding-bottom": generateCSSUnit(blockBottomPaddingMobile, "px"),
+      "padding-left": generateCSSUnit(blockLeftPaddingMobile, "px"),
+      "padding-right": generateCSSUnit(blockRightPaddingMobile, "px"),
+    },
+    " .responsive-block-editior-addons-pricing-list-item-title": {
+		"font-size": generateCSSUnit(titleFontSizeMobile, "px"),
+		"margin-bottom": generateCSSUnit(titleBottomSpacingMobile, "px"),
+	},
+	" .responsive-block-editior-addons-pricing-list-item-description": {
+		"font-size": generateCSSUnit(descriptionFontSizeMobile, "px"),
+	},
+	" .responsive-block-editior-addons-pricing-list-item-price-wrap": {
+		"font-size": generateCSSUnit(priceFontSizeMobile, "px"),
+	}
+  };
+
+  var tablet_selectors = {
+    " ": {
+      "opacity": hideWidgetTablet && isOn ? 0.2 : 1,
+      'padding-top': generateCSSUnit(pricingTopPaddingTablet, "px"),
+      'padding-right': generateCSSUnit(pricingRightPaddingTablet, "px"),
+      'padding-bottom': generateCSSUnit(pricingBottomPaddingTablet, "px"),
+      'padding-left': generateCSSUnit(pricingLeftPaddingTablet, "px"),
+      'margin-top': generateCSSUnit(pricingTopMarginTablet, "px"),
+      'margin-right': generateCSSUnit(pricingRightMarginTablet, "px"),
+      'margin-bottom': generateCSSUnit(pricingBottomMarginTablet, "px"),
+      'margin-left': generateCSSUnit(pricingLeftMarginTablet, "px"),
+    },
+    " .responsive-block-editior-addons-pricing-list-item-wrap": {
+      "margin-bottom": generateCSSUnit(rowGapTablet, "px"),
+      "padding-left": generateCSSUnit(columnGapTablet / 2, "px"),
+      "padding-right": generateCSSUnit(columnGapTablet / 2, "px"),
+    },
+    " .responsive-block-editior-addons-pricing-list-item-wrap .responsive-block-editior-addons-pricing-list-item-content": {
+      "padding-top": generateCSSUnit(blockTopPaddingTablet, "px"),
+      "padding-bottom": generateCSSUnit(blockBottomPaddingTablet, "px"),
+      "padding-left": generateCSSUnit(blockLeftPaddingTablet, "px"),
+      "padding-right": generateCSSUnit(blockRightPaddingTablet, "px"),
+    },
+    " .responsive-block-editior-addons-pricing-list-item-title": {
+		"font-size": generateCSSUnit(titleFontSizeTablet, "px"),
+		"margin-bottom": generateCSSUnit(titleBottomSpacingTablet, "px"),
+	},
+	" .responsive-block-editior-addons-pricing-list-item-description": {
+		"font-size": generateCSSUnit(descriptionFontSizeTablet, "px"),
+	},
+	" .responsive-block-editior-addons-pricing-list-item-price-wrap": {
+		"font-size": generateCSSUnit(priceFontSizeTablet, "px"),
+	}
+  };
+
+  var styling_css = "";
+  var id = `.responsive-block-editor-addons-block-pricing-list.block-${props.clientId}`;
+
+  styling_css = generateCSS(selectors, id);
+  styling_css += generateCSS(tablet_selectors, id, true, "tablet");
+  styling_css += generateCSS(mobile_selectors, id, true, "mobile");
+
+  return styling_css;
+}
+
+export default EditorStyles;

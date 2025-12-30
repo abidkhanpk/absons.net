@@ -37,9 +37,17 @@ exports.setup = function() {
         return;
     }
 
-    if (!fs.existsSync(targetPath)) {
-        fs.mkdirSync(targetPath, { recursive: true });
+    // Always start fresh to avoid stale files (e.g., removed themes/plugins lingering).
+    if (fs.existsSync(targetPath)) {
+        try {
+            execSync(`rm -rf "${targetPath}"`);
+        }
+        catch (err) {
+            console.log(err);
+        }
     }
+
+    fs.mkdirSync(targetPath, { recursive: true });
 
     try {
         execSync(`cp -R "${sourcePath}/." "${targetPath}/"`);

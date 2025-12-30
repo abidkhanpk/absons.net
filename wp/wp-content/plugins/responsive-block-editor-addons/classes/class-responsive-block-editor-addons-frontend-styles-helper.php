@@ -1,0 +1,629 @@
+<?php
+/**
+ * RBEA Styles Helper.
+ *
+ * @package category
+ */
+
+if ( ! defined( 'ABSPATH' ) ) {
+	exit; // Exit if accessed directly.
+}
+
+if ( ! class_exists( 'Responsive_Block_Editor_Addons_Frontend_Styles_Helper' ) ) {
+
+	/**
+	 * Class Responsive_Block_Editor_Addons_Frontend_Styles_Helper.
+	 */
+	final class Responsive_Block_Editor_Addons_Frontend_Styles_Helper {
+
+
+		/**
+		 * Member Variable
+		 *
+		 * @var instance
+		 */
+		private static $instance;
+
+		/**
+		 * Custom variable
+		 *
+		 * @var instance
+		 */
+		public static $icon_json;
+
+		/**
+		 * Get an instance of WP_Filesystem_Direct.
+		 *
+		 * @return object A WP_Filesystem_Direct instance.
+		 */
+		public function get_filesystem() {
+			global $wp_filesystem;
+
+			require_once ABSPATH . '/wp-admin/includes/file.php';
+
+			WP_Filesystem();
+
+			return $wp_filesystem;
+		}
+
+		/**
+		 *  Initiator
+		 */
+		public static function get_instance() {
+			if ( ! isset( self::$instance ) ) {
+				self::$instance = new self();
+			}
+
+			return self::$instance;
+		}
+
+		/**
+		 * Constructor
+		 */
+		public function __construct() {
+			add_action( 'wp_head', array( $this, 'responsive_block_editor_addons_description' ), 100 );
+			add_action( 'wp_head', array( $this, 'responsive_block_editor_addons_frontend_styles' ), 100 );
+		}
+
+		/**
+		 * Generate description and print in header.
+		 */
+		public function responsive_block_editor_addons_description() {
+			echo "\n<!-- This block is generated with the Responsive Blocks Library Plugin v" . substr( RESPONSIVE_BLOCK_EDITOR_ADDONS_VER, 0, -2 ) . ' (Responsive Gutenberg Blocks Library ' . RESPONSIVE_BLOCK_EDITOR_ADDONS_VER . ") - https://cyberchimps.com/responsive-blocks/ -->\n\n";//phpcs:ignore
+		}
+
+		/**
+		 * Generate stylesheet and print in header.
+		 */
+		public function responsive_block_editor_addons_frontend_styles() {
+			global $post;
+
+    		$post_css = '';
+    		$widget_css = '';
+    		$is_block_from_widget = false;
+
+    		$blocks = array();
+
+    		// Parse blocks from the post.
+    		if ( is_object( $post ) ) {
+    		    $blocks = parse_blocks( $post->post_content );
+    		    $post_css .= $this->get_styles( $blocks );
+    		}
+		
+    		// Handle different theme types.
+			if ( is_archive() || is_home() || is_search() || is_404() || is_singular() ) {
+    			if ( function_exists( 'wp_is_block_theme' ) && wp_is_block_theme() ) {
+    			    // Block theme logic: Fetch templates and add styles for them.
+    			    $wp_query_args = array(
+    			        'post_status' => array( 'publish' ),
+    			        'post_type'   => array( 'wp_template', 'wp_template_part' ),
+    			    );
+    			    $template_query = new WP_Query( $wp_query_args );
+				
+    			    if ( ! empty( $template_query->posts ) ) {
+    			        foreach ( $template_query->posts as $template_post ) {
+    			            if ( is_object( $template_post ) ) {
+    			                $template_blocks = parse_blocks( $template_post->post_content );
+    			                $post_css .= $this->get_styles( $template_blocks );
+    			            }
+    			        }
+    			    }
+    			} else {
+    			    // Non-block theme logic: Process widget blocks.
+    			    $is_block_from_widget = true;
+    			    $widget_blocks = get_option( 'widget_block' );
+				
+    			    if ( ! empty( $widget_blocks ) ) {
+    			        foreach ( $widget_blocks as $widget ) {
+    			            if ( ! empty( $widget['content'] ) ) {
+    			                $parsed_blocks = parse_blocks( $widget['content'] );
+    			                $widget_css .= $this->get_styles( $parsed_blocks );
+    			            }
+    			        }
+    			    }
+    			}
+			}
+
+    		// Combine post CSS and widget CSS and output it.
+    		$combined_css = $post_css . $widget_css;
+    		if ( ! empty( $combined_css ) ) {
+				echo '<style id="rbea-frontend-styles">' . $combined_css . '</style>'; 
+    		}
+			do_action( 'rbea-frontend-site-builder-styles' );
+		}
+
+
+		/**
+		 * Parse function.
+		 *
+		 * @param [type] $content The content.
+		 * @return [type]
+		 */
+		public function parse( $content ) {
+
+			global $wp_version;
+
+			return ( version_compare( $wp_version, '5', '>=' ) ) ? parse_blocks( $content ) : gutenberg_parse_blocks( $content );
+		}
+
+		/**
+		 * Get styles function.
+		 *
+		 * @param [type] $blocks The blocks.
+		 * @return [type]
+		 */
+		public function get_styles( $blocks ) {
+			$desktop         = '';
+			$tablet          = '';
+			$mobile          = '';
+			$tab_styling_css = '';
+			$mob_styling_css = '';
+			$custom_css      = ''; // Collect custom CSS from all blocks
+			$css             = array();
+			foreach ( $blocks as $i => $block ) {
+
+				if ( is_array( $block ) ) {
+					if ( '' === $block['blockName'] ) {
+						continue;
+					}
+					if ( 'core/block' === $block['blockName'] ) {
+						$id = ( isset( $block['attrs']['ref'] ) ) ? $block['attrs']['ref'] : 0;
+
+						if ( $id ) {
+							$content = get_post_field( 'post_content', $id );
+
+							$reusable_blocks = $this->parse( $content );
+
+							$css = $this->get_styles( $reusable_blocks );
+
+						}
+					} else {
+						$css = $this->get_block_css( $block );
+
+						// Get CSS for the Block.
+						if ( isset( $css['desktop'] ) ) {
+							$desktop .= $css['desktop'];
+							$tablet  .= $css['tablet'];
+							$mobile  .= $css['mobile'];
+						}
+
+						// Collect custom CSS from block attributes
+						$custom_css .= $this->get_custom_css_from_block( $block );
+						
+						// Recursively process innerBlocks for custom CSS
+						if ( ! empty( $block['innerBlocks'] ) ) {
+							$custom_css .= $this->get_custom_css_from_blocks( $block['innerBlocks'] );
+						}
+					}
+				}
+			}
+
+			if ( ! empty( $tablet ) ) {
+				$tab_styling_css .= '@media only screen and (max-width: 976px) {';
+				$tab_styling_css .= $tablet;
+				$tab_styling_css .= '}';
+			}
+
+			if ( ! empty( $mobile ) ) {
+				$mob_styling_css .= '@media only screen and (max-width: 767px) {';
+				$mob_styling_css .= $mobile;
+				$mob_styling_css .= '}';
+			}
+
+			// Combine all CSS including custom CSS
+			$css = $desktop . $tab_styling_css . $mob_styling_css;
+			if ( ! empty( $custom_css ) ) {
+				$css .= "\n" . $custom_css;
+			}
+			return $css;
+		}
+
+		/**
+		 * Extract and convert custom CSS from a single block.
+		 *
+		 * @param array $block Block array.
+		 * @return string Converted custom CSS string.
+		 */
+		private function get_custom_css_from_block( $block ) {
+			
+			// Respect global toggle for custom CSS
+			$custom_css_global = get_option( 'rbea_custom_css_on', '1' );
+			if ( '0' === (string) $custom_css_global || 0 === $custom_css_global ) {
+				return '';
+			}
+
+			if ( ! isset( $block['attrs']['customCss'] ) || ! is_string( $block['attrs']['customCss'] ) || empty( trim( $block['attrs']['customCss'] ) ) ) {
+				return '';
+			}
+
+			$custom_css = trim( $block['attrs']['customCss'] );
+			$custom_css = wp_strip_all_tags( $custom_css );
+			$block_name = isset( $block['blockName'] ) ? $block['blockName'] : '';
+			$block_id   = isset( $block['attrs']['block_id'] ) ? $block['attrs']['block_id'] : '';
+
+			// Skip if we don't have block name or ID
+			if ( empty( $block_name ) || empty( $block_id ) ) {
+				return '';
+			}
+
+			// Extract block name from full block name (e.g., "responsive-block-editor-addons/advanced-text" -> "advanced-text")
+			$block_name_parts = explode( '/', $block_name );
+			$block_slug = ! empty( $block_name_parts[1] ) ? $block_name_parts[1] : $block_name_parts[0];
+
+			// Build actual block selector
+			$block_selector = ".responsive-block-editor-addons-block-{$block_slug}.block-{$block_id}";
+			$placeholder = '.rbea-custom-selector';
+
+			// Replace placeholder with actual selector (global replace for all occurrences)
+			$converted_css = str_replace( $placeholder, $block_selector, $custom_css );
+
+			return $converted_css . "\n";
+		}
+
+		/**
+		 * Recursively extract custom CSS from blocks (including innerBlocks).
+		 *
+		 * @param array $blocks Array of block arrays.
+		 * @return string Combined custom CSS string.
+		 */
+		private function get_custom_css_from_blocks( $blocks ) {
+			$custom_css = '';
+			
+			if ( ! is_array( $blocks ) ) {
+				return $custom_css;
+			}
+			
+			foreach ( $blocks as $block ) {
+				if ( ! is_array( $block ) ) {
+					continue;
+				}
+				
+				// Get custom CSS from this block
+				$custom_css .= $this->get_custom_css_from_block( $block );
+				
+				// Recursively process innerBlocks
+				if ( ! empty( $block['innerBlocks'] ) ) {
+					$custom_css .= $this->get_custom_css_from_blocks( $block['innerBlocks'] );
+				}
+			}
+			
+			return $custom_css;
+		}
+
+		/**
+		 * Function to load backend font awesome icons.
+		 *
+		 * @return [type]
+		 */
+		public static function backend_load_font_awesome_icons() {
+
+			$json_file = plugin_dir_path( __FILE__ ) . '../src/ResponsiveBlocksIcon.json';
+
+			if ( ! file_exists( $json_file ) ) {
+				return array();
+			}
+
+			// Function has already run.
+			if ( null !== self::$icon_json ) {
+				return self::$icon_json;
+			}
+
+			$str             = self::get_instance()->get_filesystem()->get_contents( $json_file );
+			self::$icon_json = json_decode( $str, true );
+			return self::$icon_json;
+		}
+
+		/**
+		 * Function to render svg html.
+		 *
+		 * @param [type] $icon The icons.
+		 * @return [type]
+		 */
+		public static function render_svg_html( $icon ) {
+			$icon = str_replace( 'far', '', $icon );
+			$icon = str_replace( 'fas', '', $icon );
+			$icon = str_replace( 'fab', '', $icon );
+			$icon = str_replace( 'fa-', '', $icon );
+			$icon = str_replace( 'fa', '', $icon );
+			$icon = sanitize_text_field( esc_attr( $icon ) );
+
+			$json = self::backend_load_font_awesome_icons();
+			$path = isset( $json[ $icon ]['svg']['brands'] ) ? $json[ $icon ]['svg']['brands']['path'] : $json[ $icon ]['svg']['solid']['path'];
+			$view = isset( $json[ $icon ]['svg']['brands'] ) ? $json[ $icon ]['svg']['brands']['viewBox'] : $json[ $icon ]['svg']['solid']['viewBox'];
+			if ( $view ) {
+				$view = implode( ' ', $view );
+			}
+			return '<svg xmlns="https://www.w3.org/2000/svg" viewBox="' . esc_html( $view ) . '" ><path d="' . esc_html( $path ) . '"></path></svg>';
+		}
+
+		/**
+		 * Get block css.
+		 *
+		 * @param [type] $block The block.
+		 * @return [type]
+		 */
+		public function get_block_css( $block ) {
+			$block = (array) $block;
+
+			$name      = $block['blockName'];
+			$css       = array();
+			$block_id  = '';
+			$blockattr = array();
+			if ( ! isset( $name ) ) {
+				return '';
+			}
+
+			if ( isset( $block['attrs'] ) && is_array( $block['attrs'] ) ) {
+				$blockattr = $block['attrs'];
+				if ( isset( $blockattr['block_id'] ) ) {
+					$block_id = $blockattr['block_id'];
+				}
+			}
+
+			switch ( $name ) {
+				case 'responsive-block-editor-addons/post-carousel':
+					$css += Responsive_Block_Editor_Addons_Frontend_Styles::get_responsive_block_post_carousel_css( $blockattr, $block_id );
+					break;
+				case 'responsive-block-editor-addons/responsive-block-editor-addons-post-grid':
+					$css += Responsive_Block_Editor_Addons_Frontend_Styles::get_responsive_block_post_grid_css( $blockattr, $block_id );
+					break;
+				case 'responsive-block-editor-addons/advanced-heading':
+					$css += Responsive_Block_Editor_Addons_Frontend_Styles::get_responsive_block_advanced_heading_css( $blockattr, $block_id );
+					break;
+				case 'responsive-block-editor-addons/count-up':
+					$css += Responsive_Block_Editor_Addons_Frontend_Styles::get_responsive_block_count_up_css( $blockattr, $block_id );
+					break;
+				case 'responsive-block-editor-addons/blockquote':
+					$css += Responsive_Block_Editor_Addons_Frontend_Styles::get_responsive_block_blockquote_css( $blockattr, $block_id );
+					break;
+				case 'responsive-block-editor-addons/divider':
+					$css += Responsive_Block_Editor_Addons_Frontend_Styles::get_responsive_block_divider_css( $blockattr, $block_id );
+					break;
+				case 'responsive-block-editor-addons/accordion':
+					$css += Responsive_Block_Editor_Addons_Frontend_Styles::get_responsive_block_accordian_css( $blockattr, $block_id );
+					break;
+				case 'responsive-block-editor-addons/accordion-item':
+					$css += Responsive_Block_Editor_Addons_Frontend_Styles::get_responsive_block_accordian_child_css( $blockattr, $block_id );
+					break;
+				case 'responsive-block-editor-addons/advance-columns':
+					$css += Responsive_Block_Editor_Addons_Frontend_Styles::get_responsive_block_advanced_columns_css( $blockattr, $block_id );
+					break;
+				case 'responsive-block-editor-addons/column':
+					$css += Responsive_Block_Editor_Addons_Frontend_Styles::get_responsive_block_advanced_column_child_css( $blockattr, $block_id );
+					break;
+				case 'responsive-block-editor-addons/buttons':
+					$css += Responsive_Block_Editor_Addons_Frontend_Styles::get_responsive_block_buttons_css( $blockattr, $block_id );
+					break;
+				case 'responsive-block-editor-addons/buttons-child':
+					$css += Responsive_Block_Editor_Addons_Frontend_Styles::get_responsive_block_buttons_child_css( $blockattr, $block_id );
+					break;
+				case 'responsive-block-editor-addons/responsive-block-editor-addons-cta':
+					$css += Responsive_Block_Editor_Addons_Frontend_Styles::get_responsive_block_call_to_action_css( $blockattr, $block_id );
+					break;
+				case 'responsive-block-editor-addons/card':
+					$css += Responsive_Block_Editor_Addons_Frontend_Styles::get_responsive_block_card_css( $blockattr, $block_id );
+					break;
+				case 'responsive-block-editor-addons/content-timeline':
+					$css += Responsive_Block_Editor_Addons_Frontend_Styles::get_responsive_block_content_timeline_css( $blockattr, $block_id );
+					break;
+				case 'responsive-block-editor-addons/expand':
+					$css += Responsive_Block_Editor_Addons_Frontend_Styles::get_responsive_block_expand_css( $blockattr, $block_id );
+					break;
+				case 'responsive-block-editor-addons/flipbox':
+					$css += Responsive_Block_Editor_Addons_Frontend_Styles::get_responsive_block_flipbox_css( $blockattr, $block_id );
+					break;
+				case 'responsive-block-editor-addons/gallery-masonry':
+					$css += Responsive_Block_Editor_Addons_Frontend_Styles::get_responsive_block_gallery_masonry_css( $blockattr, $block_id );
+					break;
+				case 'responsive-block-editor-addons/googlemap':
+					$css += Responsive_Block_Editor_Addons_Frontend_Styles::get_responsive_block_googlemap_css( $blockattr, $block_id );
+					break;
+				case 'responsive-block-editor-addons/icons-list':
+					$css += Responsive_Block_Editor_Addons_Frontend_Styles::get_responsive_block_icon_list_css( $blockattr, $block_id );
+					break;
+				case 'responsive-block-editor-addons/icons-list-child':
+					$css += Responsive_Block_Editor_Addons_Frontend_Styles::get_responsive_block_icon_list_child_css( $blockattr, $block_id );
+					break;
+				case 'responsive-block-editor-addons/image-boxes-block':
+					$css += Responsive_Block_Editor_Addons_Frontend_Styles::get_responsive_block_image_boxes_css( $blockattr, $block_id );
+					break;
+				case 'responsive-block-editor-addons/image-slider':
+					$css += Responsive_Block_Editor_Addons_Frontend_Styles::get_responsive_block_image_slider_css( $blockattr, $block_id );
+					break;
+				case 'responsive-block-editor-addons/info-block':
+					$css += Responsive_Block_Editor_Addons_Frontend_Styles::get_responsive_block_info_block_css( $blockattr, $block_id );
+					break;
+				case 'responsive-block-editor-addons/post-timeline':
+					$css += Responsive_Block_Editor_Addons_Frontend_Styles::get_responsive_block_post_timeline_css( $blockattr, $block_id );
+					break;
+				case 'responsive-block-editor-addons/pricing-list':
+					$css += Responsive_Block_Editor_Addons_Frontend_Styles::get_responsive_block_pricing_list_css( $blockattr, $block_id );
+					break;
+				case 'responsive-block-editor-addons/pricing-table':
+					$css += Responsive_Block_Editor_Addons_Frontend_Styles::get_responsive_block_pricing_table_css( $blockattr, $block_id );
+					break;
+				case 'responsive-block-editor-addons/section':
+					$css += Responsive_Block_Editor_Addons_Frontend_Styles::get_responsive_block_section_css( $blockattr, $block_id );
+					break;
+				case 'responsive-block-editor-addons/shape-divider':
+					$css += Responsive_Block_Editor_Addons_Frontend_Styles::get_responsive_block_shape_divider_css( $blockattr, $block_id );
+					break;
+				case 'responsive-block-editor-addons/spacer':
+					$css += Responsive_Block_Editor_Addons_Frontend_Styles::get_responsive_block_spacer_css( $blockattr, $block_id );
+					break;
+				case 'responsive-block-editor-addons/team':
+					$css += Responsive_Block_Editor_Addons_Frontend_Styles::get_responsive_block_team_css( $blockattr, $block_id );
+					break;
+				case 'responsive-block-editor-addons/testimonial':
+					$css += Responsive_Block_Editor_Addons_Frontend_Styles::get_responsive_block_testimonial_css( $blockattr, $block_id );
+					break;
+				case 'responsive-block-editor-addons/testimonial-slider':
+					$css += Responsive_Block_Editor_Addons_Frontend_Styles::get_responsive_block_testimonial_slider_css( $blockattr, $block_id );
+					break;
+				case 'responsive-block-editor-addons/video-popup':
+					$css += Responsive_Block_Editor_Addons_Frontend_Styles::get_responsive_block_video_popup_css( $blockattr, $block_id );
+					break;
+				case 'responsive-block-editor-addons/count-down':
+					$css += Responsive_Block_Editor_Addons_Frontend_Styles::get_responsive_block_count_down_css( $blockattr, $block_id );
+					break;
+				case 'responsive-block-editor-addons/table-of-contents':
+					$css += Responsive_Block_Editor_Addons_Frontend_Styles::get_responsive_block_table_of_contents_css( $blockattr, $block_id );
+					Responsive_Block_Editor_Addons::$table_of_contents_flag = true;
+					break;
+				case 'responsive-block-editor-addons/how-to':
+					$css += Responsive_Block_Editor_Addons_Frontend_Styles::get_responsive_block_how_to_css( $blockattr, $block_id );
+					break;
+				case 'responsive-block-editor-addons/inline-notice':
+					$css += Responsive_Block_Editor_Addons_Frontend_Styles::get_responsive_block_inline_notice_css( $blockattr, $block_id );
+					break;
+				case 'responsive-block-editor-addons/call-mail-button':
+					$css += Responsive_Block_Editor_Addons_Frontend_Styles::get_responsive_block_call_mail_button_css( $blockattr, $block_id );
+					break;
+				case 'responsive-block-editor-addons/progress-bar':
+					$css += Responsive_Block_Editor_Addons_Frontend_Styles::get_responsive_block_progress_bar_css( $blockattr, $block_id );
+					break;
+				case 'responsive-block-editor-addons/social-icons':
+					$css += Responsive_Block_Editor_Addons_Frontend_Styles::get_responsive_block_social_icons_css( $blockattr, $block_id );
+					break;
+				case 'responsive-block-editor-addons/tabs':
+					$css += Responsive_Block_Editor_Addons_Frontend_Styles::get_responsive_block_tabs_css( $blockattr, $block_id );
+					break;
+				case 'responsive-block-editor-addons/tabs-child':
+					$css += Responsive_Block_Editor_Addons_Frontend_Styles::get_responsive_block_tabs_child_css( $blockattr, $block_id );
+					break;
+				case 'responsive-block-editor-addons/taxonomy-list':
+					$css += Responsive_Block_Editor_Addons_Frontend_Styles::get_responsive_block_taxonomy_list_css( $blockattr, $block_id );
+					break;
+				case 'responsive-block-editor-addons/wp-search':
+					$css += Responsive_Block_Editor_Addons_Frontend_Styles::get_responsive_block_wp_search_css( $blockattr, $block_id );
+					break;
+				case 'responsive-block-editor-addons/instagram':
+					$css += Responsive_Block_Editor_Addons_Frontend_Styles::get_responsive_block_instagram_css( $blockattr, $block_id );
+					break;
+				case 'responsive-block-editor-addons/advanced-text':
+					$css += Responsive_Block_Editor_Addons_Frontend_Styles::get_responsive_block_advanced_text_css( $blockattr, $block_id );
+					break;
+				case 'responsive-block-editor-addons/image-hotspot':
+					$css += Responsive_Block_Editor_Addons_Frontend_Styles::get_responsive_block_image_hotspot_css( $blockattr, $block_id );
+					break;
+				case 'responsive-block-editor-addons/feature-grid':
+					$css += Responsive_Block_Editor_Addons_Frontend_Styles::get_responsive_block_feature_grid_css( $blockattr, $block_id );
+					break;
+				case 'responsive-block-editor-addons/portfolio':
+					$css += Responsive_Block_Editor_Addons_Frontend_Styles::get_responsive_block_portfolio_css( $blockattr, $block_id );
+					break;
+				case 'responsive-block-editor-addons/contact-form-7-styler':
+					$css += Responsive_Block_Editor_Addons_Frontend_Styles::get_responsive_block_contact_form_7_styler_css( $blockattr, $block_id );
+					break;
+				case 'responsive-block-editor-addons/image':
+					$css += Responsive_Block_Editor_Addons_Frontend_Styles::get_responsive_block_image_css($blockattr,$block_id);
+					break;
+				case 'responsive-block-editor-addons/popup':
+					$css += Responsive_Block_Editor_Addons_Frontend_Styles::get_responsive_block_popup_css( $blockattr, $block_id );
+					break;
+				case 'responsive-block-editor-addons/form':
+					$css += Responsive_Block_Editor_Addons_Frontend_Styles::get_responsive_block_form_css( $blockattr, $block_id );
+					break;
+				case 'responsive-block-editor-addons/form-input':
+					$css += Responsive_Block_Editor_Addons_Frontend_Styles::get_responsive_block_form_input_css( $blockattr, $block_id );
+					break;
+				case 'responsive-block-editor-addons/container':
+					$css += Responsive_Block_Editor_Addons_Frontend_Styles::get_responsive_block_container_css( $blockattr, $block_id );
+					break;
+				default:
+					// Nothing to do here.
+					break;
+			}
+			if ( isset( $block['innerBlocks'] ) ) {
+				foreach ( $block['innerBlocks'] as $j => $inner_block ) {
+					if ( 'core/block' === $inner_block['blockName'] ) {
+						$id = ( isset( $inner_block['attrs']['ref'] ) ) ? $inner_block['attrs']['ref'] : 0;
+
+						if ( $id ) {
+							$content = get_post_field( 'post_content', $id );
+
+							$reusable_blocks = $this->parse( $content );
+
+							$css = $this->get_styles( $reusable_blocks );
+
+						}
+					} else {
+						// Get CSS for the Block.
+						$inner_block_css = $this->get_block_css( $inner_block );
+
+						$css_desktop = ( isset( $css['desktop'] ) ? $css['desktop'] : '' );
+						$css_tablet  = ( isset( $css['tablet'] ) ? $css['tablet'] : '' );
+						$css_mobile  = ( isset( $css['mobile'] ) ? $css['mobile'] : '' );
+
+						if ( isset( $inner_block_css['desktop'] ) ) {
+							$css['desktop'] = $css_desktop . $inner_block_css['desktop'];
+							$css['tablet']  = $css_tablet . $inner_block_css['tablet'];
+							$css['mobile']  = $css_mobile . $inner_block_css['mobile'];
+						}
+					}
+				}
+			}
+
+			return $css;
+
+		}
+		/**
+		 * Parse CSS into correct CSS syntax.
+		 *
+		 * @param array  $combined_selectors The combined selector array.
+		 * @param string $id The selector ID.
+		 */
+		public static function responsive_block_editor_addons_generate_all_css( $combined_selectors, $id ) {
+
+			return array(
+				'desktop' => self::responsive_block_editor_addons_generate_css( $combined_selectors['desktop'], $id ),
+				'tablet'  => self::responsive_block_editor_addons_generate_css( $combined_selectors['tablet'], $id ),
+				'mobile'  => self::responsive_block_editor_addons_generate_css( $combined_selectors['mobile'], $id ),
+			);
+		}
+
+		/**
+		 * Parse CSS into correct CSS syntax.
+		 *
+		 * @param array  $selectors The block selectors.
+		 * @param string $id The selector ID.
+		 */
+		public static function responsive_block_editor_addons_generate_css( $selectors, $id ) {
+			$styling_css = '';
+
+			if ( empty( $selectors ) ) {
+				return '';
+			}
+
+			foreach ( $selectors as $key => $value ) {
+
+				$css = '';
+				foreach ( $value as $j => $val ) {
+
+					if ( 'font-family' === $j && 'Default' === $val ) {
+						continue;
+					}
+
+					if ( ! empty( $val ) || 0 === $val ) {
+						if ( 'font-family' === $j ) {
+							$css .= $j . ': "' . $val . '";';
+						} else {
+							$css .= $j . ': ' . $val . ';';
+						}
+					}
+				}
+
+				if ( ! empty( $css ) ) {
+					$styling_css .= $id;
+					$styling_css .= $key . '{';
+					$styling_css .= $css . '}';
+				}
+			}
+
+			return $styling_css;
+		}
+	}
+
+	Responsive_Block_Editor_Addons_Frontend_Styles_Helper::get_instance();
+}
+
