@@ -91,6 +91,11 @@ function sendResponse(res, result = {}) {
     }
   }
 
+  // AWS style cookies array → set-cookie header for local server.
+  if (Array.isArray(result.cookies) && result.cookies.length) {
+    res.setHeader('set-cookie', result.cookies);
+  }
+
   const body = result.body || '';
   if (result.isBase64Encoded) {
     res.end(Buffer.from(body, 'base64'));
