@@ -15,8 +15,6 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
-import { createClient } from "@/lib/supabase/client"
-
 export function DeleteUserButton({ userId, userEmail }: { userId: string; userEmail: string }) {
   const router = useRouter()
   const [isLoading, setIsLoading] = useState(false)
@@ -24,19 +22,19 @@ export function DeleteUserButton({ userId, userEmail }: { userId: string; userEm
   const handleDelete = async () => {
     setIsLoading(true)
     try {
-      const supabase = createClient()
+      const response = await fetch(`/api/admin/users?id=${userId}`, {
+        method: "DELETE",
+      })
 
-      // Delete from admin_users table
-      const { error } = await supabase.from("admin_users").delete().eq("id", userId)
-
-      if (error) throw error
-
-      // Note: Deleting from auth.users requires admin privileges
-      // We'll just remove from admin_users, which revokes admin access
+      const result = await response.json().catch(() => ({}))
+      if (!response.ok) {
+        throw new Error(result.error || "Failed to delete user")
+      }
 
       router.refresh()
     } catch (error) {
       console.error("Error deleting user:", error)
+      alert(error instanceof Error ? error.message : "Failed to delete user")
     } finally {
       setIsLoading(false)
     }

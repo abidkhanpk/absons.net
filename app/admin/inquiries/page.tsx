@@ -25,11 +25,11 @@ export default async function InquiriesPage() {
           {inquiries.map((inquiry) => (
             <Card key={inquiry.id} className="border-border">
               <CardHeader>
-                <div className="flex items-start justify-between">
-                  <div className="space-y-1">
-                    <CardTitle className="text-xl">{inquiry.name}</CardTitle>
-                    <div className="flex flex-wrap gap-3 text-sm text-muted-foreground">
-                      <div className="flex items-center gap-1">
+                  <div className="flex items-start justify-between">
+                    <div className="space-y-1">
+                      <CardTitle className="text-xl">{inquiry.name}</CardTitle>
+                      <div className="flex flex-wrap gap-3 text-sm text-muted-foreground">
+                        <div className="flex items-center gap-1">
                         <Mail className="h-4 w-4" />
                         <span>{inquiry.email}</span>
                       </div>
@@ -48,7 +48,9 @@ export default async function InquiriesPage() {
                     </div>
                   </div>
                   <div className="flex items-center gap-2">
-                    <Badge variant={inquiry.status === "new" ? "default" : "secondary"}>{inquiry.status}</Badge>
+                    <Badge variant={inquiry.status === "deletion_requested" ? "destructive" : inquiry.status === "new" ? "default" : "secondary"}>
+                      {inquiry.status === "deletion_requested" ? "Deletion Request" : inquiry.status}
+                    </Badge>
                     <div className="flex items-center gap-1 text-sm text-muted-foreground">
                       <Calendar className="h-4 w-4" />
                       <span>{new Date(inquiry.created_at).toLocaleDateString()}</span>

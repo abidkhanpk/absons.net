@@ -39,9 +39,9 @@ export function UserForm({ user, currentUserRole }: UserFormProps) {
     setError(null)
 
     try {
-      const supabase = createClient()
-
       if (isEditing) {
+        const supabase = createClient()
+
         // Update existing user
         const { error: updateError } = await supabase
           .from("admin_users")
@@ -53,37 +53,21 @@ export function UserForm({ user, currentUserRole }: UserFormProps) {
 
         if (updateError) throw updateError
       } else {
-        // Create new user in Supabase Auth
-        const { data: authData, error: authError } = await supabase.auth.signUp({
-          email: formData.email,
-          password: formData.password,
-          options: {
-            emailRedirectTo: process.env.NEXT_PUBLIC_DEV_SUPABASE_REDIRECT_URL || window.location.origin,
-            data: {
-              full_name: formData.fullName,
-            },
-          },
-        })
-
-        if (authError) throw authError
-        if (!authData.user) throw new Error("User creation failed")
-
-        // Add user to admin_users table with role
-        const { error: adminError } = await supabase.from("admin_users").insert({
-          id: authData.user.id,
-          email: formData.email,
-          full_name: formData.fullName,
-          role: formData.role,
-        })
-
-        if (adminError) throw adminError
-
-        // Confirm the email immediately
-        await fetch("/api/admin/confirm-user", {
+        const response = await fetch("/api/admin/users", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ userId: authData.user.id }),
+          body: JSON.stringify({
+            email: formData.email,
+            password: formData.password,
+            fullName: formData.fullName,
+            role: formData.role,
+          }),
         })
+
+        const result = await response.json().catch(() => ({}))
+        if (!response.ok) {
+          throw new Error(result.error || "Failed to create user")
+        }
       }
 
       router.push("/admin/users")

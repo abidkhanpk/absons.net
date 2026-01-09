@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge"
 import Link from "next/link"
 import { Plus, Pencil } from "lucide-react"
 import { DeleteUserButton } from "@/components/admin/delete-user-button"
+import { RequestAccountDeletionButton } from "@/components/admin/request-account-deletion-button"
 
 export default async function UsersPage() {
   const supabase = await createServerClient()
@@ -94,7 +95,11 @@ export default async function UsersPage() {
                         <Pencil className="h-4 w-4" />
                       </Link>
                     </Button>
-                    {u.id !== user.id && <DeleteUserButton userId={u.id} userEmail={u.email} />}
+                    {u.id === user.id ? (
+                      <RequestAccountDeletionButton userId={u.id} userEmail={u.email} fullName={u.full_name} />
+                    ) : (
+                      <DeleteUserButton userId={u.id} userEmail={u.email} />
+                    )}
                   </TableCell>
                 </TableRow>
               ))}

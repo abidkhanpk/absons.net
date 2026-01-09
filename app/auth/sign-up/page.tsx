@@ -2,7 +2,6 @@
 
 import type React from "react"
 
-import { createClient } from "@/lib/supabase/client"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -22,37 +21,30 @@ export default function SignUpPage() {
 
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault()
-    const supabase = createClient()
     setIsLoading(true)
     setError(null)
 
     try {
-      // Sign up the user
-      const { data: authData, error: signUpError } = await supabase.auth.signUp({
-        email,
-        password,
-        options: {
-          emailRedirectTo: process.env.NEXT_PUBLIC_DEV_SUPABASE_REDIRECT_URL || `${window.location.origin}/admin`,
-        },
+      const response = await fetch("/api/admin/users", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email,
+          password,
+          fullName,
+          role: "super_admin",
+        }),
       })
 
-      if (signUpError) throw signUpError
-
-      if (authData.user) {
-        // Add user to admin_users table
-        const { error: insertError } = await supabase.from("admin_users").insert({
-          id: authData.user.id,
-          email: email,
-          full_name: fullName,
-        })
-
-        if (insertError) throw insertError
-
-        setSuccess(true)
-        setTimeout(() => {
-          router.push("/admin")
-        }, 2000)
+      const result = await response.json().catch(() => ({}))
+      if (!response.ok) {
+        throw new Error(result.error || "Failed to create account")
       }
+
+      setSuccess(true)
+      setTimeout(() => {
+        router.push("/auth/login")
+      }, 2000)
     } catch (error: unknown) {
       setError(error instanceof Error ? error.message : "An error occurred during sign up")
     } finally {
@@ -88,7 +80,7 @@ export default function SignUpPage() {
                     </svg>
                   </div>
                   <h3 className="text-lg font-semibold mb-2">Account Created Successfully!</h3>
-                  <p className="text-sm text-muted-foreground">Redirecting to admin dashboard...</p>
+                  <p className="text-sm text-muted-foreground">Redirecting to login...</p>
                 </div>
               ) : (
                 <form onSubmit={handleSignUp}>
