@@ -35,13 +35,13 @@ export default async function EditUserPage({ params }: { params: Promise<{ id: s
   }
 
   return (
-    <div className="max-w-2xl mx-auto p-6 lg:p-8 space-y-6">
+    <div className="p-6 lg:p-8 space-y-6">
       <div>
         <h1 className="text-3xl font-bold">Edit User</h1>
         <p className="text-muted-foreground mt-1">Update user information and permissions</p>
       </div>
 
-      <Card>
+      <Card className="w-full">
         <CardHeader>
           <CardTitle>User Details</CardTitle>
           <CardDescription>Modify the user's information and role</CardDescription>

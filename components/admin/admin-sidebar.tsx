@@ -17,7 +17,7 @@ import {
   Users,
   UserCircle,
 } from "lucide-react"
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import type { User } from "@supabase/supabase-js"
 
 const navItems = [
@@ -27,13 +27,23 @@ const navItems = [
   { href: "/admin/training", label: "Training", icon: GraduationCap },
   { href: "/admin/testimonials", label: "Testimonials", icon: MessageSquare },
   { href: "/admin/inquiries", label: "Inquiries", icon: Mail },
-  { href: "/admin/users", label: "Users", icon: Users },
+  { href: "/admin/users", label: "Users", icon: Users, requiresAdmin: true },
 ]
 
 export function AdminSidebar({ user }: { user: User }) {
   const pathname = usePathname()
   const router = useRouter()
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+  const [role, setRole] = useState<string | null>(null)
+
+  useEffect(() => {
+    const loadRole = async () => {
+      const supabase = createClient()
+      const { data } = await supabase.from("users").select("role").eq("id", user.id).single()
+      setRole(data?.role ?? null)
+    }
+    loadRole()
+  }, [user.id])
 
   const handleLogout = async () => {
     const supabase = createClient()
@@ -76,6 +86,7 @@ export function AdminSidebar({ user }: { user: User }) {
             {navItems.map((item) => {
               const Icon = item.icon
               const isActive = pathname === item.href
+              if (item.requiresAdmin && role === "editor") return null
               return (
                 <Link
                   key={item.href}
@@ -98,7 +109,7 @@ export function AdminSidebar({ user }: { user: User }) {
           <div className="p-4 border-t border-border space-y-3">
             <div className="px-4 py-2">
               <p className="text-sm font-medium truncate">{user.email}</p>
-              <p className="text-xs text-muted-foreground">Administrator</p>
+              <p className="text-xs text-muted-foreground">{role || "Administrator"}</p>
             </div>
             <Button variant="ghost" className="w-full justify-start" asChild>
               <Link href={`/admin/users/edit/${user.id}`}>
