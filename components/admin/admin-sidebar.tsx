@@ -1,0 +1,119 @@
+"use client"
+
+import Link from "next/link"
+import { usePathname, useRouter } from "next/navigation"
+import { Button } from "@/components/ui/button"
+import { createClient } from "@/lib/supabase/client"
+import {
+  LayoutDashboard,
+  FileText,
+  Briefcase,
+  GraduationCap,
+  MessageSquare,
+  Mail,
+  LogOut,
+  Menu,
+  X,
+  Users,
+} from "lucide-react"
+import { useState } from "react"
+import type { User } from "@supabase/supabase-js"
+
+const navItems = [
+  { href: "/admin", label: "Dashboard", icon: LayoutDashboard },
+  { href: "/admin/blog", label: "Blog Posts", icon: FileText },
+  { href: "/admin/services", label: "Services", icon: Briefcase },
+  { href: "/admin/training", label: "Training", icon: GraduationCap },
+  { href: "/admin/testimonials", label: "Testimonials", icon: MessageSquare },
+  { href: "/admin/inquiries", label: "Inquiries", icon: Mail },
+  { href: "/admin/users", label: "Users", icon: Users },
+]
+
+export function AdminSidebar({ user }: { user: User }) {
+  const pathname = usePathname()
+  const router = useRouter()
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+
+  const handleLogout = async () => {
+    const supabase = createClient()
+    await supabase.auth.signOut()
+    router.push("/auth/login")
+  }
+
+  return (
+    <>
+      {/* Mobile Menu Button */}
+      <button
+        className="lg:hidden fixed top-4 left-4 z-50 p-2 bg-background border border-border rounded-lg shadow-lg"
+        onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+      >
+        {mobileMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+      </button>
+
+      {/* Sidebar */}
+      <aside
+        className={`${
+          mobileMenuOpen ? "translate-x-0" : "-translate-x-full"
+        } lg:translate-x-0 fixed lg:static inset-y-0 left-0 z-40 w-64 bg-card border-r border-border transition-transform duration-200`}
+      >
+        <div className="flex flex-col h-full">
+          {/* Header */}
+          <div className="p-6 border-b border-border">
+            <Link href="/admin" className="flex items-center gap-2" onClick={() => setMobileMenuOpen(false)}>
+              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary text-primary-foreground font-bold text-lg">
+                AS
+              </div>
+              <div>
+                <p className="font-bold text-lg">ABSON</p>
+                <p className="text-xs text-muted-foreground">Admin CMS</p>
+              </div>
+            </Link>
+          </div>
+
+          {/* Navigation */}
+          <nav className="flex-1 p-4 space-y-2">
+            {navItems.map((item) => {
+              const Icon = item.icon
+              const isActive = pathname === item.href
+              return (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  onClick={() => setMobileMenuOpen(false)}
+                  className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${
+                    isActive
+                      ? "bg-primary text-primary-foreground"
+                      : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                  }`}
+                >
+                  <Icon className="h-5 w-5" />
+                  <span className="font-medium">{item.label}</span>
+                </Link>
+              )
+            })}
+          </nav>
+
+          {/* User Info & Logout */}
+          <div className="p-4 border-t border-border space-y-3">
+            <div className="px-4 py-2">
+              <p className="text-sm font-medium truncate">{user.email}</p>
+              <p className="text-xs text-muted-foreground">Administrator</p>
+            </div>
+            <Button variant="outline" className="w-full justify-start bg-transparent" onClick={handleLogout}>
+              <LogOut className="mr-2 h-4 w-4" />
+              Logout
+            </Button>
+          </div>
+        </div>
+      </aside>
+
+      {/* Overlay */}
+      {mobileMenuOpen && (
+        <div
+          className="lg:hidden fixed inset-0 bg-background/80 backdrop-blur-sm z-30"
+          onClick={() => setMobileMenuOpen(false)}
+        />
+      )}
+    </>
+  )
+}

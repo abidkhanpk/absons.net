@@ -1,0 +1,161 @@
+"use client"
+
+import type React from "react"
+
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { Textarea } from "@/components/ui/textarea"
+import { Card, CardContent } from "@/components/ui/card"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Switch } from "@/components/ui/switch"
+import { createClient } from "@/lib/supabase/client"
+import { useRouter } from "next/navigation"
+import { useState } from "react"
+
+type Service = {
+  id: string
+  title: string
+  description: string
+  icon: string
+  category: string
+  is_featured: boolean
+  display_order: number
+}
+
+export function ServiceForm({ service }: { service?: Service }) {
+  const router = useRouter()
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [formData, setFormData] = useState({
+    title: service?.title || "",
+    description: service?.description || "",
+    icon: service?.icon || "Package",
+    category: service?.category || "education",
+    is_featured: service?.is_featured || false,
+    display_order: service?.display_order || 0,
+  })
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setIsSubmitting(true)
+
+    const supabase = createClient()
+
+    try {
+      if (service) {
+        const { error } = await supabase.from("services").update(formData).eq("id", service.id)
+        if (error) throw error
+      } else {
+        const { error } = await supabase.from("services").insert([formData])
+        if (error) throw error
+      }
+
+      router.push("/admin/services")
+      router.refresh()
+    } catch (error) {
+      alert(error instanceof Error ? error.message : "Failed to save service")
+      setIsSubmitting(false)
+    }
+  }
+
+  return (
+    <form onSubmit={handleSubmit}>
+      <Card className="border-border">
+        <CardContent className="p-6 space-y-6">
+          <div className="space-y-2">
+            <Label htmlFor="title">
+              Title <span className="text-destructive">*</span>
+            </Label>
+            <Input
+              id="title"
+              required
+              value={formData.title}
+              onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+              placeholder="Service name"
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="description">
+              Description <span className="text-destructive">*</span>
+            </Label>
+            <Textarea
+              id="description"
+              required
+              value={formData.description}
+              onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+              placeholder="Describe the service"
+              rows={4}
+            />
+          </div>
+
+          <div className="grid md:grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="icon">Icon</Label>
+              <Select value={formData.icon} onValueChange={(value) => setFormData({ ...formData, icon: value })}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="GraduationCap">GraduationCap</SelectItem>
+                  <SelectItem value="BookOpen">BookOpen</SelectItem>
+                  <SelectItem value="School">School</SelectItem>
+                  <SelectItem value="Award">Award</SelectItem>
+                  <SelectItem value="Activity">Activity</SelectItem>
+                  <SelectItem value="Package">Package</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="category">
+                Category <span className="text-destructive">*</span>
+              </Label>
+              <Select
+                value={formData.category}
+                onValueChange={(value) => setFormData({ ...formData, category: value })}
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="education">Education</SelectItem>
+                  <SelectItem value="training">Training</SelectItem>
+                  <SelectItem value="supply">Supply</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="display_order">Display Order</Label>
+            <Input
+              id="display_order"
+              type="number"
+              value={formData.display_order}
+              onChange={(e) => setFormData({ ...formData, display_order: Number.parseInt(e.target.value) })}
+            />
+          </div>
+
+          <div className="flex items-center space-x-2">
+            <Switch
+              id="is_featured"
+              checked={formData.is_featured}
+              onCheckedChange={(checked) => setFormData({ ...formData, is_featured: checked })}
+            />
+            <Label htmlFor="is_featured">Feature this service on homepage</Label>
+          </div>
+
+          <div className="flex gap-3 pt-4">
+            <Button type="submit" disabled={isSubmitting}>
+              {isSubmitting ? "Saving..." : service ? "Update Service" : "Create Service"}
+            </Button>
+            <Button type="button" variant="outline" onClick={() => router.back()}>
+              Cancel
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+    </form>
+  )
+}
