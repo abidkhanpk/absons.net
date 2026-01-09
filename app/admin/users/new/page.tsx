@@ -21,9 +21,13 @@ export default async function NewUserPage() {
     redirect("/auth/login")
   }
 
+  if (adminUser.role !== "admin" && adminUser.role !== "super_admin") {
+    redirect("/admin")
+  }
+
   return (
-    <div className="max-w-2xl">
-      <div className="mb-6">
+    <div className="max-w-2xl mx-auto p-6 lg:p-8 space-y-6">
+      <div>
         <h1 className="text-3xl font-bold">Add New User</h1>
         <p className="text-muted-foreground mt-1">Create a new admin user account</p>
       </div>
@@ -34,7 +38,7 @@ export default async function NewUserPage() {
           <CardDescription>Enter the information for the new admin user</CardDescription>
         </CardHeader>
         <CardContent>
-          <UserForm currentUserRole={adminUser.role} />
+          <UserForm currentUserRole={adminUser.role} currentUserId={adminUser.id} />
         </CardContent>
       </Card>
     </div>

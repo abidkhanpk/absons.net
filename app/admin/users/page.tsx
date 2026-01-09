@@ -27,6 +27,10 @@ export default async function UsersPage() {
     redirect("/auth/login")
   }
 
+  if (adminUser.role !== "admin" && adminUser.role !== "super_admin") {
+    redirect("/admin")
+  }
+
   // Fetch all admin users
   const { data: users } = await supabase.from("users").select("*").order("created_at", { ascending: false })
 
@@ -45,7 +49,7 @@ export default async function UsersPage() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 p-6 lg:p-8">
       <div className="flex justify-between items-center">
         <div>
           <h1 className="text-3xl font-bold">User Management</h1>

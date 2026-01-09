@@ -15,6 +15,7 @@ import {
   Menu,
   X,
   Users,
+  UserCircle,
 } from "lucide-react"
 import { useState } from "react"
 import type { User } from "@supabase/supabase-js"
@@ -99,6 +100,12 @@ export function AdminSidebar({ user }: { user: User }) {
               <p className="text-sm font-medium truncate">{user.email}</p>
               <p className="text-xs text-muted-foreground">Administrator</p>
             </div>
+            <Button variant="ghost" className="w-full justify-start" asChild>
+              <Link href={`/admin/users/edit/${user.id}`}>
+                <UserCircle className="mr-2 h-4 w-4" />
+                My Profile
+              </Link>
+            </Button>
             <Button variant="outline" className="w-full justify-start bg-transparent" onClick={handleLogout}>
               <LogOut className="mr-2 h-4 w-4" />
               Logout

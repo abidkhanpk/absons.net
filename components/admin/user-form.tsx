@@ -8,7 +8,6 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { createClient } from "@/lib/supabase/client"
 
 interface UserFormProps {
   user?: {
@@ -18,9 +17,10 @@ interface UserFormProps {
     role: string
   }
   currentUserRole?: string
+  currentUserId?: string
 }
 
-export function UserForm({ user, currentUserRole }: UserFormProps) {
+export function UserForm({ user, currentUserRole, currentUserId }: UserFormProps) {
   const router = useRouter()
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -32,6 +32,8 @@ export function UserForm({ user, currentUserRole }: UserFormProps) {
   })
 
   const isEditing = !!user
+  const isSelf = isEditing && currentUserId === user?.id
+  const canEditRole = !isSelf && (currentUserRole === "super_admin" || currentUserRole === "admin")
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -40,18 +42,21 @@ export function UserForm({ user, currentUserRole }: UserFormProps) {
 
     try {
       if (isEditing) {
-        const supabase = createClient()
+        const response = await fetch("/api/admin/users", {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            id: user.id,
+            fullName: formData.fullName,
+            role: canEditRole ? formData.role : undefined,
+            password: isSelf && formData.password ? formData.password : undefined,
+          }),
+        })
 
-        // Update existing user
-        const { error: updateError } = await supabase
-          .from("users")
-          .update({
-            full_name: formData.fullName,
-            role: formData.role,
-          })
-          .eq("id", user.id)
-
-        if (updateError) throw updateError
+        const result = await response.json().catch(() => ({}))
+        if (!response.ok) {
+          throw new Error(result.error || "Failed to update user")
+        }
       } else {
         const response = await fetch("/api/admin/users", {
           method: "POST",
@@ -128,7 +133,11 @@ export function UserForm({ user, currentUserRole }: UserFormProps) {
 
       <div className="space-y-2">
         <Label htmlFor="role">Role</Label>
-        <Select value={formData.role} onValueChange={(value) => setFormData({ ...formData, role: value })}>
+        <Select
+          value={formData.role}
+          onValueChange={(value) => setFormData({ ...formData, role: value })}
+          disabled={!canEditRole && isEditing}
+        >
           <SelectTrigger>
             <SelectValue placeholder="Select a role" />
           </SelectTrigger>
@@ -153,9 +162,26 @@ export function UserForm({ user, currentUserRole }: UserFormProps) {
           </SelectContent>
         </Select>
         <p className="text-sm text-muted-foreground">
-          {roleDescriptions[formData.role as keyof typeof roleDescriptions]}
+          {canEditRole || !isEditing
+            ? roleDescriptions[formData.role as keyof typeof roleDescriptions]
+            : `Role: ${formData.role}`}
         </p>
       </div>
+
+      {isSelf && (
+        <div className="space-y-2">
+          <Label htmlFor="password">New Password</Label>
+          <Input
+            id="password"
+            type="password"
+            value={formData.password}
+            onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+            minLength={6}
+            placeholder="Leave blank to keep current password"
+          />
+          <p className="text-sm text-muted-foreground">Minimum 6 characters. Leave empty to keep your password.</p>
+        </div>
+      )}
 
       {error && <p className="text-sm text-destructive">{error}</p>}
 

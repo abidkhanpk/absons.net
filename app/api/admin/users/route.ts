@@ -32,7 +32,7 @@ export async function POST(request: Request) {
     }
 
     // Authorization: allow existing admins, or bootstrap first admin if none exists
-    if (hasAdmins && !requesterRole) {
+    if (hasAdmins && (!requesterRole || (requesterRole !== "admin" && requesterRole !== "super_admin"))) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
@@ -107,7 +107,7 @@ export async function DELETE(request: Request) {
     const { data: requesterRow } = await adminClient.from("users").select("role").eq("id", requester.id).single()
     const requesterRole = (requesterRow?.role as AllowedRole) || null
 
-    if (!requesterRole) {
+    if (!requesterRole || (requesterRole !== "admin" && requesterRole !== "super_admin")) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
@@ -131,6 +131,89 @@ export async function DELETE(request: Request) {
   } catch (error) {
     const message = error instanceof Error ? error.message : "Failed to delete user"
     console.error("Error deleting user:", error)
+    return NextResponse.json({ error: message }, { status: 500 })
+  }
+}
+
+export async function PUT(request: Request) {
+  try {
+    const { id, fullName, role, password }: { id?: string; fullName?: string; role?: AllowedRole; password?: string } =
+      await request.json()
+
+    if (!id || !fullName) {
+      return NextResponse.json({ error: "User id and full name are required" }, { status: 400 })
+    }
+
+    const adminClient = createAdminClient()
+    const supabase = await createServerClient()
+
+    const {
+      data: { user: requester },
+    } = await supabase.auth.getUser()
+
+    if (!requester) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+    }
+
+    const isSelf = requester.id === id
+
+    const { data: requesterRow } = await adminClient.from("users").select("role").eq("id", requester.id).single()
+    const requesterRole = (requesterRow?.role as AllowedRole) || null
+
+    if (!isSelf && (!requesterRole || (requesterRole !== "admin" && requesterRole !== "super_admin"))) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+    }
+
+    const { data: targetRow } = await adminClient.from("users").select("role").eq("id", id).single()
+    if (!targetRow) {
+      return NextResponse.json({ error: "User not found" }, { status: 404 })
+    }
+
+    const targetRole = (targetRow.role as AllowedRole) || null
+
+    const requestedRole: AllowedRole | undefined = ALLOWED_ROLES.find((r) => r === role)
+    const canChangeRole = !isSelf && requesterRole && (requesterRole === "admin" || requesterRole === "super_admin")
+    const nextRole: AllowedRole = canChangeRole && requestedRole ? requestedRole : targetRole || "editor"
+
+    if (nextRole === "super_admin" && requesterRole !== "super_admin" && !isSelf) {
+      return NextResponse.json({ error: "Only super admins can assign super admin" }, { status: 403 })
+    }
+
+    if (!isSelf && targetRole === "super_admin" && requesterRole !== "super_admin") {
+      return NextResponse.json({ error: "Only super admins can modify another super admin" }, { status: 403 })
+    }
+
+    // Update users table
+    const { error: updateError } = await adminClient
+      .from("users")
+      .update({ full_name: fullName, role: nextRole })
+      .eq("id", id)
+
+    if (updateError) {
+      return NextResponse.json({ error: updateError.message }, { status: 400 })
+    }
+
+    // Update auth profile metadata/password using admin API to avoid RLS issues
+    const adminUpdatePayload: {
+      password?: string
+      user_metadata?: { full_name: string }
+    } = {
+      user_metadata: { full_name: fullName },
+    }
+
+    if (password && isSelf) {
+      adminUpdatePayload.password = password
+    }
+
+    const { error: adminUpdateError } = await adminClient.auth.admin.updateUserById(id, adminUpdatePayload)
+    if (adminUpdateError) {
+      return NextResponse.json({ error: adminUpdateError.message }, { status: 400 })
+    }
+
+    return NextResponse.json({ success: true, role: nextRole })
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Failed to update user"
+    console.error("Error updating user:", error)
     return NextResponse.json({ error: message }, { status: 500 })
   }
 }

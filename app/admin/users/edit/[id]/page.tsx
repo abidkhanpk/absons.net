@@ -22,6 +22,11 @@ export default async function EditUserPage({ params }: { params: Promise<{ id: s
     redirect("/auth/login")
   }
 
+  const isSelf = id === user.id
+  if (!isSelf && currentAdminUser.role !== "admin" && currentAdminUser.role !== "super_admin") {
+    redirect("/admin")
+  }
+
   // Fetch the user to edit
   const { data: userToEdit, error } = await supabase.from("users").select("*").eq("id", id).single()
 
@@ -30,8 +35,8 @@ export default async function EditUserPage({ params }: { params: Promise<{ id: s
   }
 
   return (
-    <div className="max-w-2xl">
-      <div className="mb-6">
+    <div className="max-w-2xl mx-auto p-6 lg:p-8 space-y-6">
+      <div>
         <h1 className="text-3xl font-bold">Edit User</h1>
         <p className="text-muted-foreground mt-1">Update user information and permissions</p>
       </div>
@@ -42,7 +47,7 @@ export default async function EditUserPage({ params }: { params: Promise<{ id: s
           <CardDescription>Modify the user's information and role</CardDescription>
         </CardHeader>
         <CardContent>
-          <UserForm user={userToEdit} currentUserRole={currentAdminUser.role} />
+          <UserForm user={userToEdit} currentUserRole={currentAdminUser.role} currentUserId={user.id} />
         </CardContent>
       </Card>
     </div>
