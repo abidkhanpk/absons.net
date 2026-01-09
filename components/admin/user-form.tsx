@@ -44,7 +44,7 @@ export function UserForm({ user, currentUserRole }: UserFormProps) {
 
         // Update existing user
         const { error: updateError } = await supabase
-          .from("admin_users")
+          .from("users")
           .update({
             full_name: formData.fullName,
             role: formData.role,

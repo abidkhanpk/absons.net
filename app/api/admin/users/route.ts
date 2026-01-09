@@ -22,12 +22,12 @@ export async function POST(request: Request) {
       data: { user: requester },
     } = await supabase.auth.getUser()
 
-    const { count: adminCount = 0 } = await adminClient.from("admin_users").select("id", { count: "exact", head: true })
+    const { count: adminCount = 0 } = await adminClient.from("users").select("id", { count: "exact", head: true })
     const hasAdmins = adminCount > 0
 
     let requesterRole: AllowedRole | null = null
     if (requester) {
-      const { data: requesterRow } = await adminClient.from("admin_users").select("role").eq("id", requester.id).single()
+      const { data: requesterRow } = await adminClient.from("users").select("role").eq("id", requester.id).single()
       requesterRole = (requesterRow?.role as AllowedRole) || null
     }
 
@@ -61,7 +61,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "User creation failed" }, { status: 500 })
     }
 
-    const { error: adminInsertError } = await adminClient.from("admin_users").insert({
+    const { error: adminInsertError } = await adminClient.from("users").insert({
       id: userId,
       email,
       full_name: fullName,
@@ -104,14 +104,14 @@ export async function DELETE(request: Request) {
       return NextResponse.json({ error: "You cannot delete your own account" }, { status: 400 })
     }
 
-    const { data: requesterRow } = await adminClient.from("admin_users").select("role").eq("id", requester.id).single()
+    const { data: requesterRow } = await adminClient.from("users").select("role").eq("id", requester.id).single()
     const requesterRole = (requesterRow?.role as AllowedRole) || null
 
     if (!requesterRole) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
-    const { data: targetRow } = await adminClient.from("admin_users").select("role").eq("id", userId).single()
+    const { data: targetRow } = await adminClient.from("users").select("role").eq("id", userId).single()
     if (!targetRow) {
       return NextResponse.json({ error: "User not found" }, { status: 404 })
     }

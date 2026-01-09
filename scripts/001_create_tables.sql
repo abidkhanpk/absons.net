@@ -2,7 +2,7 @@
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
 -- Create admin users table (references auth.users)
-CREATE TABLE IF NOT EXISTS public.admin_users (
+CREATE TABLE IF NOT EXISTS public.users (
   id UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
   email TEXT NOT NULL,
   full_name TEXT,
@@ -10,12 +10,12 @@ CREATE TABLE IF NOT EXISTS public.admin_users (
 );
 
 -- Enable RLS
-ALTER TABLE public.admin_users ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.users ENABLE ROW LEVEL SECURITY;
 
 -- Admin users policies
 CREATE POLICY "Admins can view all admin users"
-  ON public.admin_users FOR SELECT
-  USING (auth.uid() IN (SELECT id FROM public.admin_users));
+  ON public.users FOR SELECT
+  USING (auth.uid() IN (SELECT id FROM public.users));
 
 -- Create services table
 CREATE TABLE IF NOT EXISTS public.services (
@@ -40,15 +40,15 @@ CREATE POLICY "Anyone can view services"
 
 CREATE POLICY "Admins can insert services"
   ON public.services FOR INSERT
-  WITH CHECK (auth.uid() IN (SELECT id FROM public.admin_users));
+  WITH CHECK (auth.uid() IN (SELECT id FROM public.users));
 
 CREATE POLICY "Admins can update services"
   ON public.services FOR UPDATE
-  USING (auth.uid() IN (SELECT id FROM public.admin_users));
+  USING (auth.uid() IN (SELECT id FROM public.users));
 
 CREATE POLICY "Admins can delete services"
   ON public.services FOR DELETE
-  USING (auth.uid() IN (SELECT id FROM public.admin_users));
+  USING (auth.uid() IN (SELECT id FROM public.users));
 
 -- Create blog posts table
 CREATE TABLE IF NOT EXISTS public.blog_posts (
@@ -71,19 +71,19 @@ ALTER TABLE public.blog_posts ENABLE ROW LEVEL SECURITY;
 -- Blog posts policies
 CREATE POLICY "Anyone can view published posts"
   ON public.blog_posts FOR SELECT
-  USING (published = TRUE OR auth.uid() IN (SELECT id FROM public.admin_users));
+  USING (published = TRUE OR auth.uid() IN (SELECT id FROM public.users));
 
 CREATE POLICY "Admins can insert posts"
   ON public.blog_posts FOR INSERT
-  WITH CHECK (auth.uid() IN (SELECT id FROM public.admin_users));
+  WITH CHECK (auth.uid() IN (SELECT id FROM public.users));
 
 CREATE POLICY "Admins can update posts"
   ON public.blog_posts FOR UPDATE
-  USING (auth.uid() IN (SELECT id FROM public.admin_users));
+  USING (auth.uid() IN (SELECT id FROM public.users));
 
 CREATE POLICY "Admins can delete posts"
   ON public.blog_posts FOR DELETE
-  USING (auth.uid() IN (SELECT id FROM public.admin_users));
+  USING (auth.uid() IN (SELECT id FROM public.users));
 
 -- Create training courses table
 CREATE TABLE IF NOT EXISTS public.training_courses (
@@ -106,19 +106,19 @@ ALTER TABLE public.training_courses ENABLE ROW LEVEL SECURITY;
 -- Training courses policies
 CREATE POLICY "Anyone can view active courses"
   ON public.training_courses FOR SELECT
-  USING (is_active = TRUE OR auth.uid() IN (SELECT id FROM public.admin_users));
+  USING (is_active = TRUE OR auth.uid() IN (SELECT id FROM public.users));
 
 CREATE POLICY "Admins can insert courses"
   ON public.training_courses FOR INSERT
-  WITH CHECK (auth.uid() IN (SELECT id FROM public.admin_users));
+  WITH CHECK (auth.uid() IN (SELECT id FROM public.users));
 
 CREATE POLICY "Admins can update courses"
   ON public.training_courses FOR UPDATE
-  USING (auth.uid() IN (SELECT id FROM public.admin_users));
+  USING (auth.uid() IN (SELECT id FROM public.users));
 
 CREATE POLICY "Admins can delete courses"
   ON public.training_courses FOR DELETE
-  USING (auth.uid() IN (SELECT id FROM public.admin_users));
+  USING (auth.uid() IN (SELECT id FROM public.users));
 
 -- Create testimonials table
 CREATE TABLE IF NOT EXISTS public.testimonials (
@@ -145,15 +145,15 @@ CREATE POLICY "Anyone can view testimonials"
 
 CREATE POLICY "Admins can insert testimonials"
   ON public.testimonials FOR INSERT
-  WITH CHECK (auth.uid() IN (SELECT id FROM public.admin_users));
+  WITH CHECK (auth.uid() IN (SELECT id FROM public.users));
 
 CREATE POLICY "Admins can update testimonials"
   ON public.testimonials FOR UPDATE
-  USING (auth.uid() IN (SELECT id FROM public.admin_users));
+  USING (auth.uid() IN (SELECT id FROM public.users));
 
 CREATE POLICY "Admins can delete testimonials"
   ON public.testimonials FOR DELETE
-  USING (auth.uid() IN (SELECT id FROM public.admin_users));
+  USING (auth.uid() IN (SELECT id FROM public.users));
 
 -- Create contact inquiries table
 CREATE TABLE IF NOT EXISTS public.contact_inquiries (
@@ -177,11 +177,11 @@ CREATE POLICY "Anyone can insert inquiries"
 
 CREATE POLICY "Admins can view all inquiries"
   ON public.contact_inquiries FOR SELECT
-  USING (auth.uid() IN (SELECT id FROM public.admin_users));
+  USING (auth.uid() IN (SELECT id FROM public.users));
 
 CREATE POLICY "Admins can update inquiries"
   ON public.contact_inquiries FOR UPDATE
-  USING (auth.uid() IN (SELECT id FROM public.admin_users));
+  USING (auth.uid() IN (SELECT id FROM public.users));
 
 -- Function to update updated_at timestamp
 CREATE OR REPLACE FUNCTION update_updated_at_column()

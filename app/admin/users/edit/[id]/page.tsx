@@ -16,14 +16,14 @@ export default async function EditUserPage({ params }: { params: Promise<{ id: s
   }
 
   // Check if current user is admin and get their role
-  const { data: currentAdminUser } = await supabase.from("admin_users").select("*").eq("id", user.id).single()
+  const { data: currentAdminUser } = await supabase.from("users").select("*").eq("id", user.id).single()
 
   if (!currentAdminUser) {
     redirect("/auth/login")
   }
 
   // Fetch the user to edit
-  const { data: userToEdit, error } = await supabase.from("admin_users").select("*").eq("id", id).single()
+  const { data: userToEdit, error } = await supabase.from("users").select("*").eq("id", id).single()
 
   if (error || !userToEdit) {
     notFound()

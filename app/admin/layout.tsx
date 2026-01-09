@@ -20,7 +20,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
   }
 
   // Check if user is an admin
-  const { data: adminUser } = await supabase.from("admin_users").select("*").eq("id", user.id).single()
+  const { data: adminUser } = await supabase.from("users").select("*").eq("id", user.id).single()
 
   if (!adminUser) {
     redirect("/auth/login")

@@ -1,5 +1,5 @@
 -- Drop existing policies that cause infinite recursion
-DROP POLICY IF EXISTS "Admins can view all admin users" ON public.admin_users;
+DROP POLICY IF EXISTS "Admins can view all admin users" ON public.users;
 DROP POLICY IF EXISTS "Anyone can view published posts" ON public.blog_posts;
 DROP POLICY IF EXISTS "Admins can insert posts" ON public.blog_posts;
 DROP POLICY IF EXISTS "Admins can update posts" ON public.blog_posts;
@@ -22,7 +22,7 @@ CREATE OR REPLACE FUNCTION public.is_admin(user_id UUID)
 RETURNS BOOLEAN AS $$
 BEGIN
   RETURN EXISTS (
-    SELECT 1 FROM public.admin_users
+    SELECT 1 FROM public.users
     WHERE id = user_id
   );
 END;
@@ -30,7 +30,7 @@ $$ LANGUAGE plpgsql SECURITY DEFINER;
 
 -- Admin users policies - simplified to avoid recursion
 CREATE POLICY "Authenticated users can view admin users"
-  ON public.admin_users FOR SELECT
+  ON public.users FOR SELECT
   USING (auth.role() = 'authenticated');
 
 -- Blog posts policies - using helper function

@@ -21,14 +21,14 @@ export default async function UsersPage() {
   }
 
   // Check if user is admin
-  const { data: adminUser } = await supabase.from("admin_users").select("*").eq("id", user.id).single()
+  const { data: adminUser } = await supabase.from("users").select("*").eq("id", user.id).single()
 
   if (!adminUser) {
     redirect("/auth/login")
   }
 
   // Fetch all admin users
-  const { data: users } = await supabase.from("admin_users").select("*").order("created_at", { ascending: false })
+  const { data: users } = await supabase.from("users").select("*").order("created_at", { ascending: false })
 
   // Role badge colors
   const getRoleBadge = (role: string) => {

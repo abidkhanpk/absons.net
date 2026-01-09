@@ -15,7 +15,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
-    const { data: adminUser } = await supabase.from("admin_users").select("*").eq("id", user.id).single()
+    const { data: adminUser } = await supabase.from("users").select("*").eq("id", user.id).single()
 
     if (!adminUser) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })

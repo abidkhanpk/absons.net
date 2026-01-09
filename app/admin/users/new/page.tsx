@@ -15,7 +15,7 @@ export default async function NewUserPage() {
   }
 
   // Check if user is admin and get their role
-  const { data: adminUser } = await supabase.from("admin_users").select("*").eq("id", user.id).single()
+  const { data: adminUser } = await supabase.from("users").select("*").eq("id", user.id).single()
 
   if (!adminUser) {
     redirect("/auth/login")
