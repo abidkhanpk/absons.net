@@ -1,7 +1,16 @@
 import Link from "next/link"
 import { Mail, Phone, MapPin } from "lucide-react"
+import { createClient } from "@/lib/supabase/server"
 
-export function Footer() {
+export async function Footer() {
+  const supabase = await createClient()
+  const { data } = await supabase.from("site_settings").select("*").eq("id", "site").single()
+  const settings = data || {
+    site_title: "ABSON Solutions",
+    contact_email: "info@absonsolutions.com",
+    contact_phone: "+92 XXX XXXXXXX",
+    contact_address: "Pakistan",
+  }
   return (
     <footer className="bg-muted/30 border-t border-border">
       <div className="container mx-auto px-4 lg:px-8 py-12">
@@ -9,9 +18,9 @@ export function Footer() {
           <div className="space-y-4">
             <div className="flex items-center gap-2">
               <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary text-primary-foreground font-bold text-lg">
-                AS
+                {settings.site_title?.slice(0, 2).toUpperCase() || "AS"}
               </div>
-              <span className="font-bold text-lg">ABSON Solutions</span>
+              <span className="font-bold text-lg">{settings.site_title || "ABSON Solutions"}</span>
             </div>
             <p className="text-sm text-muted-foreground leading-relaxed">
               Professional software solutions and training services for educational institutions and organizations.
@@ -93,15 +102,15 @@ export function Footer() {
             <ul className="space-y-3">
               <li className="flex items-start gap-2">
                 <Mail className="h-4 w-4 mt-1 text-muted-foreground flex-shrink-0" />
-                <span className="text-sm text-muted-foreground">info@absonsolutions.com</span>
+                <span className="text-sm text-muted-foreground">{settings.contact_email || "info@absonsolutions.com"}</span>
               </li>
               <li className="flex items-start gap-2">
                 <Phone className="h-4 w-4 mt-1 text-muted-foreground flex-shrink-0" />
-                <span className="text-sm text-muted-foreground">+92 XXX XXXXXXX</span>
+                <span className="text-sm text-muted-foreground">{settings.contact_phone || "+92 XXX XXXXXXX"}</span>
               </li>
               <li className="flex items-start gap-2">
                 <MapPin className="h-4 w-4 mt-1 text-muted-foreground flex-shrink-0" />
-                <span className="text-sm text-muted-foreground">Pakistan</span>
+                <span className="text-sm text-muted-foreground">{settings.contact_address || "Pakistan"}</span>
               </li>
             </ul>
           </div>

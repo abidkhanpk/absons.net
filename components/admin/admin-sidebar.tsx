@@ -16,6 +16,7 @@ import {
   X,
   Users,
   UserCircle,
+  Settings,
 } from "lucide-react"
 import { useEffect, useState } from "react"
 import type { User } from "@supabase/supabase-js"
@@ -27,6 +28,7 @@ const navItems = [
   { href: "/admin/training", label: "Training", icon: GraduationCap },
   { href: "/admin/testimonials", label: "Testimonials", icon: MessageSquare },
   { href: "/admin/inquiries", label: "Inquiries", icon: Mail },
+  { href: "/admin/settings", label: "Settings", icon: Settings, requiresAdmin: true },
   { href: "/admin/users", label: "Users", icon: Users, requiresAdmin: true },
 ]
 
