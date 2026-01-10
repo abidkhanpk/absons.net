@@ -2,14 +2,14 @@ import { Header } from "@/components/header"
 import { Footer } from "@/components/footer"
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
-import { createClient } from "@/lib/supabase/server"
 import { Calendar, ArrowLeft } from "lucide-react"
 import { notFound } from "next/navigation"
+import { prisma } from "@/lib/prisma"
+import { getSiteSettings } from "@/lib/site-settings"
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params
-  const supabase = await createClient()
-  const { data: post } = await supabase.from("blog_posts").select("*").eq("slug", slug).single()
+  const post = await prisma.blogPost.findUnique({ where: { slug } })
 
   if (!post) {
     return {
@@ -25,9 +25,10 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
 
 export default async function BlogPostPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params
-  const supabase = await createClient()
-
-  const { data: post } = await supabase.from("blog_posts").select("*").eq("slug", slug).eq("published", true).single()
+  const post = await prisma.blogPost.findFirst({
+    where: { slug, published: true },
+  })
+  const siteSettings = await getSiteSettings()
 
   if (!post) {
     notFound()
@@ -35,7 +36,7 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
 
   return (
     <div className="flex flex-col min-h-screen">
-      <Header />
+      <Header settings={siteSettings} />
 
       <main className="flex-1">
         <article className="py-16 bg-background">
@@ -48,10 +49,10 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
                 </Link>
               </Button>
 
-              {post.featured_image && (
+              {post.featuredImage && (
                 <div className="w-full h-96 bg-muted rounded-lg overflow-hidden mb-8">
                   <img
-                    src={post.featured_image || "/placeholder.svg"}
+                    src={post.featuredImage || "/placeholder.svg"}
                     alt={post.title}
                     className="w-full h-full object-cover"
                   />
@@ -62,7 +63,9 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
                 <h1 className="text-4xl md:text-5xl font-bold text-balance">{post.title}</h1>
                 <div className="flex items-center gap-2 text-muted-foreground">
                   <Calendar className="h-4 w-4" />
-                  <time dateTime={post.published_at}>{new Date(post.published_at).toLocaleDateString()}</time>
+                  <time dateTime={post.publishedAt ?? undefined}>
+                    {post.publishedAt ? new Date(post.publishedAt).toLocaleDateString() : ""}
+                  </time>
                 </div>
               </div>
 
@@ -72,7 +75,7 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
         </article>
       </main>
 
-      <Footer />
+      <Footer settings={siteSettings} />
     </div>
   )
 }

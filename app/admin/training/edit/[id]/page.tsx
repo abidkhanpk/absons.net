@@ -1,12 +1,15 @@
 import { TrainingForm } from "@/components/admin/training-form"
-import { createClient } from "@/lib/supabase/server"
 import { notFound } from "next/navigation"
+import { getSession } from "@/lib/auth"
+import { withRls } from "@/lib/prisma"
 
 export default async function EditTrainingPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
-  const supabase = await createClient()
 
-  const { data: course } = await supabase.from("training_courses").select("*").eq("id", id).single()
+  const session = await getSession()
+  if (!session) notFound()
+
+  const course = await withRls(session.userId, (tx) => tx.trainingCourse.findUnique({ where: { id } }))
 
   if (!course) {
     notFound()

@@ -1,10 +1,25 @@
+import { randomUUID } from "crypto"
 import { NextResponse } from "next/server"
 
-import { createServerClient } from "@/lib/supabase/server"
-import { createAdminClient } from "@/lib/supabase/admin"
+import { getSession, hashPassword } from "@/lib/auth"
+import { prisma, withRls } from "@/lib/prisma"
 
 const ALLOWED_ROLES = ["super_admin", "admin", "editor"] as const
 type AllowedRole = (typeof ALLOWED_ROLES)[number]
+
+async function getRequester() {
+  const session = await getSession()
+  if (!session) return { session: null, requesterRole: null as AllowedRole | null }
+
+  const requester = await withRls(session.userId, (tx) =>
+    tx.user.findUnique({
+      where: { id: session.userId },
+      select: { role: true },
+    }),
+  )
+
+  return { session, requesterRole: (requester?.role as AllowedRole | null) ?? null }
+}
 
 export async function POST(request: Request) {
   try {
@@ -15,64 +30,42 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Email, password, and full name are required" }, { status: 400 })
     }
 
-    const adminClient = createAdminClient()
-    const supabase = await createServerClient()
+    const totalUsers = await prisma.user.count()
+    const isBootstrap = totalUsers === 0
+    const newUserId = randomUUID()
 
-    const {
-      data: { user: requester },
-    } = await supabase.auth.getUser()
+    const { session, requesterRole } = await getRequester()
 
-    const { count: adminCount = 0 } = await adminClient.from("users").select("id", { count: "exact", head: true })
-    const hasAdmins = adminCount > 0
-
-    let requesterRole: AllowedRole | null = null
-    if (requester) {
-      const { data: requesterRow } = await adminClient.from("users").select("role").eq("id", requester.id).single()
-      requesterRole = (requesterRow?.role as AllowedRole) || null
-    }
-
-    // Authorization: allow existing admins, or bootstrap first admin if none exists
-    if (hasAdmins && (!requesterRole || (requesterRole !== "admin" && requesterRole !== "super_admin"))) {
+    if (!isBootstrap && (!session || !requesterRole || (requesterRole !== "admin" && requesterRole !== "super_admin"))) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
-    if (role === "super_admin" && requesterRole !== "super_admin" && hasAdmins) {
+    const requestedRole: AllowedRole = ALLOWED_ROLES.find((r) => r === role) ?? "admin"
+    if (!isBootstrap && requestedRole === "super_admin" && requesterRole !== "super_admin") {
       return NextResponse.json({ error: "Only super admins can create another super admin" }, { status: 403 })
     }
 
-    const requestedRole: AllowedRole = ALLOWED_ROLES.find((r) => r === role) ?? "admin"
-    const resolvedRole: AllowedRole = hasAdmins ? requestedRole : "super_admin"
+    const resolvedRole: AllowedRole = isBootstrap ? "super_admin" : requestedRole
+    const actingUserId = isBootstrap ? newUserId : session!.userId
 
-    const { data: createdUser, error: createError } = await adminClient.auth.admin.createUser({
-      email,
-      password,
-      email_confirm: true,
-      user_metadata: {
-        full_name: fullName,
-      },
-    })
-
-    if (createError) {
-      return NextResponse.json({ error: createError.message }, { status: 400 })
+    const existing = await withRls(actingUserId, (tx) => tx.user.findFirst({ where: { email } }))
+    if (existing) {
+      return NextResponse.json({ error: "User with this email already exists" }, { status: 400 })
     }
 
-    const userId = createdUser.user?.id
-    if (!userId) {
-      return NextResponse.json({ error: "User creation failed" }, { status: 500 })
-    }
+    await withRls(actingUserId, (tx) =>
+      tx.user.create({
+        data: {
+          id: newUserId,
+          email,
+          fullName,
+          role: resolvedRole,
+          passwordHash: hashPassword(password),
+        },
+      }),
+    )
 
-    const { error: adminInsertError } = await adminClient.from("users").insert({
-      id: userId,
-      email,
-      full_name: fullName,
-      role: resolvedRole,
-    })
-
-    if (adminInsertError) {
-      return NextResponse.json({ error: adminInsertError.message }, { status: 400 })
-    }
-
-    return NextResponse.json({ success: true, userId, role: resolvedRole })
+    return NextResponse.json({ success: true, userId: newUserId, role: resolvedRole })
   } catch (error) {
     const message = error instanceof Error ? error.message : "Failed to create user"
     console.error("Error creating user:", error)
@@ -89,43 +82,35 @@ export async function DELETE(request: Request) {
       return NextResponse.json({ error: "User id is required" }, { status: 400 })
     }
 
-    const adminClient = createAdminClient()
-    const supabase = await createServerClient()
-
-    const {
-      data: { user: requester },
-    } = await supabase.auth.getUser()
-
-    if (!requester) {
+    const { session, requesterRole } = await getRequester()
+    if (!session) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
-    if (requester.id === userId) {
+    if (session.userId === userId) {
       return NextResponse.json({ error: "You cannot delete your own account" }, { status: 400 })
     }
-
-    const { data: requesterRow } = await adminClient.from("users").select("role").eq("id", requester.id).single()
-    const requesterRole = (requesterRow?.role as AllowedRole) || null
 
     if (!requesterRole || (requesterRole !== "admin" && requesterRole !== "super_admin")) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
-    const { data: targetRow } = await adminClient.from("users").select("role").eq("id", userId).single()
-    if (!targetRow) {
+    const target = await withRls(session.userId, (tx) =>
+      tx.user.findUnique({
+        where: { id: userId },
+        select: { role: true },
+      }),
+    )
+
+    if (!target) {
       return NextResponse.json({ error: "User not found" }, { status: 404 })
     }
 
-    const targetRole = (targetRow.role as AllowedRole) || null
-
-    if (targetRole === "super_admin" && requesterRole !== "super_admin") {
+    if (target.role === "super_admin" && requesterRole !== "super_admin") {
       return NextResponse.json({ error: "Only super admins can remove another super admin" }, { status: 403 })
     }
 
-    const { error: deleteError } = await adminClient.auth.admin.deleteUser(userId)
-    if (deleteError) {
-      return NextResponse.json({ error: deleteError.message }, { status: 400 })
-    }
+    await withRls(session.userId, (tx) => tx.user.delete({ where: { id: userId } }))
 
     return NextResponse.json({ success: true })
   } catch (error) {
@@ -144,71 +129,68 @@ export async function PUT(request: Request) {
       return NextResponse.json({ error: "User id and full name are required" }, { status: 400 })
     }
 
-    const adminClient = createAdminClient()
-    const supabase = await createServerClient()
+    const { session } = await getRequester()
+    const sessionData = session
 
-    const {
-      data: { user: requester },
-    } = await supabase.auth.getUser()
-
-    if (!requester) {
+    if (!sessionData) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
-    const isSelf = requester.id === id
+    const requester = await withRls(sessionData.userId, (tx) =>
+      tx.user.findUnique({
+        where: { id: sessionData.userId },
+        select: { role: true },
+      }),
+    )
 
-    const { data: requesterRow } = await adminClient.from("users").select("role").eq("id", requester.id).single()
-    const requesterRole = (requesterRow?.role as AllowedRole) || null
+    const requesterRole = (requester?.role as AllowedRole | null) ?? null
+    const isSelf = sessionData.userId === id
 
     if (!isSelf && (!requesterRole || (requesterRole !== "admin" && requesterRole !== "super_admin"))) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
-    const { data: targetRow } = await adminClient.from("users").select("role").eq("id", id).single()
-    if (!targetRow) {
+    const target = await withRls(sessionData.userId, (tx) =>
+      tx.user.findUnique({
+        where: { id },
+        select: { role: true },
+      }),
+    )
+
+    if (!target) {
       return NextResponse.json({ error: "User not found" }, { status: 404 })
     }
 
-    const targetRole = (targetRow.role as AllowedRole) || null
+    if (!isSelf && target.role === "super_admin" && requesterRole !== "super_admin") {
+      return NextResponse.json({ error: "Only super admins can modify another super admin" }, { status: 403 })
+    }
 
     const requestedRole: AllowedRole | undefined = ALLOWED_ROLES.find((r) => r === role)
     const canChangeRole = !isSelf && requesterRole && (requesterRole === "admin" || requesterRole === "super_admin")
-    const nextRole: AllowedRole = canChangeRole && requestedRole ? requestedRole : targetRole || "editor"
+    const nextRole: AllowedRole = canChangeRole && requestedRole ? requestedRole : (target.role as AllowedRole)
 
     if (nextRole === "super_admin" && requesterRole !== "super_admin" && !isSelf) {
       return NextResponse.json({ error: "Only super admins can assign super admin" }, { status: 403 })
     }
 
-    if (!isSelf && targetRole === "super_admin" && requesterRole !== "super_admin") {
-      return NextResponse.json({ error: "Only super admins can modify another super admin" }, { status: 403 })
+    const dataToUpdate: { fullName?: string; role?: string; passwordHash?: string } = {
+      fullName,
     }
 
-    // Update users table
-    const { error: updateError } = await adminClient
-      .from("users")
-      .update({ full_name: fullName, role: nextRole })
-      .eq("id", id)
-
-    if (updateError) {
-      return NextResponse.json({ error: updateError.message }, { status: 400 })
+    if (canChangeRole) {
+      dataToUpdate.role = nextRole
     }
 
-    // Update auth profile metadata/password using admin API to avoid RLS issues
-    const adminUpdatePayload: {
-      password?: string
-      user_metadata?: { full_name: string }
-    } = {
-      user_metadata: { full_name: fullName },
+    if (isSelf && password) {
+      dataToUpdate.passwordHash = hashPassword(password)
     }
 
-    if (password && isSelf) {
-      adminUpdatePayload.password = password
-    }
-
-    const { error: adminUpdateError } = await adminClient.auth.admin.updateUserById(id, adminUpdatePayload)
-    if (adminUpdateError) {
-      return NextResponse.json({ error: adminUpdateError.message }, { status: 400 })
-    }
+    await withRls(sessionData.userId, (tx) =>
+      tx.user.update({
+        where: { id },
+        data: dataToUpdate,
+      }),
+    )
 
     return NextResponse.json({ success: true, role: nextRole })
   } catch (error) {

@@ -3,8 +3,9 @@ import { Footer } from "@/components/footer"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import Link from "next/link"
-import { createClient } from "@/lib/supabase/server"
 import { Calendar, Clock, ArrowRight } from "lucide-react"
+import { prisma } from "@/lib/prisma"
+import { getSiteSettings } from "@/lib/site-settings"
 
 export const metadata = {
   title: "Blog - ABSON Solutions",
@@ -12,17 +13,15 @@ export const metadata = {
 }
 
 export default async function BlogPage() {
-  const supabase = await createClient()
-
-  const { data: posts } = await supabase
-    .from("blog_posts")
-    .select("*")
-    .eq("published", true)
-    .order("published_at", { ascending: false })
+  const posts = await prisma.blogPost.findMany({
+    where: { published: true },
+    orderBy: { publishedAt: "desc" },
+  })
+  const siteSettings = await getSiteSettings()
 
   return (
     <div className="flex flex-col min-h-screen">
-      <Header />
+      <Header settings={siteSettings} />
 
       <main className="flex-1">
         {/* Hero Section */}
@@ -45,10 +44,10 @@ export default async function BlogPage() {
                 {posts.map((post) => (
                   <Card key={post.id} className="border-border hover:shadow-lg transition-shadow flex flex-col">
                     <CardContent className="p-6 space-y-4 flex flex-col flex-1">
-                      {post.featured_image && (
+                      {post.featuredImage && (
                         <div className="w-full h-48 bg-muted rounded-lg overflow-hidden">
                           <img
-                            src={post.featured_image || "/placeholder.svg"}
+                            src={post.featuredImage || "/placeholder.svg"}
                             alt={post.title}
                             className="w-full h-full object-cover"
                           />
@@ -64,7 +63,9 @@ export default async function BlogPage() {
                       <div className="flex items-center gap-4 text-sm text-muted-foreground pt-4 border-t border-border">
                         <div className="flex items-center gap-1">
                           <Calendar className="h-4 w-4" />
-                          <span>{new Date(post.published_at).toLocaleDateString()}</span>
+                          <span>
+                            {post.publishedAt ? new Date(post.publishedAt).toLocaleDateString() : ""}
+                          </span>
                         </div>
                         <div className="flex items-center gap-1">
                           <Clock className="h-4 w-4" />
@@ -90,7 +91,7 @@ export default async function BlogPage() {
         </section>
       </main>
 
-      <Footer />
+      <Footer settings={siteSettings} />
     </div>
   )
 }

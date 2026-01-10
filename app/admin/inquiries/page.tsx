@@ -1,16 +1,17 @@
-import { createClient } from "@/lib/supabase/server"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Mail, Phone, Building2, Calendar } from "lucide-react"
 import { DeleteInquiryButton } from "@/components/admin/delete-inquiry-button"
+import { getSession } from "@/lib/auth"
+import { withRls } from "@/lib/prisma"
 
 export default async function InquiriesPage() {
-  const supabase = await createClient()
+  const session = await getSession()
+  if (!session) return null
 
-  const { data: inquiries } = await supabase
-    .from("contact_inquiries")
-    .select("*")
-    .order("created_at", { ascending: false })
+  const inquiries = await withRls(session.userId, (tx) =>
+    tx.contactInquiry.findMany({ orderBy: { createdAt: "desc" } }),
+  )
 
   return (
     <div className="p-6 lg:p-8 space-y-6">
@@ -54,7 +55,7 @@ export default async function InquiriesPage() {
                     </Badge>
                     <div className="flex items-center gap-1 text-sm text-muted-foreground">
                       <Calendar className="h-4 w-4" />
-                      <span>{new Date(inquiry.created_at).toLocaleDateString()}</span>
+                      <span>{new Date(inquiry.createdAt).toLocaleDateString()}</span>
                     </div>
                     <DeleteInquiryButton inquiryId={inquiry.id} />
                   </div>

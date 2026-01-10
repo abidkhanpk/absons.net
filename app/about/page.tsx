@@ -2,16 +2,18 @@ import { Header } from "@/components/header"
 import { Footer } from "@/components/footer"
 import { Card, CardContent } from "@/components/ui/card"
 import { Target, Eye, Heart } from "lucide-react"
+import { getSiteSettings } from "@/lib/site-settings"
 
 export const metadata = {
   title: "About Us - ABSON Solutions",
   description: "Learn about ABSON Solutions and our mission to empower organizations with innovative software.",
 }
 
-export default function AboutPage() {
+export default async function AboutPage() {
+  const siteSettings = await getSiteSettings()
   return (
     <div className="flex flex-col min-h-screen">
-      <Header />
+      <Header settings={siteSettings} />
 
       <main className="flex-1">
         {/* Hero Section */}
@@ -129,7 +131,7 @@ export default function AboutPage() {
         </section>
       </main>
 
-      <Footer />
+      <Footer settings={siteSettings} />
     </div>
   )
 }

@@ -1,12 +1,15 @@
 import { BlogForm } from "@/components/admin/blog-form"
-import { createClient } from "@/lib/supabase/server"
 import { notFound } from "next/navigation"
+import { withRls } from "@/lib/prisma"
+import { getSession } from "@/lib/auth"
 
 export default async function EditBlogPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
-  const supabase = await createClient()
 
-  const { data: post } = await supabase.from("blog_posts").select("*").eq("id", id).single()
+  const session = await getSession()
+  if (!session) notFound()
+
+  const post = await withRls(session.userId, (tx) => tx.blogPost.findUnique({ where: { id } }))
 
   if (!post) {
     notFound()

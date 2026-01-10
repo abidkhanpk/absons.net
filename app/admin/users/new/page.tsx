@@ -1,27 +1,23 @@
-import { createServerClient } from "@/lib/supabase/server"
-import { redirect } from "next/navigation"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { UserForm } from "@/components/admin/user-form"
+import { redirect } from "next/navigation"
+import { getSession } from "@/lib/auth"
+import { withRls } from "@/lib/prisma"
 
 export default async function NewUserPage() {
-  const supabase = await createServerClient()
-
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
-
-  if (!user) {
+  const session = await getSession()
+  if (!session) {
     redirect("/auth/login")
   }
 
-  // Check if user is admin and get their role
-  const { data: adminUser } = await supabase.from("users").select("*").eq("id", user.id).single()
+  const adminUser = await withRls(session.userId, (tx) =>
+    tx.user.findUnique({
+      where: { id: session.userId },
+      select: { id: true, role: true },
+    }),
+  )
 
-  if (!adminUser) {
-    redirect("/auth/login")
-  }
-
-  if (adminUser.role !== "admin" && adminUser.role !== "super_admin") {
+  if (!adminUser || (adminUser.role !== "admin" && adminUser.role !== "super_admin")) {
     redirect("/admin")
   }
 

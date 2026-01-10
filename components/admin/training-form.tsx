@@ -9,7 +9,6 @@ import { Textarea } from "@/components/ui/textarea"
 import { Card, CardContent } from "@/components/ui/card"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Switch } from "@/components/ui/switch"
-import { createClient } from "@/lib/supabase/client"
 import { useRouter } from "next/navigation"
 import { useState } from "react"
 
@@ -43,15 +42,16 @@ export function TrainingForm({ course }: { course?: TrainingCourse }) {
     e.preventDefault()
     setIsSubmitting(true)
 
-    const supabase = createClient()
-
     try {
-      if (course) {
-        const { error } = await supabase.from("training_courses").update(formData).eq("id", course.id)
-        if (error) throw error
-      } else {
-        const { error } = await supabase.from("training_courses").insert([formData])
-        if (error) throw error
+      const response = await fetch("/api/admin/training", {
+        method: course ? "PUT" : "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(course ? { id: course.id, ...formData } : formData),
+      })
+
+      const result = await response.json().catch(() => ({}))
+      if (!response.ok) {
+        throw new Error(result.error || "Failed to save course")
       }
 
       router.push("/admin/training")

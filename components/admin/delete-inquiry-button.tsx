@@ -3,7 +3,6 @@
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Trash2 } from "lucide-react"
-import { createClient } from "@/lib/supabase/client"
 import {
   AlertDialog,
   AlertDialogAction,
@@ -24,13 +23,11 @@ export function DeleteInquiryButton({ inquiryId }: { inquiryId: string }) {
   const handleDelete = async () => {
     setIsDeleting(true)
     try {
-      const supabase = createClient()
-      const { error } = await supabase.from("contact_inquiries").delete().eq("id", inquiryId)
-
-      if (error) {
-        throw error
+      const response = await fetch(`/api/admin/inquiries?id=${inquiryId}`, { method: "DELETE" })
+      const result = await response.json().catch(() => ({}))
+      if (!response.ok) {
+        throw new Error(result.error || "Failed to delete inquiry")
       }
-
       router.refresh()
     } catch (err) {
       console.error("Failed to delete inquiry", err)

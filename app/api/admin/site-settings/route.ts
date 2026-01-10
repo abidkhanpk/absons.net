@@ -1,46 +1,34 @@
 import { NextResponse } from "next/server"
-import { createServerClient } from "@/lib/supabase/server"
-import { createAdminClient } from "@/lib/supabase/admin"
+import { prisma } from "@/lib/prisma"
+import { getSession } from "@/lib/auth"
 
 export async function PUT(request: Request) {
   try {
     const body = await request.json()
     const { siteTitle, logoUrl, contactEmail, contactPhone, contactAddress, navAlignment, navLoginText, logoWidth, logoHeight } = body
 
-    const supabase = await createServerClient()
-    const adminClient = createAdminClient()
+    const session = await getSession()
+    if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
 
-    const {
-      data: { user },
-    } = await supabase.auth.getUser()
-
-    if (!user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
-    }
-
-    const { data: requester } = await adminClient.from("users").select("role").eq("id", user.id).single()
+    const requester = await prisma.user.findUnique({ where: { id: session.userId } })
     if (requester?.role !== "super_admin") {
       return NextResponse.json({ error: "Only super admins can update settings" }, { status: 403 })
     }
 
-    const { error } = await adminClient
-      .from("site_settings")
-      .update({
-        site_title: siteTitle,
-        logo_url: logoUrl,
-        contact_email: contactEmail,
-        contact_phone: contactPhone,
-        contact_address: contactAddress,
-        nav_alignment: navAlignment,
-        nav_login_text: navLoginText,
-        logo_width: logoWidth,
-        logo_height: logoHeight,
-      })
-      .eq("id", "site")
-
-    if (error) {
-      return NextResponse.json({ error: error.message }, { status: 400 })
-    }
+    await prisma.siteSettings.update({
+      where: { id: "site" },
+      data: {
+        siteTitle,
+        logoUrl,
+        contactEmail,
+        contactPhone,
+        contactAddress,
+        navAlignment,
+        navLoginText,
+        logoWidth,
+        logoHeight,
+      },
+    })
 
     return NextResponse.json({ success: true })
   } catch (error) {

@@ -4,8 +4,9 @@ import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
-import { createClient } from "@/lib/supabase/server"
 import { Award, Clock, TrendingUp, CheckCircle2 } from "lucide-react"
+import { prisma } from "@/lib/prisma"
+import { getSiteSettings } from "@/lib/site-settings"
 
 export const metadata = {
   title: "Training Programs - ABSON Solutions",
@@ -13,17 +14,15 @@ export const metadata = {
 }
 
 export default async function TrainingPage() {
-  const supabase = await createClient()
-
-  const { data: courses } = await supabase
-    .from("training_courses")
-    .select("*")
-    .eq("is_active", true)
-    .order("display_order")
+  const courses = await prisma.trainingCourse.findMany({
+    where: { isActive: true },
+    orderBy: { displayOrder: "asc" },
+  })
+  const siteSettings = await getSiteSettings()
 
   return (
     <div className="flex flex-col min-h-screen">
-      <Header />
+      <Header settings={siteSettings} />
 
       <main className="flex-1">
         {/* Hero Section */}
@@ -191,7 +190,7 @@ export default async function TrainingPage() {
         </section>
       </main>
 
-      <Footer />
+      <Footer settings={siteSettings} />
     </div>
   )
 }

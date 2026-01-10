@@ -9,7 +9,6 @@ import { Textarea } from "@/components/ui/textarea"
 import { Card, CardContent } from "@/components/ui/card"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Switch } from "@/components/ui/switch"
-import { createClient } from "@/lib/supabase/client"
 import { useRouter } from "next/navigation"
 import { useState } from "react"
 
@@ -43,15 +42,16 @@ export function TestimonialForm({ testimonial }: { testimonial?: Testimonial }) 
     e.preventDefault()
     setIsSubmitting(true)
 
-    const supabase = createClient()
-
     try {
-      if (testimonial) {
-        const { error } = await supabase.from("testimonials").update(formData).eq("id", testimonial.id)
-        if (error) throw error
-      } else {
-        const { error } = await supabase.from("testimonials").insert([formData])
-        if (error) throw error
+      const response = await fetch("/api/admin/testimonials", {
+        method: testimonial ? "PUT" : "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(testimonial ? { id: testimonial.id, ...formData } : formData),
+      })
+
+      const result = await response.json().catch(() => ({}))
+      if (!response.ok) {
+        throw new Error(result.error || "Failed to save testimonial")
       }
 
       router.push("/admin/testimonials")

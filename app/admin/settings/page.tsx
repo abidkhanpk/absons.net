@@ -1,30 +1,18 @@
 import { redirect } from "next/navigation"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { SiteSettingsForm } from "@/components/admin/site-settings-form"
-import { createServerClient } from "@/lib/supabase/server"
+import { getSession } from "@/lib/auth"
+import { prisma } from "@/lib/prisma"
 
 export default async function SettingsPage() {
-  const supabase = await createServerClient()
+  const session = await getSession()
+  if (!session) redirect("/auth/login")
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
+  const currentUser = await prisma.user.findUnique({ where: { id: session.userId } })
+  if (!currentUser) redirect("/auth/login")
+  if (currentUser.role !== "super_admin") redirect("/admin")
 
-  if (!user) {
-    redirect("/auth/login")
-  }
-
-  const { data: currentUser } = await supabase.from("users").select("*").eq("id", user.id).single()
-
-  if (!currentUser) {
-    redirect("/auth/login")
-  }
-
-  if (currentUser.role !== "super_admin") {
-    redirect("/admin")
-  }
-
-  const { data: settings } = await supabase.from("site_settings").select("*").eq("id", "site").single()
+  const settings = await prisma.siteSettings.findUnique({ where: { id: "site" } })
 
   return (
     <div className="p-6 lg:p-8 space-y-6">

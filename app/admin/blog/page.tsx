@@ -1,15 +1,19 @@
-import { createClient } from "@/lib/supabase/server"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import Link from "next/link"
 import { Plus, Calendar, Edit } from "lucide-react"
 import { DeleteBlogButton } from "@/components/admin/delete-blog-button"
+import { getSession } from "@/lib/auth"
+import { withRls } from "@/lib/prisma"
 
 export default async function BlogManagementPage() {
-  const supabase = await createClient()
+  const session = await getSession()
+  if (!session) return null
 
-  const { data: posts } = await supabase.from("blog_posts").select("*").order("created_at", { ascending: false })
+  const posts = await withRls(session.userId, (tx) =>
+    tx.blogPost.findMany({ orderBy: { createdAt: "desc" } }),
+  )
 
   return (
     <div className="p-6 lg:p-8 space-y-6">
@@ -45,9 +49,9 @@ export default async function BlogManagementPage() {
                     <div className="flex items-center gap-2 text-sm text-muted-foreground">
                       <Calendar className="h-4 w-4" />
                       <span>
-                        {post.published_at
-                          ? new Date(post.published_at).toLocaleDateString()
-                          : new Date(post.created_at).toLocaleDateString()}
+                        {post.publishedAt
+                          ? new Date(post.publishedAt).toLocaleDateString()
+                          : new Date(post.createdAt).toLocaleDateString()}
                       </span>
                     </div>
                   </div>

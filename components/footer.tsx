@@ -1,36 +1,8 @@
-"use client"
-
 import Link from "next/link"
 import { Mail, Phone, MapPin } from "lucide-react"
-import { useEffect, useState } from "react"
+import type { SiteSettings } from "@/lib/site-settings"
 
-export function Footer() {
-  const [settings, setSettings] = useState({
-    site_title: "ABSON Solutions",
-    contact_email: "info@absonsolutions.com",
-    contact_phone: "+92 XXX XXXXXXX",
-    contact_address: "Pakistan",
-  })
-
-  useEffect(() => {
-    const loadSettings = async () => {
-      try {
-        const res = await fetch("/api/site-settings")
-        const json = await res.json()
-        if (json?.settings) {
-          setSettings({
-            site_title: json.settings.site_title || "ABSON Solutions",
-            contact_email: json.settings.contact_email || "info@absonsolutions.com",
-            contact_phone: json.settings.contact_phone || "+92 XXX XXXXXXX",
-            contact_address: json.settings.contact_address || "Pakistan",
-          })
-        }
-      } catch {
-        // fallback to defaults
-      }
-    }
-    loadSettings()
-  }, [])
+export function Footer({ settings }: { settings: SiteSettings }) {
   return (
     <footer className="bg-muted/30 border-t border-border">
       <div className="container mx-auto px-4 lg:px-8 py-12">
@@ -38,9 +10,9 @@ export function Footer() {
           <div className="space-y-4">
             <div className="flex items-center gap-2">
               <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary text-primary-foreground font-bold text-lg">
-                {settings.site_title?.slice(0, 2).toUpperCase() || "AS"}
+                {settings.siteTitle?.slice(0, 2).toUpperCase() || "AS"}
               </div>
-              <span className="font-bold text-lg">{settings.site_title || "ABSON Solutions"}</span>
+              <span className="font-bold text-lg">{settings.siteTitle || "ABSON Solutions"}</span>
             </div>
             <p className="text-sm text-muted-foreground leading-relaxed">
               Professional software solutions and training services for educational institutions and organizations.
@@ -122,15 +94,15 @@ export function Footer() {
             <ul className="space-y-3">
               <li className="flex items-start gap-2">
                 <Mail className="h-4 w-4 mt-1 text-muted-foreground flex-shrink-0" />
-                <span className="text-sm text-muted-foreground">{settings.contact_email || "info@absonsolutions.com"}</span>
+                <span className="text-sm text-muted-foreground">{settings.contactEmail || "info@absonsolutions.com"}</span>
               </li>
               <li className="flex items-start gap-2">
                 <Phone className="h-4 w-4 mt-1 text-muted-foreground flex-shrink-0" />
-                <span className="text-sm text-muted-foreground">{settings.contact_phone || "+92 XXX XXXXXXX"}</span>
+                <span className="text-sm text-muted-foreground">{settings.contactPhone || "+92 XXX XXXXXXX"}</span>
               </li>
               <li className="flex items-start gap-2">
                 <MapPin className="h-4 w-4 mt-1 text-muted-foreground flex-shrink-0" />
-                <span className="text-sm text-muted-foreground">{settings.contact_address || "Pakistan"}</span>
+                <span className="text-sm text-muted-foreground">{settings.contactAddress || "Pakistan"}</span>
               </li>
             </ul>
           </div>
@@ -145,3 +117,4 @@ export function Footer() {
     </footer>
   )
 }
+

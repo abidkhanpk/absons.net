@@ -3,43 +3,18 @@
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Menu, X, Lock } from "lucide-react"
-import { useEffect, useMemo, useState } from "react"
+import { useMemo, useState } from "react"
+import type { SiteSettings } from "@/lib/site-settings"
 
-export function Header() {
+type HeaderProps = {
+  settings: SiteSettings
+}
+
+export function Header({ settings }: HeaderProps) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
-  const [settings, setSettings] = useState({
-    site_title: "ABSON Solutions",
-    logo_url: "",
-    nav_alignment: "left",
-    nav_login_text: "Login",
-    logo_width: 40,
-    logo_height: 40,
-  })
-
-  useEffect(() => {
-    const loadSettings = async () => {
-      try {
-        const res = await fetch("/api/site-settings")
-        const json = await res.json()
-        if (json?.settings) {
-          setSettings({
-            site_title: json.settings.site_title || "ABSON Solutions",
-            logo_url: json.settings.logo_url || "",
-            nav_alignment: json.settings.nav_alignment || "left",
-            nav_login_text: json.settings.nav_login_text || "Login",
-            logo_width: json.settings.logo_width || 40,
-            logo_height: json.settings.logo_height || 40,
-          })
-        }
-      } catch {
-        // ignore and use defaults
-      }
-    }
-    loadSettings()
-  }, [])
 
   const navAlignmentClass = useMemo(() => {
-    switch (settings.nav_alignment) {
+    switch (settings.navAlignment) {
       case "center":
         return "justify-center"
       case "right":
@@ -47,7 +22,7 @@ export function Header() {
       default:
         return "justify-start"
     }
-  }, [settings.nav_alignment])
+  }, [settings.navAlignment])
 
   return (
     <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -55,25 +30,25 @@ export function Header() {
         <div className="flex h-16 items-center gap-6">
           <div className="flex items-center gap-2">
             <Link href="/" className="flex items-center gap-2">
-              {settings.logo_url ? (
+              {settings.logoUrl ? (
                 // eslint-disable-next-line @next/next/no-img-element
                 <img
-                  src={settings.logo_url}
-                  alt={settings.site_title}
-                  width={settings.logo_width || 40}
-                  height={settings.logo_height || 40}
+                  src={settings.logoUrl}
+                  alt={settings.siteTitle}
+                  width={settings.logoWidth || 40}
+                  height={settings.logoHeight || 40}
                   style={{
-                    width: `${settings.logo_width || 40}px`,
-                    height: `${settings.logo_height || 40}px`,
+                    width: `${settings.logoWidth || 40}px`,
+                    height: `${settings.logoHeight || 40}px`,
                   }}
                   className="rounded-lg object-contain"
                 />
               ) : (
                 <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary text-primary-foreground font-bold text-lg">
-                  {settings.site_title.slice(0, 2).toUpperCase()}
+                  {settings.siteTitle.slice(0, 2).toUpperCase()}
                 </div>
               )}
-              <span className="font-bold text-lg text-foreground">{settings.site_title}</span>
+              <span className="font-bold text-lg text-foreground">{settings.siteTitle}</span>
             </Link>
           </div>
 
@@ -125,7 +100,7 @@ export function Header() {
               className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors flex items-center gap-1"
             >
               <Lock className="h-4 w-4" />
-              {settings.nav_login_text || "Login"}
+              {settings.navLoginText || "Login"}
             </Link>
             <Button asChild size="sm">
               <Link href="/contact">Get Started</Link>
@@ -199,7 +174,7 @@ export function Header() {
                   onClick={() => setMobileMenuOpen(false)}
                 >
                   <Lock className="h-4 w-4" />
-                  {settings.nav_login_text || "Login"}
+                  {settings.navLoginText || "Login"}
                 </Link>
               </div>
             </div>

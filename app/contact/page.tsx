@@ -10,8 +10,8 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Mail, Phone, MapPin, Send } from "lucide-react"
-import { useState } from "react"
-import { createClient } from "@/lib/supabase/client"
+import { useEffect, useState } from "react"
+import type { SiteSettings } from "@/lib/site-settings"
 
 export default function ContactPage() {
   const [formData, setFormData] = useState({
@@ -24,26 +24,57 @@ export default function ContactPage() {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [submitted, setSubmitted] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [siteSettings, setSiteSettings] = useState<SiteSettings>({
+    siteTitle: "ABSON Solutions",
+    logoUrl: null,
+    navAlignment: "left",
+    navLoginText: "Login",
+    logoWidth: 40,
+    logoHeight: 40,
+    contactEmail: "info@absonsolutions.com",
+    contactPhone: "+92 XXX XXXXXXX",
+    contactAddress: "Pakistan",
+  })
+
+  useEffect(() => {
+    const loadSettings = async () => {
+      try {
+        const res = await fetch("/api/site-settings")
+        const json = await res.json()
+        if (json?.settings) {
+          setSiteSettings({
+            siteTitle: json.settings.siteTitle ?? "ABSON Solutions",
+            logoUrl: json.settings.logoUrl ?? null,
+            navAlignment: json.settings.navAlignment ?? "left",
+            navLoginText: json.settings.navLoginText ?? "Login",
+            logoWidth: json.settings.logoWidth ?? 40,
+            logoHeight: json.settings.logoHeight ?? 40,
+            contactEmail: json.settings.contactEmail ?? "info@absonsolutions.com",
+            contactPhone: json.settings.contactPhone ?? "+92 XXX XXXXXXX",
+            contactAddress: json.settings.contactAddress ?? "Pakistan",
+          })
+        }
+      } catch {
+        // use defaults
+      }
+    }
+    loadSettings()
+  }, [])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsSubmitting(true)
     setError(null)
 
-    const supabase = createClient()
-
     try {
-      const { error } = await supabase.from("contact_inquiries").insert([
-        {
-          name: formData.name,
-          email: formData.email,
-          phone: formData.phone,
-          company: formData.company,
-          message: formData.message,
-        },
-      ])
+      const response = await fetch("/api/contact", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(formData),
+      })
 
-      if (error) throw error
+      const result = await response.json().catch(() => ({}))
+      if (!response.ok) throw new Error(result.error || "Failed to submit. Please try again.")
 
       setSubmitted(true)
       setFormData({ name: "", email: "", phone: "", company: "", message: "" })
@@ -56,7 +87,7 @@ export default function ContactPage() {
 
   return (
     <div className="flex flex-col min-h-screen">
-      <Header />
+      <Header settings={siteSettings} />
 
       <main className="flex-1">
         {/* Hero Section */}
@@ -192,7 +223,7 @@ export default function ContactPage() {
                         </div>
                         <div>
                           <p className="font-medium mb-1">Email</p>
-                          <p className="text-sm text-muted-foreground">info@absonsolutions.com</p>
+                          <p className="text-sm text-muted-foreground">{siteSettings.contactEmail}</p>
                         </div>
                       </div>
 
@@ -202,7 +233,7 @@ export default function ContactPage() {
                         </div>
                         <div>
                           <p className="font-medium mb-1">Phone</p>
-                          <p className="text-sm text-muted-foreground">+92 XXX XXXXXXX</p>
+                          <p className="text-sm text-muted-foreground">{siteSettings.contactPhone}</p>
                         </div>
                       </div>
 
@@ -212,7 +243,7 @@ export default function ContactPage() {
                         </div>
                         <div>
                           <p className="font-medium mb-1">Location</p>
-                          <p className="text-sm text-muted-foreground">Pakistan</p>
+                          <p className="text-sm text-muted-foreground">{siteSettings.contactAddress}</p>
                         </div>
                       </div>
                     </div>
@@ -244,7 +275,7 @@ export default function ContactPage() {
         </section>
       </main>
 
-      <Footer />
+      <Footer settings={siteSettings} />
     </div>
   )
 }

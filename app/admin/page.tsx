@@ -1,32 +1,25 @@
-import { createClient } from "@/lib/supabase/server"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { FileText, Briefcase, GraduationCap, MessageSquare, Mail, TrendingUp } from "lucide-react"
+import { getSession } from "@/lib/auth"
+import { withRls } from "@/lib/prisma"
 
 export default async function AdminDashboard() {
-  const supabase = await createClient()
+  const session = await getSession()
+  if (!session) return null
 
-  // Fetch counts
-  const { count: blogCount } = await supabase.from("blog_posts").select("*", { count: "exact", head: true })
-
-  const { count: servicesCount } = await supabase.from("services").select("*", { count: "exact", head: true })
-
-  const { count: trainingCount } = await supabase.from("training_courses").select("*", { count: "exact", head: true })
-
-  const { count: testimonialsCount } = await supabase.from("testimonials").select("*", { count: "exact", head: true })
-
-  const { count: inquiriesCount } = await supabase.from("contact_inquiries").select("*", { count: "exact", head: true })
-
-  const { count: newInquiriesCount } = await supabase
-    .from("contact_inquiries")
-    .select("*", { count: "exact", head: true })
-    .eq("status", "new")
-
-  // Recent inquiries
-  const { data: recentInquiries } = await supabase
-    .from("contact_inquiries")
-    .select("*")
-    .order("created_at", { ascending: false })
-    .limit(5)
+  const [blogCount, servicesCount, trainingCount, testimonialsCount, inquiriesCount, newInquiriesCount, recentInquiries] =
+    await withRls(session.userId, async (tx) => {
+      const [blogs, services, training, testimonials, inquiries, newInquiries, recent] = await Promise.all([
+        tx.blogPost.count(),
+        tx.service.count(),
+        tx.trainingCourse.count(),
+        tx.testimonial.count(),
+        tx.contactInquiry.count(),
+        tx.contactInquiry.count({ where: { status: "new" } }),
+        tx.contactInquiry.findMany({ orderBy: { createdAt: "desc" }, take: 5 }),
+      ])
+      return [blogs, services, training, testimonials, inquiries, newInquiries, recent]
+    })
 
   const stats = [
     { title: "Blog Posts", value: blogCount || 0, icon: FileText, color: "text-blue-600" },
@@ -94,7 +87,7 @@ export default async function AdminDashboard() {
                     <p className="text-sm mt-2 line-clamp-2">{inquiry.message}</p>
                   </div>
                   <p className="text-xs text-muted-foreground whitespace-nowrap ml-4">
-                    {new Date(inquiry.created_at).toLocaleDateString()}
+                    {new Date(inquiry.createdAt).toLocaleDateString()}
                   </p>
                 </div>
               ))}

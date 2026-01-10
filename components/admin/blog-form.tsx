@@ -7,7 +7,6 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Card, CardContent } from "@/components/ui/card"
-import { createClient } from "@/lib/supabase/client"
 import { useRouter } from "next/navigation"
 import { useState } from "react"
 import { Switch } from "@/components/ui/switch"
@@ -21,6 +20,8 @@ type BlogPost = {
   content: string
   published: boolean
   featured_image?: string
+  featuredImage?: string
+  publishedAt?: string | null
 }
 
 export function BlogForm({ post }: { post?: BlogPost }) {
@@ -32,37 +33,29 @@ export function BlogForm({ post }: { post?: BlogPost }) {
     excerpt: post?.excerpt || "",
     content: post?.content || "",
     published: post?.published || false,
-    featured_image: post?.featured_image || "",
+    featured_image: post?.featured_image || post?.featuredImage || "",
   })
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsSubmitting(true)
 
-    const supabase = createClient()
-
     try {
-      if (post) {
-        // Update existing post
-        const { error } = await supabase
-          .from("blog_posts")
-          .update({
-            ...formData,
-            published_at: formData.published ? new Date().toISOString() : null,
-          })
-          .eq("id", post.id)
+      const response = await fetch("/api/admin/blog", {
+        method: post ? "PUT" : "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(
+          post
+            ? { id: post.id, ...formData }
+            : {
+                ...formData,
+              },
+        ),
+      })
 
-        if (error) throw error
-      } else {
-        // Create new post
-        const { error } = await supabase.from("blog_posts").insert([
-          {
-            ...formData,
-            published_at: formData.published ? new Date().toISOString() : null,
-          },
-        ])
-
-        if (error) throw error
+      const result = await response.json().catch(() => ({}))
+      if (!response.ok) {
+        throw new Error(result.error || "Failed to save post")
       }
 
       router.push("/admin/blog")

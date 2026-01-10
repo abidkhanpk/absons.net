@@ -14,7 +14,6 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
-import { createClient } from "@/lib/supabase/client"
 import { ShieldCheck } from "lucide-react"
 
 interface RequestAccountDeletionButtonProps {
@@ -34,16 +33,22 @@ export function RequestAccountDeletionButton({ userId, userEmail, fullName }: Re
     setError(null)
 
     try {
-      const supabase = createClient()
-      const { error: insertError } = await supabase.from("contact_inquiries").insert({
-        name: fullName || "Account deletion request",
-        email: userEmail,
-        company: "Admin Portal",
-        message: `Account deletion requested by ${fullName || "an admin"} (${userEmail}). User ID: ${userId}. Please remove this account.`,
-        status: "deletion_requested",
+      const response = await fetch("/api/contact", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: fullName || "Account deletion request",
+          email: userEmail,
+          company: "Admin Portal",
+          message: `Account deletion requested by ${fullName || "an admin"} (${userEmail}). User ID: ${userId}. Please remove this account.`,
+          status: "deletion_requested",
+        }),
       })
 
-      if (insertError) throw insertError
+      const result = await response.json().catch(() => ({}))
+      if (!response.ok) {
+        throw new Error(result.error || "Failed to submit request")
+      }
 
       setSubmitted(true)
       router.refresh()

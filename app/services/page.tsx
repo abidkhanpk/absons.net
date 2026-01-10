@@ -3,8 +3,9 @@ import { Footer } from "@/components/footer"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
-import { createClient } from "@/lib/supabase/server"
 import { GraduationCap, BookOpen, School, Award, Activity, Package, ArrowRight, CheckCircle2 } from "lucide-react"
+import { prisma } from "@/lib/prisma"
+import { getSiteSettings } from "@/lib/site-settings"
 
 const iconMap = {
   GraduationCap,
@@ -22,9 +23,8 @@ export const metadata = {
 }
 
 export default async function ServicesPage() {
-  const supabase = await createClient()
-
-  const { data: services } = await supabase.from("services").select("*").order("display_order")
+  const services = await prisma.service.findMany({ orderBy: { displayOrder: "asc" } })
+  const siteSettings = await getSiteSettings()
 
   const educationServices = services?.filter((s) => s.category === "education") || []
   const trainingServices = services?.filter((s) => s.category === "training") || []
@@ -32,7 +32,7 @@ export default async function ServicesPage() {
 
   return (
     <div className="flex flex-col min-h-screen">
-      <Header />
+      <Header settings={siteSettings} />
 
       <main className="flex-1">
         {/* Hero Section */}
@@ -206,7 +206,7 @@ export default async function ServicesPage() {
         </section>
       </main>
 
-      <Footer />
+      <Footer settings={siteSettings} />
     </div>
   )
 }

@@ -1,14 +1,9 @@
 import { NextResponse } from "next/server"
-import { createServerClient } from "@/lib/supabase/server"
+import { prisma } from "@/lib/prisma"
 
 export async function GET() {
   try {
-    const supabase = await createServerClient()
-    const { data, error } = await supabase.from("site_settings").select("*").eq("id", "site").single()
-
-    if (error) {
-      return NextResponse.json({ error: error.message }, { status: 500 })
-    }
+    const data = await prisma.siteSettings.findUnique({ where: { id: "site" } })
 
     return NextResponse.json({ settings: data })
   } catch (error) {

@@ -1,15 +1,19 @@
-import { createClient } from "@/lib/supabase/server"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import Link from "next/link"
 import { Plus, Edit, Clock, TrendingUp } from "lucide-react"
 import { DeleteTrainingButton } from "@/components/admin/delete-training-button"
+import { getSession } from "@/lib/auth"
+import { withRls } from "@/lib/prisma"
 
 export default async function TrainingManagementPage() {
-  const supabase = await createClient()
+  const session = await getSession()
+  if (!session) return null
 
-  const { data: courses } = await supabase.from("training_courses").select("*").order("display_order")
+  const courses = await withRls(session.userId, (tx) =>
+    tx.trainingCourse.findMany({ orderBy: { displayOrder: "asc" } }),
+  )
 
   return (
     <div className="p-6 lg:p-8 space-y-6">

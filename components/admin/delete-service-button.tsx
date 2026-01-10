@@ -2,7 +2,6 @@
 
 import { Button } from "@/components/ui/button"
 import { Trash2 } from "lucide-react"
-import { createClient } from "@/lib/supabase/client"
 import { useRouter } from "next/navigation"
 import { useState } from "react"
 
@@ -14,15 +13,16 @@ export function DeleteServiceButton({ serviceId }: { serviceId: string }) {
     if (!confirm("Are you sure you want to delete this service?")) return
 
     setIsDeleting(true)
-    const supabase = createClient()
-
-    const { error } = await supabase.from("services").delete().eq("id", serviceId)
-
-    if (error) {
-      alert("Failed to delete service")
-      setIsDeleting(false)
-    } else {
+    try {
+      const response = await fetch(`/api/admin/services?id=${serviceId}`, { method: "DELETE" })
+      const result = await response.json().catch(() => ({}))
+      if (!response.ok) {
+        throw new Error(result.error || "Failed to delete service")
+      }
       router.refresh()
+    } catch (error) {
+      alert(error instanceof Error ? error.message : "Failed to delete service")
+      setIsDeleting(false)
     }
   }
 

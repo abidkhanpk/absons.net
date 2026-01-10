@@ -2,7 +2,6 @@
 
 import { Button } from "@/components/ui/button"
 import { Trash2 } from "lucide-react"
-import { createClient } from "@/lib/supabase/client"
 import { useRouter } from "next/navigation"
 import { useState } from "react"
 
@@ -14,15 +13,16 @@ export function DeleteTestimonialButton({ testimonialId }: { testimonialId: stri
     if (!confirm("Are you sure you want to delete this testimonial?")) return
 
     setIsDeleting(true)
-    const supabase = createClient()
-
-    const { error } = await supabase.from("testimonials").delete().eq("id", testimonialId)
-
-    if (error) {
-      alert("Failed to delete testimonial")
-      setIsDeleting(false)
-    } else {
+    try {
+      const response = await fetch(`/api/admin/testimonials?id=${testimonialId}`, { method: "DELETE" })
+      const result = await response.json().catch(() => ({}))
+      if (!response.ok) {
+        throw new Error(result.error || "Failed to delete testimonial")
+      }
       router.refresh()
+    } catch (error) {
+      alert(error instanceof Error ? error.message : "Failed to delete testimonial")
+      setIsDeleting(false)
     }
   }
 

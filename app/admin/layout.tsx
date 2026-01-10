@@ -1,6 +1,7 @@
 import type React from "react"
 import { redirect } from "next/navigation"
-import { createClient } from "@/lib/supabase/server"
+import { getSession } from "@/lib/auth"
+import { withRls } from "@/lib/prisma"
 import { AdminSidebar } from "@/components/admin/admin-sidebar"
 
 export const metadata = {
@@ -9,26 +10,17 @@ export const metadata = {
 }
 
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
-  const supabase = await createClient()
+  const session = await getSession()
+  if (!session) redirect("/auth/login")
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
-
-  if (!user) {
-    redirect("/auth/login")
-  }
-
-  // Check if user is an admin
-  const { data: adminUser } = await supabase.from("users").select("*").eq("id", user.id).single()
-
-  if (!adminUser) {
-    redirect("/auth/login")
-  }
+  const adminUser = await withRls(session.userId, (db) =>
+    db.user.findFirst({ where: { id: session.userId, role: { in: ["admin", "super_admin"] } } }),
+  )
+  if (!adminUser) redirect("/auth/login")
 
   return (
     <div className="flex min-h-screen">
-      <AdminSidebar user={user} />
+      <AdminSidebar user={{ id: adminUser.id, email: adminUser.email }} />
       <main className="flex-1 bg-muted/30">{children}</main>
     </div>
   )

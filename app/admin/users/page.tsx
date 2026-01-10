@@ -1,5 +1,3 @@
-import { createServerClient } from "@/lib/supabase/server"
-import { redirect } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
@@ -8,31 +6,32 @@ import Link from "next/link"
 import { Plus, Pencil } from "lucide-react"
 import { DeleteUserButton } from "@/components/admin/delete-user-button"
 import { RequestAccountDeletionButton } from "@/components/admin/request-account-deletion-button"
+import { redirect } from "next/navigation"
+import { getSession } from "@/lib/auth"
+import { withRls } from "@/lib/prisma"
 
 export default async function UsersPage() {
-  const supabase = await createServerClient()
-
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
-
-  if (!user) {
+  const session = await getSession()
+  if (!session) {
     redirect("/auth/login")
   }
 
-  // Check if user is admin
-  const { data: adminUser } = await supabase.from("users").select("*").eq("id", user.id).single()
+  const adminUser = await withRls(session.userId, (tx) =>
+    tx.user.findUnique({
+      where: { id: session.userId },
+      select: { id: true, role: true },
+    }),
+  )
 
-  if (!adminUser) {
-    redirect("/auth/login")
-  }
-
-  if (adminUser.role !== "admin" && adminUser.role !== "super_admin") {
+  if (!adminUser || (adminUser.role !== "admin" && adminUser.role !== "super_admin")) {
     redirect("/admin")
   }
 
-  // Fetch all admin users
-  const { data: users } = await supabase.from("users").select("*").order("created_at", { ascending: false })
+  const users = await withRls(session.userId, (tx) =>
+    tx.user.findMany({
+      orderBy: { createdAt: "desc" },
+    }),
+  )
 
   // Role badge colors
   const getRoleBadge = (role: string) => {
@@ -83,8 +82,8 @@ export default async function UsersPage() {
               {users?.map((u) => (
                 <TableRow key={u.id}>
                   <TableCell className="font-medium">
-                    {u.full_name || "N/A"}
-                    {u.id === user.id && (
+                    {u.fullName || "N/A"}
+                    {u.id === session.userId && (
                       <Badge variant="outline" className="ml-2">
                         You
                       </Badge>
@@ -92,15 +91,15 @@ export default async function UsersPage() {
                   </TableCell>
                   <TableCell>{u.email}</TableCell>
                   <TableCell>{getRoleBadge(u.role)}</TableCell>
-                  <TableCell>{new Date(u.created_at).toLocaleDateString()}</TableCell>
+                  <TableCell>{new Date(u.createdAt).toLocaleDateString()}</TableCell>
                   <TableCell className="text-right space-x-2">
                     <Button asChild variant="ghost" size="sm">
                       <Link href={`/admin/users/edit/${u.id}`}>
                         <Pencil className="h-4 w-4" />
                       </Link>
                     </Button>
-                    {u.id === user.id ? (
-                      <RequestAccountDeletionButton userId={u.id} userEmail={u.email} fullName={u.full_name} />
+                    {u.id === session.userId ? (
+                      <RequestAccountDeletionButton userId={u.id} userEmail={u.email} fullName={u.fullName ?? undefined} />
                     ) : (
                       <DeleteUserButton userId={u.id} userEmail={u.email} />
                     )}

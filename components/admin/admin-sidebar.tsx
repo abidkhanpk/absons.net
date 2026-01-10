@@ -3,7 +3,6 @@
 import Link from "next/link"
 import { usePathname, useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
-import { createClient } from "@/lib/supabase/client"
 import {
   LayoutDashboard,
   FileText,
@@ -19,7 +18,6 @@ import {
   Settings,
 } from "lucide-react"
 import { useEffect, useState } from "react"
-import type { User } from "@supabase/supabase-js"
 
 const navItems = [
   { href: "/admin", label: "Dashboard", icon: LayoutDashboard },
@@ -32,7 +30,7 @@ const navItems = [
   { href: "/admin/users", label: "Users", icon: Users, requiresAdmin: true },
 ]
 
-export function AdminSidebar({ user }: { user: User }) {
+export function AdminSidebar({ user }: { user: { id: string; email: string } }) {
   const pathname = usePathname()
   const router = useRouter()
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
@@ -40,16 +38,19 @@ export function AdminSidebar({ user }: { user: User }) {
 
   useEffect(() => {
     const loadRole = async () => {
-      const supabase = createClient()
-      const { data } = await supabase.from("users").select("role").eq("id", user.id).single()
-      setRole(data?.role ?? null)
+      try {
+        const res = await fetch("/api/auth/me")
+        const json = await res.json()
+        setRole(json?.user?.role ?? null)
+      } catch {
+        setRole(null)
+      }
     }
     loadRole()
   }, [user.id])
 
   const handleLogout = async () => {
-    const supabase = createClient()
-    await supabase.auth.signOut()
+    await fetch("/api/auth/logout", { method: "POST" })
     router.push("/auth/login")
   }
 

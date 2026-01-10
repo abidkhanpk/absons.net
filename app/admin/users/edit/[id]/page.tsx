@@ -1,36 +1,39 @@
-import { createServerClient } from "@/lib/supabase/server"
-import { redirect, notFound } from "next/navigation"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { UserForm } from "@/components/admin/user-form"
+import { redirect, notFound } from "next/navigation"
+import { getSession } from "@/lib/auth"
+import { withRls } from "@/lib/prisma"
 
 export default async function EditUserPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
-  const supabase = await createServerClient()
-
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
-
-  if (!user) {
+  const session = await getSession()
+  if (!session) {
     redirect("/auth/login")
   }
 
-  // Check if current user is admin and get their role
-  const { data: currentAdminUser } = await supabase.from("users").select("*").eq("id", user.id).single()
+  const currentAdminUser = await withRls(session.userId, (tx) =>
+    tx.user.findUnique({
+      where: { id: session.userId },
+      select: { id: true, role: true },
+    }),
+  )
 
   if (!currentAdminUser) {
     redirect("/auth/login")
   }
 
-  const isSelf = id === user.id
+  const isSelf = id === session.userId
   if (!isSelf && currentAdminUser.role !== "admin" && currentAdminUser.role !== "super_admin") {
     redirect("/admin")
   }
 
-  // Fetch the user to edit
-  const { data: userToEdit, error } = await supabase.from("users").select("*").eq("id", id).single()
+  const userToEdit = await withRls(session.userId, (tx) =>
+    tx.user.findUnique({
+      where: { id },
+    }),
+  )
 
-  if (error || !userToEdit) {
+  if (!userToEdit) {
     notFound()
   }
 
@@ -47,7 +50,14 @@ export default async function EditUserPage({ params }: { params: Promise<{ id: s
           <CardDescription>Modify the user's information and role</CardDescription>
         </CardHeader>
         <CardContent>
-          <UserForm user={userToEdit} currentUserRole={currentAdminUser.role} currentUserId={user.id} />
+          <UserForm
+            user={{
+              ...userToEdit,
+              full_name: userToEdit.fullName ?? "",
+            }}
+            currentUserRole={currentAdminUser.role}
+            currentUserId={session.userId}
+          />
         </CardContent>
       </Card>
     </div>

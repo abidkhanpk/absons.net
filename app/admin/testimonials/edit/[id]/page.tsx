@@ -1,12 +1,14 @@
 import { TestimonialForm } from "@/components/admin/testimonial-form"
-import { createClient } from "@/lib/supabase/server"
 import { notFound } from "next/navigation"
+import { getSession } from "@/lib/auth"
+import { withRls } from "@/lib/prisma"
 
 export default async function EditTestimonialPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
-  const supabase = await createClient()
+  const session = await getSession()
+  if (!session) notFound()
 
-  const { data: testimonial } = await supabase.from("testimonials").select("*").eq("id", id).single()
+  const testimonial = await withRls(session.userId, (tx) => tx.testimonial.findUnique({ where: { id } }))
 
   if (!testimonial) {
     notFound()

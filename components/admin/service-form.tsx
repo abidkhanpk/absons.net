@@ -9,7 +9,6 @@ import { Textarea } from "@/components/ui/textarea"
 import { Card, CardContent } from "@/components/ui/card"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Switch } from "@/components/ui/switch"
-import { createClient } from "@/lib/supabase/client"
 import { useRouter } from "next/navigation"
 import { useState } from "react"
 
@@ -19,8 +18,8 @@ type Service = {
   description: string
   icon: string
   category: string
-  is_featured: boolean
-  display_order: number
+  isFeatured: boolean
+  displayOrder: number
 }
 
 export function ServiceForm({ service }: { service?: Service }) {
@@ -31,23 +30,24 @@ export function ServiceForm({ service }: { service?: Service }) {
     description: service?.description || "",
     icon: service?.icon || "Package",
     category: service?.category || "education",
-    is_featured: service?.is_featured || false,
-    display_order: service?.display_order || 0,
+    is_featured: service?.isFeatured || false,
+    display_order: service?.displayOrder || 0,
   })
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsSubmitting(true)
 
-    const supabase = createClient()
-
     try {
-      if (service) {
-        const { error } = await supabase.from("services").update(formData).eq("id", service.id)
-        if (error) throw error
-      } else {
-        const { error } = await supabase.from("services").insert([formData])
-        if (error) throw error
+      const response = await fetch("/api/admin/services", {
+        method: service ? "PUT" : "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(service ? { id: service.id, ...formData } : formData),
+      })
+
+      const result = await response.json().catch(() => ({}))
+      if (!response.ok) {
+        throw new Error(result.error || "Failed to save service")
       }
 
       router.push("/admin/services")

@@ -1,12 +1,15 @@
 import { ServiceForm } from "@/components/admin/service-form"
-import { createClient } from "@/lib/supabase/server"
 import { notFound } from "next/navigation"
+import { withRls } from "@/lib/prisma"
+import { getSession } from "@/lib/auth"
 
 export default async function EditServicePage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
-  const supabase = await createClient()
 
-  const { data: service } = await supabase.from("services").select("*").eq("id", id).single()
+  const session = await getSession()
+  if (!session) notFound()
+
+  const service = await withRls(session.userId, (tx) => tx.service.findUnique({ where: { id } }))
 
   if (!service) {
     notFound()

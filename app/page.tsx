@@ -3,8 +3,9 @@ import { Footer } from "@/components/footer"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import Link from "next/link"
-import { createClient } from "@/lib/supabase/server"
 import { GraduationCap, BookOpen, School, Award, Activity, Package, ArrowRight, CheckCircle2, Star } from "lucide-react"
+import { prisma } from "@/lib/prisma"
+import { getSiteSettings } from "@/lib/site-settings"
 
 const iconMap = {
   GraduationCap,
@@ -16,22 +17,21 @@ const iconMap = {
 }
 
 export default async function HomePage() {
-  const supabase = await createClient()
+  const services = await prisma.service.findMany({
+    where: { isFeatured: true },
+    orderBy: { displayOrder: "asc" },
+    take: 3,
+  })
 
-  // Fetch featured services
-  const { data: services } = await supabase
-    .from("services")
-    .select("*")
-    .eq("is_featured", true)
-    .order("display_order")
-    .limit(3)
-
-  // Fetch testimonials
-  const { data: testimonials } = await supabase.from("testimonials").select("*").eq("is_featured", true).limit(3)
+  const testimonials = await prisma.testimonial.findMany({
+    where: { isFeatured: true },
+    take: 3,
+  })
+  const siteSettings = await getSiteSettings()
 
   return (
     <div className="flex flex-col min-h-screen">
-      <Header />
+      <Header settings={siteSettings} />
 
       <main className="flex-1">
         {/* Hero Section */}
@@ -184,10 +184,10 @@ export default async function HomePage() {
                       </div>
                       <p className="text-muted-foreground leading-relaxed italic">"{testimonial.content}"</p>
                       <div>
-                        <p className="font-semibold">{testimonial.client_name}</p>
+                        <p className="font-semibold">{testimonial.clientName}</p>
                         <p className="text-sm text-muted-foreground">
-                          {testimonial.client_position}
-                          {testimonial.client_company && `, ${testimonial.client_company}`}
+                          {testimonial.clientPosition}
+                          {testimonial.clientCompany && `, ${testimonial.clientCompany}`}
                         </p>
                       </div>
                     </CardContent>
@@ -218,7 +218,7 @@ export default async function HomePage() {
         </section>
       </main>
 
-      <Footer />
+      <Footer settings={siteSettings} />
     </div>
   )
 }

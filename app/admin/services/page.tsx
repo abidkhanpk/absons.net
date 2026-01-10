@@ -1,15 +1,20 @@
-import { createClient } from "@/lib/supabase/server"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import Link from "next/link"
 import { Plus, Edit } from "lucide-react"
 import { DeleteServiceButton } from "@/components/admin/delete-service-button"
+import { getSession } from "@/lib/auth"
+import { withRls } from "@/lib/prisma"
 
 export default async function ServicesManagementPage() {
-  const supabase = await createClient()
-
-  const { data: services } = await supabase.from("services").select("*").order("display_order")
+  const session = await getSession()
+  if (!session) {
+    return null
+  }
+  const services = await withRls(session.userId, (tx) =>
+    tx.service.findMany({ orderBy: { displayOrder: "asc" } }),
+  )
 
   return (
     <div className="p-6 lg:p-8 space-y-6">
@@ -37,11 +42,11 @@ export default async function ServicesManagementPage() {
                   <div className="flex-1 space-y-2">
                     <div className="flex items-center gap-2">
                       <h3 className="text-xl font-semibold">{service.title}</h3>
-                      {service.is_featured && <Badge>Featured</Badge>}
+                      {service.isFeatured && <Badge>Featured</Badge>}
                       <Badge variant="outline">{service.category}</Badge>
                     </div>
                     <p className="text-muted-foreground line-clamp-2">{service.description}</p>
-                    <p className="text-sm text-muted-foreground">Display Order: {service.display_order}</p>
+                    <p className="text-sm text-muted-foreground">Display Order: {service.displayOrder}</p>
                   </div>
                   <div className="flex items-center gap-2">
                     <Button asChild variant="outline" size="sm">
