@@ -14,6 +14,8 @@ type SiteSettings = {
   contact_address: string | null
   nav_alignment: "left" | "center" | "right"
   nav_login_text: string
+  logo_width?: number | null
+  logo_height?: number | null
 }
 
 export function SiteSettingsForm({ initial }: { initial: SiteSettings }) {
@@ -25,6 +27,8 @@ export function SiteSettingsForm({ initial }: { initial: SiteSettings }) {
     contactAddress: initial.contact_address || "",
     navAlignment: (initial.nav_alignment as "left" | "center" | "right") || "left",
     navLoginText: initial.nav_login_text || "Login",
+    logoWidth: initial.logo_width || 40,
+    logoHeight: initial.logo_height || 40,
   })
   const [isSaving, setIsSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -37,11 +41,11 @@ export function SiteSettingsForm({ initial }: { initial: SiteSettings }) {
     setSuccess(false)
 
     try {
-      const response = await fetch("/api/admin/site-settings", {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(formData),
-      })
+    const response = await fetch("/api/admin/site-settings", {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(formData),
+    })
 
       const result = await response.json().catch(() => ({}))
       if (!response.ok) {
@@ -75,6 +79,31 @@ export function SiteSettingsForm({ initial }: { initial: SiteSettings }) {
             value={formData.logoUrl}
             onChange={(e) => setFormData({ ...formData, logoUrl: e.target.value })}
             placeholder="https://example.com/logo.png"
+          />
+        </div>
+      </div>
+
+      <div className="grid gap-4 md:grid-cols-2">
+        <div className="space-y-2">
+          <Label htmlFor="logoWidth">Logo Width (px)</Label>
+          <Input
+            id="logoWidth"
+            type="number"
+            min={16}
+            max={512}
+            value={formData.logoWidth}
+            onChange={(e) => setFormData({ ...formData, logoWidth: Number(e.target.value) })}
+          />
+        </div>
+        <div className="space-y-2">
+          <Label htmlFor="logoHeight">Logo Height (px)</Label>
+          <Input
+            id="logoHeight"
+            type="number"
+            min={16}
+            max={512}
+            value={formData.logoHeight}
+            onChange={(e) => setFormData({ ...formData, logoHeight: Number(e.target.value) })}
           />
         </div>
       </div>

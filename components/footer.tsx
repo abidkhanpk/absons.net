@@ -1,16 +1,36 @@
+"use client"
+
 import Link from "next/link"
 import { Mail, Phone, MapPin } from "lucide-react"
-import { createClient } from "@/lib/supabase/server"
+import { useEffect, useState } from "react"
 
-export async function Footer() {
-  const supabase = await createClient()
-  const { data } = await supabase.from("site_settings").select("*").eq("id", "site").single()
-  const settings = data || {
+export function Footer() {
+  const [settings, setSettings] = useState({
     site_title: "ABSON Solutions",
     contact_email: "info@absonsolutions.com",
     contact_phone: "+92 XXX XXXXXXX",
     contact_address: "Pakistan",
-  }
+  })
+
+  useEffect(() => {
+    const loadSettings = async () => {
+      try {
+        const res = await fetch("/api/site-settings")
+        const json = await res.json()
+        if (json?.settings) {
+          setSettings({
+            site_title: json.settings.site_title || "ABSON Solutions",
+            contact_email: json.settings.contact_email || "info@absonsolutions.com",
+            contact_phone: json.settings.contact_phone || "+92 XXX XXXXXXX",
+            contact_address: json.settings.contact_address || "Pakistan",
+          })
+        }
+      } catch {
+        // fallback to defaults
+      }
+    }
+    loadSettings()
+  }, [])
   return (
     <footer className="bg-muted/30 border-t border-border">
       <div className="container mx-auto px-4 lg:px-8 py-12">

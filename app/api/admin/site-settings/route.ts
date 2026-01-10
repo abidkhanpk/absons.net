@@ -5,7 +5,7 @@ import { createAdminClient } from "@/lib/supabase/admin"
 export async function PUT(request: Request) {
   try {
     const body = await request.json()
-    const { siteTitle, logoUrl, contactEmail, contactPhone, contactAddress, navAlignment, navLoginText } = body
+    const { siteTitle, logoUrl, contactEmail, contactPhone, contactAddress, navAlignment, navLoginText, logoWidth, logoHeight } = body
 
     const supabase = await createServerClient()
     const adminClient = createAdminClient()
@@ -33,6 +33,8 @@ export async function PUT(request: Request) {
         contact_address: contactAddress,
         nav_alignment: navAlignment,
         nav_login_text: navLoginText,
+        logo_width: logoWidth,
+        logo_height: logoHeight,
       })
       .eq("id", "site")
 

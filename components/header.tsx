@@ -12,6 +12,8 @@ export function Header() {
     logo_url: "",
     nav_alignment: "left",
     nav_login_text: "Login",
+    logo_width: 40,
+    logo_height: 40,
   })
 
   useEffect(() => {
@@ -25,6 +27,8 @@ export function Header() {
             logo_url: json.settings.logo_url || "",
             nav_alignment: json.settings.nav_alignment || "left",
             nav_login_text: json.settings.nav_login_text || "Login",
+            logo_width: json.settings.logo_width || 40,
+            logo_height: json.settings.logo_height || 40,
           })
         }
       } catch {
@@ -53,7 +57,17 @@ export function Header() {
             <Link href="/" className="flex items-center gap-2">
               {settings.logo_url ? (
                 // eslint-disable-next-line @next/next/no-img-element
-                <img src={settings.logo_url} alt={settings.site_title} className="h-10 w-10 rounded-lg object-cover" />
+                <img
+                  src={settings.logo_url}
+                  alt={settings.site_title}
+                  width={settings.logo_width || 40}
+                  height={settings.logo_height || 40}
+                  style={{
+                    width: `${settings.logo_width || 40}px`,
+                    height: `${settings.logo_height || 40}px`,
+                  }}
+                  className="rounded-lg object-contain"
+                />
               ) : (
                 <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary text-primary-foreground font-bold text-lg">
                   {settings.site_title.slice(0, 2).toUpperCase()}
