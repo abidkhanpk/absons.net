@@ -72,6 +72,7 @@ export function SiteSettingsForm({ initial }: { initial: SiteSettings }) {
     try {
       const formDataUpload = new FormData()
       formDataUpload.append("file", file)
+      formDataUpload.append("kind", target === "faviconUrl" ? "favicon" : "logo")
       const res = await fetch("/api/admin/site-settings/upload", {
         method: "POST",
         body: formDataUpload,
