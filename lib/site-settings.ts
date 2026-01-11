@@ -14,7 +14,7 @@ export type SiteSettings = {
 
 const defaultSettings: SiteSettings = {
   siteTitle: "ABSON Solutions",
-  logoUrl: null,
+  logoUrl: "/uploads/default-logo.png",
   navAlignment: "left",
   navLoginText: "Login",
   logoWidth: 40,
@@ -30,7 +30,7 @@ export async function getSiteSettings(): Promise<SiteSettings> {
 
   return {
     siteTitle: settings.siteTitle ?? defaultSettings.siteTitle,
-    logoUrl: settings.logoUrl,
+    logoUrl: settings.logoUrl || defaultSettings.logoUrl,
     navAlignment: settings.navAlignment ?? defaultSettings.navAlignment,
     navLoginText: settings.navLoginText ?? defaultSettings.navLoginText,
     logoWidth: settings.logoWidth ?? defaultSettings.logoWidth,
@@ -40,4 +40,3 @@ export async function getSiteSettings(): Promise<SiteSettings> {
     contactAddress: settings.contactAddress ?? defaultSettings.contactAddress,
   }
 }
-

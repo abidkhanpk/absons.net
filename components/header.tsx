@@ -12,6 +12,7 @@ type HeaderProps = {
 
 export function Header({ settings }: HeaderProps) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+  const [logoFailed, setLogoFailed] = useState(false)
 
   const navAlignmentClass = useMemo(() => {
     switch (settings.navAlignment) {
@@ -30,7 +31,7 @@ export function Header({ settings }: HeaderProps) {
         <div className="flex h-16 items-center gap-6">
           <div className="flex items-center gap-2">
             <Link href="/" className="flex items-center gap-2">
-              {settings.logoUrl ? (
+              {settings.logoUrl && !logoFailed ? (
                 // eslint-disable-next-line @next/next/no-img-element
                 <img
                   src={settings.logoUrl}
@@ -42,6 +43,7 @@ export function Header({ settings }: HeaderProps) {
                     height: `${settings.logoHeight || 40}px`,
                   }}
                   className="rounded-lg object-contain"
+                  onError={() => setLogoFailed(true)}
                 />
               ) : (
                 <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary text-primary-foreground font-bold text-lg">
