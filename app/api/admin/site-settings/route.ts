@@ -5,7 +5,18 @@ import { getSession } from "@/lib/auth"
 export async function PUT(request: Request) {
   try {
     const body = await request.json()
-    const { siteTitle, logoUrl, contactEmail, contactPhone, contactAddress, navAlignment, navLoginText, logoWidth, logoHeight } = body
+    const {
+      siteTitle,
+      logoUrl,
+      faviconUrl,
+      contactEmail,
+      contactPhone,
+      contactAddress,
+      navAlignment,
+      navLoginText,
+      logoWidth,
+      logoHeight,
+    } = body
 
     const session = await getSession()
     if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
@@ -20,6 +31,7 @@ export async function PUT(request: Request) {
       data: {
         siteTitle,
         logoUrl,
+        faviconUrl,
         contactEmail,
         contactPhone,
         contactAddress,

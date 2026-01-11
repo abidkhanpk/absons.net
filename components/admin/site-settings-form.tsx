@@ -10,6 +10,7 @@ import { UploadCloud } from "lucide-react"
 type SiteSettings = {
   site_title: string
   logo_url: string | null
+  favicon_url?: string | null
   contact_email: string | null
   contact_phone: string | null
   contact_address: string | null
@@ -23,6 +24,7 @@ export function SiteSettingsForm({ initial }: { initial: SiteSettings }) {
   const [formData, setFormData] = useState({
     siteTitle: initial.site_title || "",
     logoUrl: initial.logo_url || "",
+    faviconUrl: initial.favicon_url || "",
     contactEmail: initial.contact_email || "",
     contactPhone: initial.contact_phone || "",
     contactAddress: initial.contact_address || "",
@@ -43,11 +45,11 @@ export function SiteSettingsForm({ initial }: { initial: SiteSettings }) {
     setSuccess(false)
 
     try {
-    const response = await fetch("/api/admin/site-settings", {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(formData),
-    })
+      const response = await fetch("/api/admin/site-settings", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(formData),
+      })
 
       const result = await response.json().catch(() => ({}))
       if (!response.ok) {
@@ -62,7 +64,7 @@ export function SiteSettingsForm({ initial }: { initial: SiteSettings }) {
     }
   }
 
-  const handleUpload = async (file: File | null) => {
+  const handleUpload = async (file: File | null, target: "logoUrl" | "faviconUrl") => {
     if (!file) return
     setUploading(true)
     setError(null)
@@ -78,7 +80,7 @@ export function SiteSettingsForm({ initial }: { initial: SiteSettings }) {
       if (!res.ok || !data?.url) {
         throw new Error(data.error || "Upload failed")
       }
-      setFormData((prev) => ({ ...prev, logoUrl: data.url }))
+      setFormData((prev) => ({ ...prev, [target]: data.url }))
       setSuccess(true)
     } catch (err) {
       setError(err instanceof Error ? err.message : "Upload failed")
@@ -120,7 +122,34 @@ export function SiteSettingsForm({ initial }: { initial: SiteSettings }) {
               type="file"
               accept="image/*"
               className="hidden"
-              onChange={(e) => handleUpload(e.target.files?.[0] || null)}
+              onChange={(e) => handleUpload(e.target.files?.[0] || null, "logoUrl")}
+            />
+            {uploading && <span className="text-xs text-muted-foreground">Uploading...</span>}
+          </div>
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="faviconUrl">Favicon URL</Label>
+          <Input
+            id="faviconUrl"
+            value={formData.faviconUrl}
+            onChange={(e) => setFormData({ ...formData, faviconUrl: e.target.value })}
+            placeholder="/icon-light-32x32.png"
+          />
+          <div className="flex items-center gap-3">
+            <Label
+              htmlFor="faviconUpload"
+              className="inline-flex items-center gap-2 text-sm text-primary cursor-pointer hover:underline"
+            >
+              <UploadCloud className="h-4 w-4" />
+              Upload favicon file
+            </Label>
+            <input
+              id="faviconUpload"
+              type="file"
+              accept="image/*"
+              className="hidden"
+              onChange={(e) => handleUpload(e.target.files?.[0] || null, "faviconUrl")}
             />
             {uploading && <span className="text-xs text-muted-foreground">Uploading...</span>}
           </div>

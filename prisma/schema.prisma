@@ -97,6 +97,7 @@ model SiteSettings {
   id             String   @id @default("site")
   siteTitle      String   @default("ABSON Solutions") @map("site_title")
   logoUrl        String?  @map("logo_url")
+  faviconUrl     String?  @map("favicon_url")
   contactEmail   String?  @map("contact_email")
   contactPhone   String?  @map("contact_phone")
   contactAddress String?  @map("contact_address")

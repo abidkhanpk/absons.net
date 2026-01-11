@@ -28,17 +28,18 @@ export default async function SettingsPage() {
         </CardHeader>
         <CardContent>
           <SiteSettingsForm
-            initial={
-              settings || {
-                site_title: "ABSON Solutions",
-                logo_url: null,
-                contact_email: "info@absonsolutions.com",
-                contact_phone: "+92 XXX XXXXXXX",
-                contact_address: "Pakistan",
-                nav_alignment: "left",
-                nav_login_text: "Login",
-              }
-            }
+            initial={{
+              site_title: settings?.siteTitle || "ABSON Solutions",
+              logo_url: settings?.logoUrl || null,
+              favicon_url: settings?.faviconUrl || "/icon-light-32x32.png",
+              contact_email: settings?.contactEmail || "info@absonsolutions.com",
+              contact_phone: settings?.contactPhone || "+92 XXX XXXXXXX",
+              contact_address: settings?.contactAddress || "Pakistan",
+              nav_alignment: (settings?.navAlignment as "left" | "center" | "right") || "left",
+              nav_login_text: settings?.navLoginText || "Login",
+              logo_width: settings?.logoWidth || 40,
+              logo_height: settings?.logoHeight || 40,
+            }}
           />
         </CardContent>
       </Card>

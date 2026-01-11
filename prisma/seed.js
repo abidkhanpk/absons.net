@@ -29,6 +29,7 @@ async function main() {
     create: {
       id: "site",
       siteTitle: "ABSON Solutions",
+      faviconUrl: "/icon-light-32x32.png",
       contactEmail: "info@absonsolutions.com",
       contactPhone: "+92 XXX XXXXXXX",
       contactAddress: "Pakistan",

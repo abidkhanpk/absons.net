@@ -3,6 +3,7 @@ import { prisma } from "./prisma"
 export type SiteSettings = {
   siteTitle: string
   logoUrl: string | null
+  faviconUrl: string | null
   navAlignment: string
   navLoginText: string
   logoWidth: number
@@ -15,6 +16,7 @@ export type SiteSettings = {
 const defaultSettings: SiteSettings = {
   siteTitle: "ABSON Solutions",
   logoUrl: "/uploads/default-logo.png",
+  faviconUrl: "/icon-light-32x32.png",
   navAlignment: "left",
   navLoginText: "Login",
   logoWidth: 40,
@@ -38,6 +40,18 @@ function resolveLogoUrl(logoUrl: string | null | undefined) {
   return logoUrl
 }
 
+function resolveFaviconUrl(faviconUrl: string | null | undefined) {
+  if (!faviconUrl || faviconUrl.trim() === "") {
+    return defaultSettings.faviconUrl
+  }
+
+  if (faviconUrl.includes("/wp-includes/")) {
+    return defaultSettings.faviconUrl
+  }
+
+  return faviconUrl
+}
+
 export async function getSiteSettings(): Promise<SiteSettings> {
   try {
     const settings = await prisma.siteSettings.findUnique({ where: { id: "site" } })
@@ -46,6 +60,7 @@ export async function getSiteSettings(): Promise<SiteSettings> {
     return {
       siteTitle: settings.siteTitle ?? defaultSettings.siteTitle,
       logoUrl: resolveLogoUrl(settings.logoUrl),
+      faviconUrl: resolveFaviconUrl(settings.faviconUrl),
       navAlignment: settings.navAlignment ?? defaultSettings.navAlignment,
       navLoginText: settings.navLoginText ?? defaultSettings.navLoginText,
       logoWidth: settings.logoWidth ?? defaultSettings.logoWidth,
