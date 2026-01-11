@@ -7,6 +7,10 @@ import { GraduationCap, BookOpen, School, Award, Activity, Package, ArrowRight, 
 import { prisma } from "@/lib/prisma"
 import { getSiteSettings } from "@/lib/site-settings"
 
+// Ensure the homepage is served dynamically so it can gracefully handle missing data in production
+export const dynamic = "force-dynamic"
+export const revalidate = 0
+
 const iconMap = {
   GraduationCap,
   BookOpen,

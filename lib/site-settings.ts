@@ -19,7 +19,7 @@ const defaultSettings: SiteSettings = {
   navLoginText: "Login",
   logoWidth: 40,
   logoHeight: 40,
-  contactEmail: "info@absonsolutions.com",
+  contactEmail: "info@absons.net",
   contactPhone: "+92 XXX XXXXXXX",
   contactAddress: "Pakistan",
 }
