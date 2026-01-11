@@ -1,4 +1,3 @@
-/* eslint-disable no-console */
 import { PrismaClient } from "@prisma/client"
 import { randomBytes, scryptSync } from "crypto"
 
@@ -11,7 +10,6 @@ function hashPassword(password: string) {
 }
 
 async function main() {
-  // Seed super admin user with hashed password
   await prisma.user.upsert({
     where: { id: "00000000-0000-0000-0000-000000000001" },
     update: {},
@@ -30,6 +28,7 @@ async function main() {
     create: {
       id: "site",
       siteTitle: "ABSON Solutions",
+      faviconUrl: "/icon-light-32x32.png",
       contactEmail: "info@absonsolutions.com",
       contactPhone: "+92 XXX XXXXXXX",
       contactAddress: "Pakistan",

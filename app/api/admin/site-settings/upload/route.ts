@@ -22,6 +22,15 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "No file uploaded" }, { status: 400 })
     }
 
+    const allowedTypes = ["image/png", "image/x-icon", "image/vnd.microsoft.icon"]
+    const isAllowed = allowedTypes.includes(file.type)
+    if (!isAllowed) {
+      return NextResponse.json(
+        { error: "Only PNG or ICO files are supported for favicon/logo uploads" },
+        { status: 400 }
+      )
+    }
+
     const blobToken = process.env.BLOB_READ_WRITE_TOKEN
     const fileName = `logos/${Date.now()}-${file.name}`
 

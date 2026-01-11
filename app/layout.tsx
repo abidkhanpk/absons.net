@@ -12,9 +12,23 @@ const _geistMono = Geist_Mono({ subsets: ["latin"] })
 export const dynamic = "force-dynamic"
 export const revalidate = 0
 
+function iconMeta(url: string | null | undefined) {
+  const safeUrl = url || "/icon-light-32x32.png"
+  const lower = safeUrl.toLowerCase()
+  const isPng = lower.endsWith(".png")
+  const isIco = lower.endsWith(".ico")
+
+  return {
+    url: safeUrl,
+    sizes: "32x32",
+    type: isPng ? "image/png" : isIco ? "image/x-icon" : undefined,
+  }
+}
+
 export async function generateMetadata() {
   const settings = await getSiteSettings()
   const favicon = settings.faviconUrl || "/icon-light-32x32.png"
+  const iconEntry = iconMeta(favicon)
 
   return {
     title: "ABSON Solutions - Software & Training Services",
@@ -23,19 +37,19 @@ export async function generateMetadata() {
     generator: "v0.app",
     icons: {
       icon: [
-        {
-          url: favicon,
-        },
+        iconEntry,
         {
           url: "/icon-dark-32x32.png",
           media: "(prefers-color-scheme: dark)",
+          sizes: "32x32",
+          type: "image/png",
         },
         {
           url: "/icon.svg",
           type: "image/svg+xml",
         },
       ],
-      apple: favicon,
+      apple: iconEntry,
     },
   }
 }
