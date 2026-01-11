@@ -11,8 +11,19 @@ export const prisma =
 if (process.env.NODE_ENV !== "production") globalForPrisma.prisma = prisma
 
 export async function withRls<T>(userId: string | null, fn: (tx: PrismaClient) => Promise<T>) {
-  return prisma.$transaction(async (tx) => {
-    await tx.$executeRaw`SELECT set_config('request.jwt.claim.sub', ${userId ?? ""}, true)`
-    return fn(tx)
-  })
+  const run = () =>
+    prisma.$transaction(async (tx) => {
+      await tx.$executeRaw`SELECT set_config('request.jwt.claim.sub', ${userId ?? ""}, true)`
+      return fn(tx)
+    })
+
+  try {
+    return await run()
+  } catch (err: unknown) {
+    // Retry once on transaction errors (e.g., pooler churn)
+    if (err instanceof Error && "code" in err && (err as any).code === "P2028") {
+      return run()
+    }
+    throw err
+  }
 }

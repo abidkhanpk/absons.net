@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
-import { verifyPassword, setSessionCookie } from "@/lib/auth"
+import { verifyPassword, signSession } from "@/lib/auth"
 
 export async function POST(request: Request) {
   try {
@@ -14,9 +14,18 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Invalid credentials" }, { status: 401 })
     }
 
-    await setSessionCookie({ userId: user.id, role: user.role, email: user.email })
+    const token = await signSession({ userId: user.id, role: user.role, email: user.email })
+    const response = NextResponse.json({ success: true })
+    const secure = process.env.VERCEL === "1" || process.env.NEXT_PUBLIC_SITE_URL?.startsWith("https")
+    response.cookies.set("session", token, {
+      httpOnly: true,
+      sameSite: "lax",
+      secure: Boolean(secure),
+      path: "/",
+      maxAge: 60 * 60 * 24 * 7,
+    })
 
-    return NextResponse.json({ success: true })
+    return response
   } catch (error) {
     console.error("Login error:", error)
     return NextResponse.json({ error: "Failed to login" }, { status: 500 })

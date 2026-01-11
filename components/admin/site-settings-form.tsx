@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { UploadCloud } from "lucide-react"
 
 type SiteSettings = {
   site_title: string
@@ -33,6 +34,7 @@ export function SiteSettingsForm({ initial }: { initial: SiteSettings }) {
   const [isSaving, setIsSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState(false)
+  const [uploading, setUploading] = useState(false)
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -60,6 +62,31 @@ export function SiteSettingsForm({ initial }: { initial: SiteSettings }) {
     }
   }
 
+  const handleUpload = async (file: File | null) => {
+    if (!file) return
+    setUploading(true)
+    setError(null)
+    setSuccess(false)
+    try {
+      const formDataUpload = new FormData()
+      formDataUpload.append("file", file)
+      const res = await fetch("/api/admin/site-settings/upload", {
+        method: "POST",
+        body: formDataUpload,
+      })
+      const data = await res.json().catch(() => ({}))
+      if (!res.ok || !data?.url) {
+        throw new Error(data.error || "Upload failed")
+      }
+      setFormData((prev) => ({ ...prev, logoUrl: data.url }))
+      setSuccess(true)
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Upload failed")
+    } finally {
+      setUploading(false)
+    }
+  }
+
   return (
     <form className="space-y-6" onSubmit={handleSubmit}>
       <div className="grid gap-4 md:grid-cols-2">
@@ -80,6 +107,23 @@ export function SiteSettingsForm({ initial }: { initial: SiteSettings }) {
             onChange={(e) => setFormData({ ...formData, logoUrl: e.target.value })}
             placeholder="https://example.com/logo.png"
           />
+          <div className="flex items-center gap-3">
+            <Label
+              htmlFor="logoUpload"
+              className="inline-flex items-center gap-2 text-sm text-primary cursor-pointer hover:underline"
+            >
+              <UploadCloud className="h-4 w-4" />
+              Upload logo file
+            </Label>
+            <input
+              id="logoUpload"
+              type="file"
+              accept="image/*"
+              className="hidden"
+              onChange={(e) => handleUpload(e.target.files?.[0] || null)}
+            />
+            {uploading && <span className="text-xs text-muted-foreground">Uploading...</span>}
+          </div>
         </div>
       </div>
 

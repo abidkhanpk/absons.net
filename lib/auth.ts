@@ -1,7 +1,6 @@
 import { cookies } from "next/headers"
 import { SignJWT, jwtVerify } from "jose"
 import { randomBytes, scryptSync, timingSafeEqual } from "crypto"
-import { cache } from "react"
 
 const AUTH_COOKIE = "session"
 const AUTH_SECRET = process.env.AUTH_SECRET
@@ -74,9 +73,9 @@ export async function clearSessionCookie() {
   })
 }
 
-export const getSession = cache(async (): Promise<Session | null> => {
+export async function getSession(): Promise<Session | null> {
   const cookieStore = await cookies()
   const token = cookieStore.get(AUTH_COOKIE)?.value
   if (!token) return null
   return verifySession(token)
-})
+}
