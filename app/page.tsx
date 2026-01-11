@@ -17,16 +17,26 @@ const iconMap = {
 }
 
 export default async function HomePage() {
-  const services = await prisma.service.findMany({
-    where: { isFeatured: true },
-    orderBy: { displayOrder: "asc" },
-    take: 3,
-  })
+  const services = await prisma.service
+    .findMany({
+      where: { isFeatured: true },
+      orderBy: { displayOrder: "asc" },
+      take: 3,
+    })
+    .catch((error) => {
+      console.error("Failed to load services, using empty list:", error)
+      return []
+    })
 
-  const testimonials = await prisma.testimonial.findMany({
-    where: { isFeatured: true },
-    take: 3,
-  })
+  const testimonials = await prisma.testimonial
+    .findMany({
+      where: { isFeatured: true },
+      take: 3,
+    })
+    .catch((error) => {
+      console.error("Failed to load testimonials, using empty list:", error)
+      return []
+    })
   const siteSettings = await getSiteSettings()
 
   return (
