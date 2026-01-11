@@ -7,6 +7,10 @@ import "./globals.css"
 const _geist = Geist({ subsets: ["latin"] })
 const _geistMono = Geist_Mono({ subsets: ["latin"] })
 
+// Force dynamic rendering so pages always pick up current settings and assets
+export const dynamic = "force-dynamic"
+export const revalidate = 0
+
 export const metadata: Metadata = {
   title: "ABSON Solutions - Software & Training Services",
   description:
