@@ -9,6 +9,9 @@ export type SiteSettings = {
   navCtaText: string
   navCtaHref: string
   navCtaEnabled: boolean
+  heroSlides: HeroSlide[]
+  heroMode: "static" | "parallax"
+  heroStaticIndex: number
   layoutMode: "full" | "container"
   layoutWidth: number
   logoWidth: number
@@ -20,6 +23,14 @@ export type SiteSettings = {
   contactAddress: string | null
 }
 
+export type HeroSlide = {
+  title: string
+  subtitle?: string
+  ctaText?: string
+  ctaHref?: string
+  image?: string
+}
+
 const defaultSettings: SiteSettings = {
   siteTitle: "ABSON Solutions",
   logoUrl: "/uploads/default-logo.png",
@@ -29,6 +40,17 @@ const defaultSettings: SiteSettings = {
   navCtaText: "Get Started",
   navCtaHref: "/contact",
   navCtaEnabled: true,
+  heroSlides: [
+    {
+      title: "Empowering Organizations with Innovative Software Solutions",
+      subtitle: "Specialized products for education, training, and industry.",
+      ctaText: "Explore Services",
+      ctaHref: "/services",
+      image: "/placeholder.jpg",
+    },
+  ],
+  heroMode: "static",
+  heroStaticIndex: 0,
   layoutMode: "container",
   layoutWidth: 90,
   logoWidth: 40,
@@ -66,6 +88,26 @@ function resolveFaviconUrl(faviconUrl: string | null | undefined) {
   return faviconUrl
 }
 
+function parseHeroSlides(raw: string | null | undefined): HeroSlide[] {
+  if (!raw) return defaultSettings.heroSlides
+  try {
+    const parsed = JSON.parse(raw)
+    if (Array.isArray(parsed)) {
+      return parsed.map((slide) => ({
+        title: slide?.title ?? "",
+        subtitle: slide?.subtitle ?? "",
+        ctaText: slide?.ctaText ?? "",
+        ctaHref: slide?.ctaHref ?? "",
+        image: slide?.image ?? "",
+      }))
+    }
+    return defaultSettings.heroSlides
+  } catch (error) {
+    console.error("Failed to parse hero slides, using defaults:", error)
+    return defaultSettings.heroSlides
+  }
+}
+
 export async function getSiteSettings(): Promise<SiteSettings> {
   try {
     const settings = await prisma.siteSettings.findUnique({ where: { id: "site" } })
@@ -80,6 +122,9 @@ export async function getSiteSettings(): Promise<SiteSettings> {
       navCtaText: settings.navCtaText ?? defaultSettings.navCtaText,
       navCtaHref: settings.navCtaHref ?? defaultSettings.navCtaHref,
       navCtaEnabled: settings.navCtaEnabled ?? defaultSettings.navCtaEnabled,
+      heroSlides: parseHeroSlides(settings.heroSlides),
+      heroMode: (settings.heroMode as "static" | "parallax") ?? defaultSettings.heroMode,
+      heroStaticIndex: settings.heroStaticIndex ?? defaultSettings.heroStaticIndex,
       layoutMode: (settings.layoutMode as "full" | "container") ?? defaultSettings.layoutMode,
       layoutWidth: settings.layoutWidth ?? defaultSettings.layoutWidth,
       logoWidth: settings.logoWidth ?? defaultSettings.logoWidth,

@@ -22,10 +22,32 @@ type SiteSettings = {
   nav_cta_enabled?: boolean | null
   layout_mode?: "full" | "container" | null
   layout_width?: number | null
+  hero_mode?: "static" | "parallax" | null
+  hero_static_index?: number | null
+  hero_slides?: string | null
   logo_width?: number | null
   logo_height?: number | null
   logo_radius?: number | null
   show_login_link?: boolean | null
+}
+
+type HeroSlide = {
+  title: string
+  subtitle?: string
+  ctaText?: string
+  ctaHref?: string
+  image?: string
+}
+
+function safeParseSlides(raw: string | null | undefined): HeroSlide[] {
+  if (!raw) return []
+  try {
+    const parsed = JSON.parse(raw)
+    if (Array.isArray(parsed)) return parsed
+    return []
+  } catch {
+    return []
+  }
 }
 
 export function SiteSettingsForm({ initial }: { initial: SiteSettings }) {
@@ -43,6 +65,9 @@ export function SiteSettingsForm({ initial }: { initial: SiteSettings }) {
     navCtaEnabled: initial.nav_cta_enabled ?? true,
     layoutMode: (initial.layout_mode as "full" | "container") || "container",
     layoutWidth: initial.layout_width ?? 90,
+    heroMode: (initial.hero_mode as "static" | "parallax") || "static",
+    heroStaticIndex: initial.hero_static_index ?? 0,
+    heroSlides: safeParseSlides(initial.hero_slides),
     logoWidth: initial.logo_width || 40,
     logoHeight: initial.logo_height || 40,
     logoRadius: initial.logo_radius ?? 8,
@@ -52,7 +77,7 @@ export function SiteSettingsForm({ initial }: { initial: SiteSettings }) {
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState(false)
   const [uploading, setUploading] = useState(false)
-  const [activeTab, setActiveTab] = useState<"branding" | "navigation" | "contact">("branding")
+  const [activeTab, setActiveTab] = useState<"branding" | "navigation" | "contact" | "hero">("branding")
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -64,7 +89,10 @@ export function SiteSettingsForm({ initial }: { initial: SiteSettings }) {
       const response = await fetch("/api/admin/site-settings", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(formData),
+        body: JSON.stringify({
+          ...formData,
+          heroSlides: formData.heroSlides,
+        }),
       })
 
       const result = await response.json().catch(() => ({}))
@@ -112,6 +140,7 @@ export function SiteSettingsForm({ initial }: { initial: SiteSettings }) {
         <TabsList>
           <TabsTrigger value="branding">Branding</TabsTrigger>
           <TabsTrigger value="navigation">Navigation & Layout</TabsTrigger>
+          <TabsTrigger value="hero">Hero Slides</TabsTrigger>
           <TabsTrigger value="contact">Contact</TabsTrigger>
         </TabsList>
 
@@ -317,6 +346,153 @@ export function SiteSettingsForm({ initial }: { initial: SiteSettings }) {
               )}
             </div>
           </div>
+        </TabsContent>
+
+        <TabsContent value="hero" className="space-y-4">
+          <div className="grid gap-4 md:grid-cols-2">
+            <div className="space-y-2">
+              <Label>Hero Mode</Label>
+              <Select
+                value={formData.heroMode}
+                onValueChange={(value: "static" | "parallax") => setFormData({ ...formData, heroMode: value })}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select hero mode" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="static">Static (single slide)</SelectItem>
+                  <SelectItem value="parallax">Parallax slider</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            {formData.heroMode === "static" && (
+              <div className="space-y-2">
+                <Label htmlFor="heroStaticIndex">Static Slide Index</Label>
+                <Input
+                  id="heroStaticIndex"
+                  type="number"
+                  min={0}
+                  max={formData.heroSlides.length > 0 ? formData.heroSlides.length - 1 : 0}
+                  value={formData.heroStaticIndex}
+                  onChange={(e) => setFormData({ ...formData, heroStaticIndex: Number(e.target.value) })}
+                />
+                <p className="text-xs text-muted-foreground">Index of the slide to show when static mode is enabled.</p>
+              </div>
+            )}
+          </div>
+
+          {formData.heroSlides.map((slide, index) => (
+            <div key={index} className="border border-border rounded-lg p-4 space-y-3">
+              <div className="flex items-center justify-between">
+                <span className="font-semibold text-sm">Slide {index + 1}</span>
+                <button
+                  type="button"
+                  className="text-xs text-destructive"
+                  onClick={() =>
+                    setFormData((prev) => ({
+                      ...prev,
+                      heroSlides: prev.heroSlides.filter((_, i) => i !== index),
+                    }))
+                  }
+                  disabled={formData.heroSlides.length <= 1}
+                >
+                  Remove
+                </button>
+              </div>
+              <div className="grid md:grid-cols-2 gap-3">
+                <div className="space-y-2">
+                  <Label htmlFor={`slide-title-${index}`}>Title</Label>
+                  <Input
+                    id={`slide-title-${index}`}
+                    value={slide.title}
+                    onChange={(e) =>
+                      setFormData((prev) => {
+                        const copy = [...prev.heroSlides]
+                        copy[index] = { ...copy[index], title: e.target.value }
+                        return { ...prev, heroSlides: copy }
+                      })
+                    }
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor={`slide-subtitle-${index}`}>Subtitle</Label>
+                  <Input
+                    id={`slide-subtitle-${index}`}
+                    value={slide.subtitle || ""}
+                    onChange={(e) =>
+                      setFormData((prev) => {
+                        const copy = [...prev.heroSlides]
+                        copy[index] = { ...copy[index], subtitle: e.target.value }
+                        return { ...prev, heroSlides: copy }
+                      })
+                    }
+                  />
+                </div>
+              </div>
+              <div className="grid md:grid-cols-2 gap-3">
+                <div className="space-y-2">
+                  <Label htmlFor={`slide-cta-${index}`}>CTA Text</Label>
+                  <Input
+                    id={`slide-cta-${index}`}
+                    value={slide.ctaText || ""}
+                    onChange={(e) =>
+                      setFormData((prev) => {
+                        const copy = [...prev.heroSlides]
+                        copy[index] = { ...copy[index], ctaText: e.target.value }
+                        return { ...prev, heroSlides: copy }
+                      })
+                    }
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor={`slide-href-${index}`}>CTA Link</Label>
+                  <Input
+                    id={`slide-href-${index}`}
+                    value={slide.ctaHref || ""}
+                    onChange={(e) =>
+                      setFormData((prev) => {
+                        const copy = [...prev.heroSlides]
+                        copy[index] = { ...copy[index], ctaHref: e.target.value }
+                        return { ...prev, heroSlides: copy }
+                      })
+                    }
+                  />
+                </div>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor={`slide-image-${index}`}>Background Image URL</Label>
+                <Input
+                  id={`slide-image-${index}`}
+                  value={slide.image || ""}
+                  onChange={(e) =>
+                    setFormData((prev) => {
+                      const copy = [...prev.heroSlides]
+                      copy[index] = { ...copy[index], image: e.target.value }
+                      return { ...prev, heroSlides: copy }
+                    })
+                  }
+                  placeholder="https://..."
+                />
+                <p className="text-xs text-muted-foreground">Use a large landscape image for best results.</p>
+              </div>
+            </div>
+          ))}
+
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() =>
+              setFormData((prev) => ({
+                ...prev,
+                heroSlides: [
+                  ...prev.heroSlides,
+                  { title: "New Slide", subtitle: "", ctaText: "", ctaHref: "", image: "" },
+                ],
+              }))
+            }
+          >
+            Add Slide
+          </Button>
         </TabsContent>
 
         <TabsContent value="contact" className="space-y-6">
