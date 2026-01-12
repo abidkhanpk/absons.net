@@ -42,10 +42,24 @@ const defaultSettings: SiteSettings = {
   navCtaEnabled: true,
   heroSlides: [
     {
-      title: "Empowering Organizations with Innovative Software Solutions",
-      subtitle: "Specialized products for education, training, and industry.",
-      ctaText: "Explore Services",
+      title: "School & Madaris Management",
+      subtitle: "Digital admissions, attendance, fee and exam workflows built for schools and madaris in Pakistan.",
+      ctaText: "See Education Solutions",
       ctaHref: "/services",
+      image: "/placeholder.jpg",
+    },
+    {
+      title: "Certified Vibration Training",
+      subtitle: "Mobius Institute-aligned vibration analysis courses with local delivery and global credentials.",
+      ctaText: "View Training Tracks",
+      ctaHref: "/training",
+      image: "/placeholder.jpg",
+    },
+    {
+      title: "Partner With ABSON",
+      subtitle: "From custom software to general order supplies, we deliver reliable outcomes for growing organizations.",
+      ctaText: "Talk to Us",
+      ctaHref: "/contact",
       image: "/placeholder.jpg",
     },
   ],
