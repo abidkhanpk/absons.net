@@ -37,6 +37,8 @@ async function main() {
       navCtaText: "Get Started",
       navCtaHref: "/contact",
       navCtaEnabled: true,
+      layoutMode: "container",
+      layoutWidth: 90,
       logoWidth: 40,
       logoHeight: 40,
       logoRadius: 8,

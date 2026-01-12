@@ -106,6 +106,8 @@ model SiteSettings {
   navCtaText     String   @default("Get Started") @map("nav_cta_text")
   navCtaHref     String   @default("/contact") @map("nav_cta_href")
   navCtaEnabled  Boolean  @default(true) @map("nav_cta_enabled")
+  layoutMode     String   @default("container") @map("layout_mode")
+  layoutWidth    Int      @default(90) @map("layout_width")
   logoWidth      Int?     @default(40) @map("logo_width")
   logoHeight     Int?     @default(40) @map("logo_height")
   logoRadius     Int?     @default(8) @map("logo_radius")

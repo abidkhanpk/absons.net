@@ -70,13 +70,36 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode
 }>) {
+  // Load settings at render time to apply layout widths
+  // eslint-disable-next-line react-hooks/rules-of-hooks
+  const [settingsPromise] = React.useState(() => getSiteSettings())
+
   return (
     <html lang="en">
       <body className={`font-sans antialiased`}>
-        <ServiceWorkerReset />
-        {children}
+        {/* Apply layout width via CSS variable once settings resolve */}
+        <AsyncLayout settingsPromise={settingsPromise}>{children}</AsyncLayout>
         <Analytics />
       </body>
     </html>
+  )
+}
+
+async function AsyncLayout({
+  settingsPromise,
+  children,
+}: {
+  settingsPromise: Promise<Awaited<ReturnType<typeof getSiteSettings>>>
+  children: React.ReactNode
+}) {
+  const settings = await settingsPromise
+  const layoutMode = settings.layoutMode || "container"
+  const widthValue = layoutMode === "full" ? "100%" : `${Math.min(Math.max(settings.layoutWidth || 90, 60), 100)}%`
+
+  return (
+    <div style={{ ["--page-container-max" as string]: widthValue }}>
+      <ServiceWorkerReset />
+      {children}
+    </div>
   )
 }

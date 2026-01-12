@@ -13,7 +13,13 @@ export default function LoginPage() {
   const [password, setPassword] = useState("")
   const [error, setError] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(false)
+  const [isRedirecting, setIsRedirecting] = useState(false)
   const router = useRouter()
+
+  // Prefetch admin dashboard to speed up navigation after login
+  React.useEffect(() => {
+    router.prefetch("/admin")
+  }, [router])
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -30,10 +36,12 @@ export default function LoginPage() {
       if (!response.ok) {
         throw new Error(result.error || "Invalid credentials")
       }
-      router.push("/admin")
+      setIsRedirecting(true)
+      router.replace("/admin")
+      // Keep loading state while navigation happens to reassure the user
+      return
     } catch (error: unknown) {
       setError(error instanceof Error ? error.message : "An error occurred")
-    } finally {
       setIsLoading(false)
     }
   }
@@ -76,6 +84,7 @@ export default function LoginPage() {
                     />
                   </div>
                   {error && <p className="text-sm text-destructive">{error}</p>}
+                  {isRedirecting && <p className="text-sm text-muted-foreground">Login successful, redirecting…</p>}
                   <Button type="submit" className="w-full" disabled={isLoading}>
                     {isLoading ? "Logging in..." : "Login"}
                   </Button>

@@ -124,6 +124,11 @@
   }
 }
 
+/* Allow site-wide container width to be adjusted via settings */
+.container {
+  max-width: var(--page-container-max, 1200px);
+}
+
 /* Added TipTap editor prose styles for rich text content */
 .prose {
   color: var(--foreground);

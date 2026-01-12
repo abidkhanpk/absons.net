@@ -301,6 +301,34 @@ export function SiteSettingsForm({ initial }: { initial: SiteSettings }) {
             </Label>
           </div>
         </div>
+        <div className="space-y-2">
+          <Label>Layout Width</Label>
+          <Select
+            value={formData.layoutMode}
+            onValueChange={(value: "full" | "container") => setFormData({ ...formData, layoutMode: value })}
+          >
+            <SelectTrigger>
+              <SelectValue placeholder="Select layout" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="full">Full width</SelectItem>
+              <SelectItem value="container">Container</SelectItem>
+            </SelectContent>
+          </Select>
+          {formData.layoutMode === "container" && (
+            <div className="pt-2">
+              <Label htmlFor="layoutWidth">Container width (% of page)</Label>
+              <Input
+                id="layoutWidth"
+                type="number"
+                min={60}
+                max={100}
+                value={formData.layoutWidth}
+                onChange={(e) => setFormData({ ...formData, layoutWidth: Number(e.target.value) })}
+              />
+            </div>
+          )}
+        </div>
       </div>
 
       {error && <p className="text-sm text-destructive">{error}</p>}

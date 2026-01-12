@@ -9,6 +9,8 @@ export type SiteSettings = {
   navCtaText: string
   navCtaHref: string
   navCtaEnabled: boolean
+  layoutMode: "full" | "container"
+  layoutWidth: number
   logoWidth: number
   logoHeight: number
   logoRadius: number
@@ -27,6 +29,8 @@ const defaultSettings: SiteSettings = {
   navCtaText: "Get Started",
   navCtaHref: "/contact",
   navCtaEnabled: true,
+  layoutMode: "container",
+  layoutWidth: 90,
   logoWidth: 40,
   logoHeight: 40,
   logoRadius: 8,
@@ -76,6 +80,8 @@ export async function getSiteSettings(): Promise<SiteSettings> {
       navCtaText: settings.navCtaText ?? defaultSettings.navCtaText,
       navCtaHref: settings.navCtaHref ?? defaultSettings.navCtaHref,
       navCtaEnabled: settings.navCtaEnabled ?? defaultSettings.navCtaEnabled,
+      layoutMode: (settings.layoutMode as "full" | "container") ?? defaultSettings.layoutMode,
+      layoutWidth: settings.layoutWidth ?? defaultSettings.layoutWidth,
       logoWidth: settings.logoWidth ?? defaultSettings.logoWidth,
       logoHeight: settings.logoHeight ?? defaultSettings.logoHeight,
       logoRadius: settings.logoRadius ?? defaultSettings.logoRadius,

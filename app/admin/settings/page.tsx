@@ -40,6 +40,8 @@ export default async function SettingsPage() {
               nav_cta_text: settings?.navCtaText || "Get Started",
               nav_cta_href: settings?.navCtaHref || "/contact",
               nav_cta_enabled: settings?.navCtaEnabled ?? true,
+              layout_mode: (settings?.layoutMode as "full" | "container") || "container",
+              layout_width: settings?.layoutWidth ?? 90,
               logo_width: settings?.logoWidth || 40,
               logo_height: settings?.logoHeight || 40,
               logo_radius: settings?.logoRadius ?? 8,
