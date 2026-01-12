@@ -19,9 +19,9 @@ type TrainingCourse = {
   duration: string
   level: string
   provider: string
-  is_active: boolean
-  display_order: number
-  featured_image?: string
+  isActive: boolean
+  displayOrder: number
+  featuredImage?: string
 }
 
 export function TrainingForm({ course }: { course?: TrainingCourse }) {
@@ -33,9 +33,9 @@ export function TrainingForm({ course }: { course?: TrainingCourse }) {
     duration: course?.duration || "",
     level: course?.level || "Beginner",
     provider: course?.provider || "Mobius Institute",
-    is_active: course?.is_active !== undefined ? course.is_active : true,
-    display_order: course?.display_order || 0,
-    featured_image: course?.featured_image || "",
+    is_active: course?.isActive !== undefined ? course.isActive : true,
+    display_order: course?.displayOrder ?? 0,
+    featured_image: course?.featuredImage || "",
   })
 
   const handleSubmit = async (e: React.FormEvent) => {

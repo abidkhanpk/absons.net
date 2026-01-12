@@ -14,6 +14,9 @@ export function Header({ settings }: HeaderProps) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [logoFailed, setLogoFailed] = useState(false)
 
+  const logoRadius = Math.max(0, Math.min(512, settings.logoRadius ?? 8))
+  const showCta = settings.navCtaEnabled !== false
+
   const navAlignmentClass = useMemo(() => {
     switch (settings.navAlignment) {
       case "center":
@@ -41,8 +44,9 @@ export function Header({ settings }: HeaderProps) {
                   style={{
                     width: `${settings.logoWidth || 40}px`,
                     height: `${settings.logoHeight || 40}px`,
+                    borderRadius: `${logoRadius}px`,
                   }}
-                  className="rounded-lg object-contain"
+                  className="object-contain"
                   onError={() => setLogoFailed(true)}
                 />
               ) : (
@@ -96,18 +100,24 @@ export function Header({ settings }: HeaderProps) {
             </div>
           </div>
 
-          <div className="hidden md:flex items-center gap-3 ml-auto">
-            <Link
-              href="/auth/login"
-              className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors flex items-center gap-1"
-            >
-              <Lock className="h-4 w-4" />
-              {settings.navLoginText || "Login"}
-            </Link>
-            <Button asChild size="sm">
-              <Link href="/contact">Get Started</Link>
-            </Button>
-          </div>
+          {(settings.showLoginLink || showCta) && (
+            <div className="hidden md:flex items-center gap-3 ml-auto">
+              {settings.showLoginLink && (
+                <Link
+                  href="/auth/login"
+                  className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors flex items-center gap-1"
+                >
+                  <Lock className="h-4 w-4" />
+                  {settings.navLoginText || "Login"}
+                </Link>
+              )}
+              {showCta && (
+                <Button asChild size="sm">
+                  <Link href={settings.navCtaHref || "/contact"}>{settings.navCtaText || "Get Started"}</Link>
+                </Button>
+              )}
+            </div>
+          )}
 
           {/* Mobile Menu Button */}
           <button
@@ -165,19 +175,23 @@ export function Header({ settings }: HeaderProps) {
                 Contact
               </Link>
               <div className="flex items-center justify-between gap-3">
-                <Button asChild className="flex-1">
-                  <Link href="/contact" onClick={() => setMobileMenuOpen(false)}>
-                    Get Started
+                {showCta && (
+                  <Button asChild className="flex-1">
+                    <Link href={settings.navCtaHref || "/contact"} onClick={() => setMobileMenuOpen(false)}>
+                      {settings.navCtaText || "Get Started"}
+                    </Link>
+                  </Button>
+                )}
+                {settings.showLoginLink && (
+                  <Link
+                    href="/auth/login"
+                    className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors flex items-center gap-1"
+                    onClick={() => setMobileMenuOpen(false)}
+                  >
+                    <Lock className="h-4 w-4" />
+                    {settings.navLoginText || "Login"}
                   </Link>
-                </Button>
-                <Link
-                  href="/auth/login"
-                  className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors flex items-center gap-1"
-                  onClick={() => setMobileMenuOpen(false)}
-                >
-                  <Lock className="h-4 w-4" />
-                  {settings.navLoginText || "Login"}
-                </Link>
+                )}
               </div>
             </div>
           </div>

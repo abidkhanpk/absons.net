@@ -103,8 +103,13 @@ model SiteSettings {
   contactAddress String?  @map("contact_address")
   navAlignment   String   @default("left") @map("nav_alignment")
   navLoginText   String   @default("Login") @map("nav_login_text")
+  navCtaText     String   @default("Get Started") @map("nav_cta_text")
+  navCtaHref     String   @default("/contact") @map("nav_cta_href")
+  navCtaEnabled  Boolean  @default(true) @map("nav_cta_enabled")
   logoWidth      Int?     @default(40) @map("logo_width")
   logoHeight     Int?     @default(40) @map("logo_height")
+  logoRadius     Int?     @default(8) @map("logo_radius")
+  showLoginLink  Boolean  @default(true) @map("show_login_link")
   createdAt      DateTime @default(dbgenerated("now()")) @db.Timestamptz(6) @map("created_at")
   updatedAt      DateTime @default(dbgenerated("now()")) @db.Timestamptz(6) @map("updated_at")
 

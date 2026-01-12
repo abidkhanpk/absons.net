@@ -14,8 +14,13 @@ export async function PUT(request: Request) {
       contactAddress,
       navAlignment,
       navLoginText,
+      navCtaText,
+      navCtaHref,
+      navCtaEnabled,
       logoWidth,
       logoHeight,
+      logoRadius,
+      showLoginLink,
     } = body
 
     const session = await getSession()
@@ -37,8 +42,13 @@ export async function PUT(request: Request) {
         contactAddress,
         navAlignment,
         navLoginText,
+        navCtaText,
+        navCtaHref,
+        navCtaEnabled,
         logoWidth,
         logoHeight,
+        logoRadius,
+        showLoginLink,
       },
     })
 

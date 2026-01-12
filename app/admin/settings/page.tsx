@@ -37,8 +37,13 @@ export default async function SettingsPage() {
               contact_address: settings?.contactAddress || "Pakistan",
               nav_alignment: (settings?.navAlignment as "left" | "center" | "right") || "left",
               nav_login_text: settings?.navLoginText || "Login",
+              nav_cta_text: settings?.navCtaText || "Get Started",
+              nav_cta_href: settings?.navCtaHref || "/contact",
+              nav_cta_enabled: settings?.navCtaEnabled ?? true,
               logo_width: settings?.logoWidth || 40,
               logo_height: settings?.logoHeight || 40,
+              logo_radius: settings?.logoRadius ?? 8,
+              show_login_link: settings?.showLoginLink ?? true,
             }}
           />
         </CardContent>

@@ -41,8 +41,8 @@ export default async function TrainingManagementPage() {
                   <div className="flex-1 space-y-2">
                     <div className="flex items-center gap-2">
                       <h3 className="text-xl font-semibold">{course.title}</h3>
-                      <Badge variant={course.is_active ? "default" : "secondary"}>
-                        {course.is_active ? "Active" : "Inactive"}
+                      <Badge variant={course.isActive ? "default" : "secondary"}>
+                        {course.isActive ? "Active" : "Inactive"}
                       </Badge>
                       <Badge variant="outline">{course.level}</Badge>
                     </div>
@@ -54,7 +54,7 @@ export default async function TrainingManagementPage() {
                       </div>
                       <div className="flex items-center gap-1">
                         <TrendingUp className="h-4 w-4" />
-                        <span>Order: {course.display_order}</span>
+                        <span>Order: {course.displayOrder}</span>
                       </div>
                     </div>
                   </div>

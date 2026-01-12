@@ -16,8 +16,13 @@ type SiteSettings = {
   contact_address: string | null
   nav_alignment: "left" | "center" | "right"
   nav_login_text: string
+  nav_cta_text?: string | null
+  nav_cta_href?: string | null
+  nav_cta_enabled?: boolean | null
   logo_width?: number | null
   logo_height?: number | null
+  logo_radius?: number | null
+  show_login_link?: boolean | null
 }
 
 export function SiteSettingsForm({ initial }: { initial: SiteSettings }) {
@@ -30,8 +35,13 @@ export function SiteSettingsForm({ initial }: { initial: SiteSettings }) {
     contactAddress: initial.contact_address || "",
     navAlignment: (initial.nav_alignment as "left" | "center" | "right") || "left",
     navLoginText: initial.nav_login_text || "Login",
+    navCtaText: initial.nav_cta_text || "Get Started",
+    navCtaHref: initial.nav_cta_href || "/contact",
+    navCtaEnabled: initial.nav_cta_enabled ?? true,
     logoWidth: initial.logo_width || 40,
     logoHeight: initial.logo_height || 40,
+    logoRadius: initial.logo_radius ?? 8,
+    showLoginLink: initial.show_login_link ?? true,
   })
   const [isSaving, setIsSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -184,6 +194,20 @@ export function SiteSettingsForm({ initial }: { initial: SiteSettings }) {
 
       <div className="grid gap-4 md:grid-cols-2">
         <div className="space-y-2">
+          <Label htmlFor="logoRadius">Logo Border Radius (px)</Label>
+          <Input
+            id="logoRadius"
+            type="number"
+            min={0}
+            max={512}
+            value={formData.logoRadius}
+            onChange={(e) => setFormData({ ...formData, logoRadius: Number(e.target.value) })}
+          />
+        </div>
+      </div>
+
+      <div className="grid gap-4 md:grid-cols-2">
+        <div className="space-y-2">
           <Label htmlFor="contactEmail">Contact Email</Label>
           <Input
             id="contactEmail"
@@ -234,6 +258,48 @@ export function SiteSettingsForm({ initial }: { initial: SiteSettings }) {
             value={formData.navLoginText}
             onChange={(e) => setFormData({ ...formData, navLoginText: e.target.value })}
           />
+          <div className="flex items-center gap-3 pt-1">
+            <input
+              id="showLoginLink"
+              type="checkbox"
+              checked={formData.showLoginLink}
+              onChange={(e) => setFormData({ ...formData, showLoginLink: e.target.checked })}
+              className="h-4 w-4"
+            />
+            <Label htmlFor="showLoginLink" className="text-sm text-muted-foreground font-normal">
+              Show login link in navigation
+            </Label>
+          </div>
+        </div>
+        <div className="space-y-2">
+          <Label htmlFor="navCtaText">CTA Button Text</Label>
+          <Input
+            id="navCtaText"
+            value={formData.navCtaText}
+            onChange={(e) => setFormData({ ...formData, navCtaText: e.target.value })}
+            placeholder="Get Started"
+          />
+          <Label htmlFor="navCtaHref" className="pt-2">
+            CTA Link
+          </Label>
+          <Input
+            id="navCtaHref"
+            value={formData.navCtaHref}
+            onChange={(e) => setFormData({ ...formData, navCtaHref: e.target.value })}
+            placeholder="/contact"
+          />
+          <div className="flex items-center gap-3 pt-1">
+            <input
+              id="navCtaEnabled"
+              type="checkbox"
+              checked={formData.navCtaEnabled}
+              onChange={(e) => setFormData({ ...formData, navCtaEnabled: e.target.checked })}
+              className="h-4 w-4"
+            />
+            <Label htmlFor="navCtaEnabled" className="text-sm text-muted-foreground font-normal">
+              Show CTA button
+            </Label>
+          </div>
         </div>
       </div>
 

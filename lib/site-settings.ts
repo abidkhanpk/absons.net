@@ -6,8 +6,13 @@ export type SiteSettings = {
   faviconUrl: string | null
   navAlignment: string
   navLoginText: string
+  navCtaText: string
+  navCtaHref: string
+  navCtaEnabled: boolean
   logoWidth: number
   logoHeight: number
+  logoRadius: number
+  showLoginLink: boolean
   contactEmail: string | null
   contactPhone: string | null
   contactAddress: string | null
@@ -19,8 +24,13 @@ const defaultSettings: SiteSettings = {
   faviconUrl: "/icon-light-32x32.png",
   navAlignment: "left",
   navLoginText: "Login",
+  navCtaText: "Get Started",
+  navCtaHref: "/contact",
+  navCtaEnabled: true,
   logoWidth: 40,
   logoHeight: 40,
+  logoRadius: 8,
+  showLoginLink: true,
   contactEmail: "info@absons.net",
   contactPhone: "+92 XXX XXXXXXX",
   contactAddress: "Pakistan",
@@ -63,8 +73,13 @@ export async function getSiteSettings(): Promise<SiteSettings> {
       faviconUrl: resolveFaviconUrl(settings.faviconUrl),
       navAlignment: settings.navAlignment ?? defaultSettings.navAlignment,
       navLoginText: settings.navLoginText ?? defaultSettings.navLoginText,
+      navCtaText: settings.navCtaText ?? defaultSettings.navCtaText,
+      navCtaHref: settings.navCtaHref ?? defaultSettings.navCtaHref,
+      navCtaEnabled: settings.navCtaEnabled ?? defaultSettings.navCtaEnabled,
       logoWidth: settings.logoWidth ?? defaultSettings.logoWidth,
       logoHeight: settings.logoHeight ?? defaultSettings.logoHeight,
+      logoRadius: settings.logoRadius ?? defaultSettings.logoRadius,
+      showLoginLink: settings.showLoginLink ?? defaultSettings.showLoginLink,
       contactEmail: settings.contactEmail ?? defaultSettings.contactEmail,
       contactPhone: settings.contactPhone ?? defaultSettings.contactPhone,
       contactAddress: settings.contactAddress ?? defaultSettings.contactAddress,
