@@ -43,10 +43,14 @@ export default async function HomePage() {
       return []
     })
   const siteSettings = await getSiteSettings()
-  const slides = siteSettings.heroSlides && siteSettings.heroSlides.length > 0 ? siteSettings.heroSlides : null
+  const slides =
+    siteSettings.heroSlides && siteSettings.heroSlides.length > 0 ? siteSettings.heroSlides : siteSettings.heroSlides
   const heroMode = siteSettings.heroMode || "static"
-  const activeSlide =
-    heroMode === "static" && slides ? slides[Math.min(Math.max(siteSettings.heroStaticIndex || 0, 0), slides.length - 1)] : null
+  const fallbackSlide = slides && slides.length > 0 ? slides[0] : null
+  const staticSlide =
+    heroMode === "static" && slides
+      ? slides[Math.min(Math.max(siteSettings.heroStaticIndex || 0, 0), slides.length - 1)]
+      : null
 
   return (
     <div className="flex flex-col min-h-screen">
@@ -105,9 +109,9 @@ export default async function HomePage() {
             <div
               className="relative bg-gradient-to-br from-primary/10 via-background to-accent/10"
               style={
-                activeSlide?.image
+                staticSlide?.image
                   ? {
-                      backgroundImage: `url(${activeSlide.image})`,
+                      backgroundImage: `url(${staticSlide.image})`,
                       backgroundSize: "cover",
                       backgroundPosition: "center",
                     }
@@ -117,17 +121,17 @@ export default async function HomePage() {
               <div className="container mx-auto px-4 lg:px-8 py-20 lg:py-32">
                 <div className="max-w-4xl mx-auto text-center space-y-8">
                   <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-balance leading-tight">
-                    {activeSlide?.title ||
-                      "Empowering Organizations with " + <span className="text-primary">"Innovative Software Solutions"</span>}
+                    {staticSlide?.title || fallbackSlide?.title || "Empowering Organizations with Innovative Software Solutions"}
                   </h1>
                   <p className="text-lg md:text-xl text-muted-foreground text-pretty max-w-2xl mx-auto leading-relaxed">
-                    {activeSlide?.subtitle ||
+                    {staticSlide?.subtitle ||
+                      fallbackSlide?.subtitle ||
                       "Specialized software for educational institutions, Quran academies, professional training, and complete order supply solutions."}
                   </p>
                   <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
                     <Button asChild size="lg" className="text-base">
-                      <Link href={activeSlide?.ctaHref || "/contact"}>
-                        {activeSlide?.ctaText || "Get Started"}
+                      <Link href={staticSlide?.ctaHref || fallbackSlide?.ctaHref || "/contact"}>
+                        {staticSlide?.ctaText || fallbackSlide?.ctaText || "Get Started"}
                         <ArrowRight className="ml-2 h-5 w-5" />
                       </Link>
                     </Button>
