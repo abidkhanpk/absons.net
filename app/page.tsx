@@ -54,7 +54,6 @@ export default async function HomePage() {
           mode={siteSettings.heroMode || "static"}
           staticIndex={siteSettings.heroStaticIndex || 0}
           autoplaySeconds={siteSettings.heroAutoplaySeconds || 6}
-          imageFit={siteSettings.heroImageFit || "cover"}
         />
 
         {/* Services Section */}

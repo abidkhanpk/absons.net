@@ -13,7 +13,6 @@ export type SiteSettings = {
   heroMode: "static" | "parallax"
   heroStaticIndex: number
   heroAutoplaySeconds: number
-  heroImageFit: "cover" | "contain" | "none"
   layoutMode: "full" | "container"
   layoutWidth: number
   logoWidth: number
@@ -33,7 +32,6 @@ export type HeroSlide = {
   image?: string
   layout?: "full" | "image-left" | "image-right" | "no-image"
   bgColor?: string
-  imageMode?: "cover" | "contain" | "none"
 }
 
 const defaultSettings: SiteSettings = {
@@ -51,9 +49,8 @@ const defaultSettings: SiteSettings = {
       subtitle: "Digital admissions, attendance, fee and exam workflows built for schools and madaris in Pakistan.",
       ctaText: "See Education Solutions",
       ctaHref: "/services",
-      image: "https://images.unsplash.com/photo-1505666287802-931dc83948e0?auto=format&fit=crop&w=1600&q=80",
+      image: "https://images.unsplash.com/photo-1500534314209-a25ddb2bd429?auto=format&fit=crop&w=1600&q=80",
       layout: "image-left",
-      imageMode: "cover",
       bgColor: "#0f172a",
     },
     {
@@ -61,9 +58,8 @@ const defaultSettings: SiteSettings = {
       subtitle: "Mobius Institute-aligned vibration analysis courses with local delivery and global credentials.",
       ctaText: "View Training Tracks",
       ctaHref: "/training",
-      image: "https://images.unsplash.com/photo-1449158743715-0a90ebb6d2d8?auto=format&fit=crop&w=1600&q=80",
+      image: "https://images.unsplash.com/photo-1504805572947-34fad45aed93?auto=format&fit=crop&w=1600&q=80",
       layout: "image-right",
-      imageMode: "cover",
       bgColor: "#0b132b",
     },
     {
@@ -71,16 +67,14 @@ const defaultSettings: SiteSettings = {
       subtitle: "From custom software to general order supplies, we deliver reliable outcomes for growing organizations.",
       ctaText: "Talk to Us",
       ctaHref: "/contact",
-      image: "https://images.unsplash.com/photo-1496307042754-b4aa456c4a2d?auto=format&fit=crop&w=1600&q=80",
+      image: "https://images.unsplash.com/photo-1509042239860-f550ce710b93?auto=format&fit=crop&w=1600&q=80",
       layout: "full",
-      imageMode: "cover",
       bgColor: "#111827",
     },
   ],
   heroMode: "static",
   heroStaticIndex: 0,
   heroAutoplaySeconds: 6,
-  heroImageFit: "cover",
   layoutMode: "container",
   layoutWidth: 90,
   logoWidth: 40,
@@ -131,7 +125,6 @@ function parseHeroSlides(raw: string | null | undefined): HeroSlide[] {
         image: slide?.image ?? "",
         layout: slide?.layout ?? "full",
         bgColor: slide?.bgColor ?? "",
-        imageMode: slide?.imageMode ?? "cover",
       }))
       return mapped.length > 0 ? mapped : defaultSettings.heroSlides
     }
@@ -160,7 +153,6 @@ export async function getSiteSettings(): Promise<SiteSettings> {
       heroMode: (settings.heroMode as "static" | "parallax") ?? defaultSettings.heroMode,
       heroStaticIndex: settings.heroStaticIndex ?? defaultSettings.heroStaticIndex,
       heroAutoplaySeconds: settings.heroAutoplaySeconds ?? defaultSettings.heroAutoplaySeconds,
-      heroImageFit: (settings.heroImageFit as "cover" | "contain" | "none") ?? defaultSettings.heroImageFit,
       layoutMode: (settings.layoutMode as "full" | "container") ?? defaultSettings.layoutMode,
       layoutWidth: settings.layoutWidth ?? defaultSettings.layoutWidth,
       logoWidth: settings.logoWidth ?? defaultSettings.logoWidth,

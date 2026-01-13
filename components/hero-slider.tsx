@@ -11,10 +11,9 @@ type HeroSliderProps = {
   mode: "static" | "parallax"
   staticIndex: number
   autoplaySeconds: number
-  imageFit: "cover" | "contain" | "none"
 }
 
-export function HeroSlider({ slides, mode, staticIndex, autoplaySeconds, imageFit }: HeroSliderProps) {
+export function HeroSlider({ slides, mode, staticIndex, autoplaySeconds }: HeroSliderProps) {
   const safeSlides = useMemo(() => (slides && slides.length > 0 ? slides : []), [slides])
   const [active, setActive] = useState(0)
 
@@ -37,13 +36,13 @@ export function HeroSlider({ slides, mode, staticIndex, autoplaySeconds, imageFi
   const currentSlide =
     mode === "static" ? safeSlides[Math.min(Math.max(staticIndex || 0, 0), safeSlides.length - 1)] : safeSlides[active]
 
+  const minHeight = "520px"
   const layout = currentSlide?.layout || "full"
-  const slideImageMode = currentSlide?.imageMode ?? imageFit
   const bgStyle =
-    layout === "full" && slideImageMode !== "none" && currentSlide?.image
+    layout === "full" && currentSlide?.image
       ? {
           backgroundImage: `url(${currentSlide.image})`,
-          backgroundSize: slideImageMode === "contain" ? "contain" : "cover",
+          backgroundSize: "cover",
           backgroundRepeat: "no-repeat",
           backgroundPosition: "center",
           backgroundAttachment: mode === "parallax" ? "fixed" : undefined,
@@ -54,18 +53,18 @@ export function HeroSlider({ slides, mode, staticIndex, autoplaySeconds, imageFi
 
   return (
     <section className="relative border-b border-border">
-      <div className="relative" style={bgStyle}>
-        <div className={layout === "full" && slideImageMode !== "none" && currentSlide?.image ? "bg-black/50" : ""}>
-          <div className="container mx-auto px-4 lg:px-8 py-20 lg:py-32">
+      <div className="relative" style={{ ...bgStyle, minHeight }}>
+        <div className={layout === "full" && currentSlide?.image ? "bg-black/50" : ""}>
+          <div className="container mx-auto px-4 lg:px-8 py-20 lg:py-32" style={{ minHeight }}>
             {layout === "image-left" || layout === "image-right" ? (
               <div className="grid md:grid-cols-2 gap-8 items-center">
-                {layout === "image-left" && currentSlide?.image && slideImageMode !== "none" && (
-                  <div className="relative h-80 w-full overflow-hidden rounded-xl shadow-lg bg-background">
+                {layout === "image-left" && currentSlide?.image && (
+                  <div className="relative h-full min-h-[280px] w-full overflow-hidden rounded-xl shadow-lg bg-background">
                     <div
                       className="absolute inset-0"
                       style={{
                         backgroundImage: `url(${currentSlide.image})`,
-                        backgroundSize: slideImageMode === "contain" ? "contain" : "cover",
+                        backgroundSize: "cover",
                         backgroundRepeat: "no-repeat",
                         backgroundPosition: "center",
                       }}
@@ -91,13 +90,13 @@ export function HeroSlider({ slides, mode, staticIndex, autoplaySeconds, imageFi
                     </Button>
                   </div>
                 </div>
-                {layout === "image-right" && currentSlide?.image && slideImageMode !== "none" && (
-                  <div className="relative h-80 w-full overflow-hidden rounded-xl shadow-lg bg-background">
+                {layout === "image-right" && currentSlide?.image && (
+                  <div className="relative h-full min-h-[280px] w-full overflow-hidden rounded-xl shadow-lg bg-background">
                     <div
                       className="absolute inset-0"
                       style={{
                         backgroundImage: `url(${currentSlide.image})`,
-                        backgroundSize: slideImageMode === "contain" ? "contain" : "cover",
+                        backgroundSize: "cover",
                         backgroundRepeat: "no-repeat",
                         backgroundPosition: "center",
                       }}

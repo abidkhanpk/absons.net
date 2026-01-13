@@ -27,7 +27,6 @@ type SiteSettings = {
   hero_static_index?: number | null
   hero_slides?: string | null
   hero_autoplay_seconds?: number | null
-  hero_image_fit?: "cover" | "contain" | "none" | null
   logo_width?: number | null
   logo_height?: number | null
   logo_radius?: number | null
@@ -72,7 +71,6 @@ export function SiteSettingsForm({ initial }: { initial: SiteSettings }) {
     heroStaticIndex: initial.hero_static_index ?? 0,
     heroSlides: safeParseSlides(initial.hero_slides),
     heroAutoplaySeconds: initial.hero_autoplay_seconds ?? 6,
-    heroImageFit: (initial.hero_image_fit as "cover" | "contain" | "none") || "cover",
     logoWidth: initial.logo_width || 40,
     logoHeight: initial.logo_height || 40,
     logoRadius: initial.logo_radius ?? 8,
@@ -384,33 +382,19 @@ export function SiteSettingsForm({ initial }: { initial: SiteSettings }) {
                 <p className="text-xs text-muted-foreground">Index of the slide to show when static mode is enabled.</p>
               </div>
             )}
-            <div className="space-y-2">
-              <Label htmlFor="heroAutoplaySeconds">Autoplay Interval (seconds)</Label>
-              <Input
-                id="heroAutoplaySeconds"
-                type="number"
-                min={2}
-                max={30}
-                value={formData.heroAutoplaySeconds}
-                onChange={(e) => setFormData({ ...formData, heroAutoplaySeconds: Number(e.target.value) })}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label>Image Fit</Label>
-              <Select
-                value={formData.heroImageFit}
-                onValueChange={(value: "cover" | "contain" | "none") => setFormData({ ...formData, heroImageFit: value })}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select fit" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="cover">Cover (full bleed)</SelectItem>
-                  <SelectItem value="contain">Contain (letterbox)</SelectItem>
-                  <SelectItem value="none">No background image</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
+            {formData.heroMode === "parallax" && formData.heroSlides.length > 1 && (
+              <div className="space-y-2">
+                <Label htmlFor="heroAutoplaySeconds">Autoplay Interval (seconds)</Label>
+                <Input
+                  id="heroAutoplaySeconds"
+                  type="number"
+                  min={2}
+                  max={30}
+                  value={formData.heroAutoplaySeconds}
+                  onChange={(e) => setFormData({ ...formData, heroAutoplaySeconds: Number(e.target.value) })}
+                />
+              </div>
+            )}
           </div>
 
           <Accordion type="single" collapsible className="space-y-3">
@@ -513,7 +497,7 @@ export function SiteSettingsForm({ initial }: { initial: SiteSettings }) {
                   </div>
                   <div className="grid md:grid-cols-2 gap-3">
                     <div className="space-y-2">
-                      <Label htmlFor={`slide-bg-${index}`}>Background Color (used when no image)</Label>
+                  <Label htmlFor={`slide-bg-${index}`}>Background Color</Label>
                       <Input
                         id={`slide-bg-${index}`}
                         value={slide.bgColor || ""}
@@ -550,28 +534,6 @@ export function SiteSettingsForm({ initial }: { initial: SiteSettings }) {
                         </SelectContent>
                       </Select>
                     </div>
-                  </div>
-                  <div className="space-y-2">
-                    <Label>Image Fit (per slide)</Label>
-                    <Select
-                      value={(slide.imageMode as "cover" | "contain" | "none") || "cover"}
-                      onValueChange={(value: "cover" | "contain" | "none") =>
-                        setFormData((prev) => {
-                          const copy = [...prev.heroSlides]
-                          copy[index] = { ...copy[index], imageMode: value }
-                          return { ...prev, heroSlides: copy }
-                        })
-                      }
-                    >
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="cover">Cover (full bleed)</SelectItem>
-                        <SelectItem value="contain">Contain (letterbox)</SelectItem>
-                        <SelectItem value="none">Hide image</SelectItem>
-                      </SelectContent>
-                    </Select>
                   </div>
                 </AccordionContent>
               </AccordionItem>

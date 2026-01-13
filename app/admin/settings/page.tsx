@@ -48,8 +48,6 @@ export default async function SettingsPage() {
               hero_static_index: settings?.heroStaticIndex ?? resolved.heroStaticIndex ?? 0,
               hero_slides: JSON.stringify(settings?.heroSlides ? JSON.parse(settings.heroSlides) : resolved.heroSlides),
               hero_autoplay_seconds: settings?.heroAutoplaySeconds ?? resolved.heroAutoplaySeconds ?? 6,
-              hero_image_fit:
-                (settings?.heroImageFit as "cover" | "contain" | "none") || resolved.heroImageFit || "cover",
               logo_width: settings?.logoWidth || 40,
               logo_height: settings?.logoHeight || 40,
               logo_radius: settings?.logoRadius ?? 8,
