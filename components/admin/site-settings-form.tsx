@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion"
 import { UploadCloud } from "lucide-react"
 
 type SiteSettings = {
@@ -412,163 +413,170 @@ export function SiteSettingsForm({ initial }: { initial: SiteSettings }) {
             </div>
           </div>
 
-          {formData.heroSlides.map((slide, index) => (
-            <div key={index} className="border border-border rounded-lg p-4 space-y-3">
-            <div className="flex items-center justify-between">
-              <span className="font-semibold text-sm">Slide {index + 1}</span>
-              <button
-                type="button"
-                className="text-xs text-destructive"
-                onClick={() =>
-                  setFormData((prev) => {
-                    const next = prev.heroSlides.filter((_, i) => i !== index)
-                    return { ...prev, heroSlides: next.length > 0 ? next : prev.heroSlides }
-                  })
-                }
-              >
-                Remove
-              </button>
-            </div>
-              <div className="grid md:grid-cols-2 gap-3">
-                <div className="space-y-2">
-                  <Label htmlFor={`slide-title-${index}`}>Title</Label>
-                  <Input
-                    id={`slide-title-${index}`}
-                    value={slide.title}
-                    onChange={(e) =>
-                      setFormData((prev) => {
-                        const copy = [...prev.heroSlides]
-                        copy[index] = { ...copy[index], title: e.target.value }
-                        return { ...prev, heroSlides: copy }
-                      })
-                    }
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor={`slide-subtitle-${index}`}>Subtitle</Label>
-                  <Input
-                    id={`slide-subtitle-${index}`}
-                    value={slide.subtitle || ""}
-                    onChange={(e) =>
-                      setFormData((prev) => {
-                        const copy = [...prev.heroSlides]
-                        copy[index] = { ...copy[index], subtitle: e.target.value }
-                        return { ...prev, heroSlides: copy }
-                      })
-                    }
-                  />
-                </div>
-              </div>
-              <div className="grid md:grid-cols-2 gap-3">
-                <div className="space-y-2">
-                  <Label htmlFor={`slide-cta-${index}`}>CTA Text</Label>
-                  <Input
-                    id={`slide-cta-${index}`}
-                    value={slide.ctaText || ""}
-                    onChange={(e) =>
-                      setFormData((prev) => {
-                        const copy = [...prev.heroSlides]
-                        copy[index] = { ...copy[index], ctaText: e.target.value }
-                        return { ...prev, heroSlides: copy }
-                      })
-                    }
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor={`slide-href-${index}`}>CTA Link</Label>
-                  <Input
-                    id={`slide-href-${index}`}
-                    value={slide.ctaHref || ""}
-                    onChange={(e) =>
-                      setFormData((prev) => {
-                        const copy = [...prev.heroSlides]
-                        copy[index] = { ...copy[index], ctaHref: e.target.value }
-                        return { ...prev, heroSlides: copy }
-                      })
-                    }
-                  />
-                </div>
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor={`slide-image-${index}`}>Background Image URL</Label>
-                <Input
-                  id={`slide-image-${index}`}
-                  value={slide.image || ""}
-                  onChange={(e) =>
-                    setFormData((prev) => {
-                      const copy = [...prev.heroSlides]
-                      copy[index] = { ...copy[index], image: e.target.value }
-                      return { ...prev, heroSlides: copy }
-                    })
-                  }
-                  placeholder="https://..."
-                />
-                <p className="text-xs text-muted-foreground">Use a large landscape image for best results.</p>
-              </div>
-              <div className="grid md:grid-cols-2 gap-3">
-                <div className="space-y-2">
-                  <Label htmlFor={`slide-bg-${index}`}>Background Color (used when no image)</Label>
-                  <Input
-                    id={`slide-bg-${index}`}
-                    value={slide.bgColor || ""}
-                    placeholder="#0f172a"
-                    onChange={(e) =>
-                      setFormData((prev) => {
-                        const copy = [...prev.heroSlides]
-                        copy[index] = { ...copy[index], bgColor: e.target.value }
-                        return { ...prev, heroSlides: copy }
-                      })
-                    }
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label>Layout</Label>
-                  <Select
-                    value={(slide.layout as "full" | "image-left" | "image-right" | "no-image") || "full"}
-                    onValueChange={(value: "full" | "image-left" | "image-right" | "no-image") =>
-                      setFormData((prev) => {
-                        const copy = [...prev.heroSlides]
-                        copy[index] = { ...copy[index], layout: value }
-                        return { ...prev, heroSlides: copy }
-                      })
-                    }
-                  >
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="full">Full (background)</SelectItem>
-                      <SelectItem value="image-left">Image left, text right</SelectItem>
-                      <SelectItem value="image-right">Text left, image right</SelectItem>
-                      <SelectItem value="no-image">No image (color only)</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-              <div className="space-y-2">
-                <Label>Image Fit (per slide)</Label>
-                <Select
-                  value={(slide.imageMode as "cover" | "contain" | "none") || "cover"}
-                  onValueChange={(value: "cover" | "contain" | "none") =>
-                    setFormData((prev) => {
-                      const copy = [...prev.heroSlides]
-                      copy[index] = { ...copy[index], imageMode: value }
-                      return { ...prev, heroSlides: copy }
-                    })
-                  }
-                >
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="cover">Cover (full bleed)</SelectItem>
-                    <SelectItem value="contain">Contain (letterbox)</SelectItem>
-                    <SelectItem value="none">Hide image</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-          ))}
+          <Accordion type="single" collapsible className="space-y-3">
+            {formData.heroSlides.map((slide, index) => (
+              <AccordionItem key={index} value={`slide-${index}`} className="border border-border rounded-lg">
+                <AccordionTrigger className="px-4 py-2 flex items-center justify-between">
+                  <span className="font-semibold text-sm">Slide {index + 1}</span>
+                </AccordionTrigger>
+                <AccordionContent className="p-4 space-y-3">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs text-muted-foreground">Edit slide content</span>
+                    <button
+                      type="button"
+                      className="text-xs text-destructive"
+                      onClick={() =>
+                        setFormData((prev) => {
+                          const next = prev.heroSlides.filter((_, i) => i !== index)
+                          return { ...prev, heroSlides: next.length > 0 ? next : prev.heroSlides }
+                        })
+                      }
+                    >
+                      Remove
+                    </button>
+                  </div>
+                  <div className="grid md:grid-cols-2 gap-3">
+                    <div className="space-y-2">
+                      <Label htmlFor={`slide-title-${index}`}>Title</Label>
+                      <Input
+                        id={`slide-title-${index}`}
+                        value={slide.title}
+                        onChange={(e) =>
+                          setFormData((prev) => {
+                            const copy = [...prev.heroSlides]
+                            copy[index] = { ...copy[index], title: e.target.value }
+                            return { ...prev, heroSlides: copy }
+                          })
+                        }
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor={`slide-subtitle-${index}`}>Subtitle</Label>
+                      <Input
+                        id={`slide-subtitle-${index}`}
+                        value={slide.subtitle || ""}
+                        onChange={(e) =>
+                          setFormData((prev) => {
+                            const copy = [...prev.heroSlides]
+                            copy[index] = { ...copy[index], subtitle: e.target.value }
+                            return { ...prev, heroSlides: copy }
+                          })
+                        }
+                      />
+                    </div>
+                  </div>
+                  <div className="grid md:grid-cols-2 gap-3">
+                    <div className="space-y-2">
+                      <Label htmlFor={`slide-cta-${index}`}>CTA Text</Label>
+                      <Input
+                        id={`slide-cta-${index}`}
+                        value={slide.ctaText || ""}
+                        onChange={(e) =>
+                          setFormData((prev) => {
+                            const copy = [...prev.heroSlides]
+                            copy[index] = { ...copy[index], ctaText: e.target.value }
+                            return { ...prev, heroSlides: copy }
+                          })
+                        }
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor={`slide-href-${index}`}>CTA Link</Label>
+                      <Input
+                        id={`slide-href-${index}`}
+                        value={slide.ctaHref || ""}
+                        onChange={(e) =>
+                          setFormData((prev) => {
+                            const copy = [...prev.heroSlides]
+                            copy[index] = { ...copy[index], ctaHref: e.target.value }
+                            return { ...prev, heroSlides: copy }
+                          })
+                        }
+                      />
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor={`slide-image-${index}`}>Background Image URL</Label>
+                    <Input
+                      id={`slide-image-${index}`}
+                      value={slide.image || ""}
+                      onChange={(e) =>
+                        setFormData((prev) => {
+                          const copy = [...prev.heroSlides]
+                          copy[index] = { ...copy[index], image: e.target.value }
+                          return { ...prev, heroSlides: copy }
+                        })
+                      }
+                      placeholder="https://..."
+                    />
+                    <p className="text-xs text-muted-foreground">Use a large landscape image for best results.</p>
+                  </div>
+                  <div className="grid md:grid-cols-2 gap-3">
+                    <div className="space-y-2">
+                      <Label htmlFor={`slide-bg-${index}`}>Background Color (used when no image)</Label>
+                      <Input
+                        id={`slide-bg-${index}`}
+                        value={slide.bgColor || ""}
+                        placeholder="#0f172a"
+                        onChange={(e) =>
+                          setFormData((prev) => {
+                            const copy = [...prev.heroSlides]
+                            copy[index] = { ...copy[index], bgColor: e.target.value }
+                            return { ...prev, heroSlides: copy }
+                          })
+                        }
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Layout</Label>
+                      <Select
+                        value={(slide.layout as "full" | "image-left" | "image-right" | "no-image") || "full"}
+                        onValueChange={(value: "full" | "image-left" | "image-right" | "no-image") =>
+                          setFormData((prev) => {
+                            const copy = [...prev.heroSlides]
+                            copy[index] = { ...copy[index], layout: value }
+                            return { ...prev, heroSlides: copy }
+                          })
+                        }
+                      >
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="full">Full (background)</SelectItem>
+                          <SelectItem value="image-left">Image left, text right</SelectItem>
+                          <SelectItem value="image-right">Text left, image right</SelectItem>
+                          <SelectItem value="no-image">No image (color only)</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Image Fit (per slide)</Label>
+                    <Select
+                      value={(slide.imageMode as "cover" | "contain" | "none") || "cover"}
+                      onValueChange={(value: "cover" | "contain" | "none") =>
+                        setFormData((prev) => {
+                          const copy = [...prev.heroSlides]
+                          copy[index] = { ...copy[index], imageMode: value }
+                          return { ...prev, heroSlides: copy }
+                        })
+                      }
+                    >
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="cover">Cover (full bleed)</SelectItem>
+                        <SelectItem value="contain">Contain (letterbox)</SelectItem>
+                        <SelectItem value="none">Hide image</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </AccordionContent>
+              </AccordionItem>
+            ))}
+          </Accordion>
 
           <Button
             type="button"

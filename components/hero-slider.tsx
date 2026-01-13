@@ -37,26 +37,25 @@ export function HeroSlider({ slides, mode, staticIndex, autoplaySeconds, imageFi
   const currentSlide =
     mode === "static" ? safeSlides[Math.min(Math.max(staticIndex || 0, 0), safeSlides.length - 1)] : safeSlides[active]
 
+  const layout = currentSlide?.layout || "full"
   const slideImageMode = currentSlide?.imageMode ?? imageFit
   const bgStyle =
-    slideImageMode === "none" || !currentSlide?.image
-      ? currentSlide?.bgColor
-        ? { backgroundColor: currentSlide.bgColor }
-        : undefined
-      : {
+    layout === "full" && slideImageMode !== "none" && currentSlide?.image
+      ? {
           backgroundImage: `url(${currentSlide.image})`,
           backgroundSize: slideImageMode === "contain" ? "contain" : "cover",
           backgroundRepeat: "no-repeat",
           backgroundPosition: "center",
           backgroundAttachment: mode === "parallax" ? "fixed" : undefined,
         }
-
-  const layout = currentSlide?.layout || "full"
+      : currentSlide?.bgColor
+        ? { backgroundColor: currentSlide.bgColor }
+        : { backgroundColor: "#0f172a" }
 
   return (
     <section className="relative border-b border-border">
       <div className="relative" style={bgStyle}>
-        <div className={slideImageMode === "none" && !currentSlide?.image ? "" : "bg-black/50"}>
+        <div className={layout === "full" && slideImageMode !== "none" && currentSlide?.image ? "bg-black/50" : ""}>
           <div className="container mx-auto px-4 lg:px-8 py-20 lg:py-32">
             {layout === "image-left" || layout === "image-right" ? (
               <div className="grid md:grid-cols-2 gap-8 items-center">
