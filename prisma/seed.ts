@@ -101,7 +101,7 @@ async function main() {
             subtitle: "Mobius Institute-aligned vibration analysis training delivered locally with global credentials.",
             ctaText: "View Training Tracks",
             ctaHref: "/training",
-            image: "https://images.unsplash.com/photo-1504805572947-34fad45aed93?auto=format&fit=crop&w=1600&q=80",
+            image: "https://images.unsplash.com/photo-1434030216411-0b793f4b4173?auto=format&fit=crop&w=1600&q=80",
             layout: "image-right",
             bgColor: "#0b132b",
           },
