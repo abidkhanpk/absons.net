@@ -111,6 +111,8 @@ model SiteSettings {
   heroSlides     String   @default("[]") @map("hero_slides")
   heroMode       String   @default("static") @map("hero_mode")
   heroStaticIndex Int     @default(0) @map("hero_static_index")
+  heroAutoplaySeconds Int  @default(6) @map("hero_autoplay_seconds")
+  heroImageFit   String   @default("cover") @map("hero_image_fit")
   logoWidth      Int?     @default(40) @map("logo_width")
   logoHeight     Int?     @default(40) @map("logo_height")
   logoRadius     Int?     @default(8) @map("logo_radius")

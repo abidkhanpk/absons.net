@@ -25,6 +25,8 @@ type SiteSettings = {
   hero_mode?: "static" | "parallax" | null
   hero_static_index?: number | null
   hero_slides?: string | null
+  hero_autoplay_seconds?: number | null
+  hero_image_fit?: "cover" | "contain" | "none" | null
   logo_width?: number | null
   logo_height?: number | null
   logo_radius?: number | null
@@ -68,6 +70,8 @@ export function SiteSettingsForm({ initial }: { initial: SiteSettings }) {
     heroMode: (initial.hero_mode as "static" | "parallax") || "static",
     heroStaticIndex: initial.hero_static_index ?? 0,
     heroSlides: safeParseSlides(initial.hero_slides),
+    heroAutoplaySeconds: initial.hero_autoplay_seconds ?? 6,
+    heroImageFit: (initial.hero_image_fit as "cover" | "contain" | "none") || "cover",
     logoWidth: initial.logo_width || 40,
     logoHeight: initial.logo_height || 40,
     logoRadius: initial.logo_radius ?? 8,
@@ -379,26 +383,52 @@ export function SiteSettingsForm({ initial }: { initial: SiteSettings }) {
                 <p className="text-xs text-muted-foreground">Index of the slide to show when static mode is enabled.</p>
               </div>
             )}
+            <div className="space-y-2">
+              <Label htmlFor="heroAutoplaySeconds">Autoplay Interval (seconds)</Label>
+              <Input
+                id="heroAutoplaySeconds"
+                type="number"
+                min={2}
+                max={30}
+                value={formData.heroAutoplaySeconds}
+                onChange={(e) => setFormData({ ...formData, heroAutoplaySeconds: Number(e.target.value) })}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>Image Fit</Label>
+              <Select
+                value={formData.heroImageFit}
+                onValueChange={(value: "cover" | "contain" | "none") => setFormData({ ...formData, heroImageFit: value })}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select fit" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="cover">Cover (full bleed)</SelectItem>
+                  <SelectItem value="contain">Contain (letterbox)</SelectItem>
+                  <SelectItem value="none">No background image</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
           </div>
 
           {formData.heroSlides.map((slide, index) => (
             <div key={index} className="border border-border rounded-lg p-4 space-y-3">
-              <div className="flex items-center justify-between">
-                <span className="font-semibold text-sm">Slide {index + 1}</span>
-                <button
-                  type="button"
-                  className="text-xs text-destructive"
-                  onClick={() =>
-                    setFormData((prev) => ({
-                      ...prev,
-                      heroSlides: prev.heroSlides.filter((_, i) => i !== index),
-                    }))
-                  }
-                  disabled={formData.heroSlides.length <= 1}
-                >
-                  Remove
-                </button>
-              </div>
+            <div className="flex items-center justify-between">
+              <span className="font-semibold text-sm">Slide {index + 1}</span>
+              <button
+                type="button"
+                className="text-xs text-destructive"
+                onClick={() =>
+                  setFormData((prev) => {
+                    const next = prev.heroSlides.filter((_, i) => i !== index)
+                    return { ...prev, heroSlides: next.length > 0 ? next : prev.heroSlides }
+                  })
+                }
+              >
+                Remove
+              </button>
+            </div>
               <div className="grid md:grid-cols-2 gap-3">
                 <div className="space-y-2">
                   <Label htmlFor={`slide-title-${index}`}>Title</Label>
@@ -474,6 +504,68 @@ export function SiteSettingsForm({ initial }: { initial: SiteSettings }) {
                   placeholder="https://..."
                 />
                 <p className="text-xs text-muted-foreground">Use a large landscape image for best results.</p>
+              </div>
+              <div className="grid md:grid-cols-2 gap-3">
+                <div className="space-y-2">
+                  <Label htmlFor={`slide-bg-${index}`}>Background Color (used when no image)</Label>
+                  <Input
+                    id={`slide-bg-${index}`}
+                    value={slide.bgColor || ""}
+                    placeholder="#0f172a"
+                    onChange={(e) =>
+                      setFormData((prev) => {
+                        const copy = [...prev.heroSlides]
+                        copy[index] = { ...copy[index], bgColor: e.target.value }
+                        return { ...prev, heroSlides: copy }
+                      })
+                    }
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>Layout</Label>
+                  <Select
+                    value={(slide.layout as "full" | "image-left" | "image-right" | "no-image") || "full"}
+                    onValueChange={(value: "full" | "image-left" | "image-right" | "no-image") =>
+                      setFormData((prev) => {
+                        const copy = [...prev.heroSlides]
+                        copy[index] = { ...copy[index], layout: value }
+                        return { ...prev, heroSlides: copy }
+                      })
+                    }
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="full">Full (background)</SelectItem>
+                      <SelectItem value="image-left">Image left, text right</SelectItem>
+                      <SelectItem value="image-right">Text left, image right</SelectItem>
+                      <SelectItem value="no-image">No image (color only)</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+              <div className="space-y-2">
+                <Label>Image Fit (per slide)</Label>
+                <Select
+                  value={(slide.imageMode as "cover" | "contain" | "none") || "cover"}
+                  onValueChange={(value: "cover" | "contain" | "none") =>
+                    setFormData((prev) => {
+                      const copy = [...prev.heroSlides]
+                      copy[index] = { ...copy[index], imageMode: value }
+                      return { ...prev, heroSlides: copy }
+                    })
+                  }
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="cover">Cover (full bleed)</SelectItem>
+                    <SelectItem value="contain">Contain (letterbox)</SelectItem>
+                    <SelectItem value="none">Hide image</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
             </div>
           ))}

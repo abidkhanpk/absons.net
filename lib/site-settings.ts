@@ -12,6 +12,8 @@ export type SiteSettings = {
   heroSlides: HeroSlide[]
   heroMode: "static" | "parallax"
   heroStaticIndex: number
+  heroAutoplaySeconds: number
+  heroImageFit: "cover" | "contain" | "none"
   layoutMode: "full" | "container"
   layoutWidth: number
   logoWidth: number
@@ -29,6 +31,9 @@ export type HeroSlide = {
   ctaText?: string
   ctaHref?: string
   image?: string
+  layout?: "full" | "image-left" | "image-right" | "no-image"
+  bgColor?: string
+  imageMode?: "cover" | "contain" | "none"
 }
 
 const defaultSettings: SiteSettings = {
@@ -46,25 +51,36 @@ const defaultSettings: SiteSettings = {
       subtitle: "Digital admissions, attendance, fee and exam workflows built for schools and madaris in Pakistan.",
       ctaText: "See Education Solutions",
       ctaHref: "/services",
-      image: "/placeholder.jpg",
+      image: "https://images.unsplash.com/photo-1505666287802-931dc83948e0?auto=format&fit=crop&w=1600&q=80",
+      layout: "image-left",
+      imageMode: "cover",
+      bgColor: "#0f172a",
     },
     {
       title: "Certified Vibration Training",
       subtitle: "Mobius Institute-aligned vibration analysis courses with local delivery and global credentials.",
       ctaText: "View Training Tracks",
       ctaHref: "/training",
-      image: "/placeholder.jpg",
+      image: "https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?auto=format&fit=crop&w=1600&q=80",
+      layout: "image-right",
+      imageMode: "cover",
+      bgColor: "#0b132b",
     },
     {
       title: "Partner With ABSON",
       subtitle: "From custom software to general order supplies, we deliver reliable outcomes for growing organizations.",
       ctaText: "Talk to Us",
       ctaHref: "/contact",
-      image: "/placeholder.jpg",
+      image: "https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=1600&q=80",
+      layout: "full",
+      imageMode: "cover",
+      bgColor: "#111827",
     },
   ],
   heroMode: "static",
   heroStaticIndex: 0,
+  heroAutoplaySeconds: 6,
+  heroImageFit: "cover",
   layoutMode: "container",
   layoutWidth: 90,
   logoWidth: 40,
@@ -107,13 +123,17 @@ function parseHeroSlides(raw: string | null | undefined): HeroSlide[] {
   try {
     const parsed = JSON.parse(raw)
     if (Array.isArray(parsed)) {
-      return parsed.map((slide) => ({
+      const mapped = parsed.map((slide) => ({
         title: slide?.title ?? "",
         subtitle: slide?.subtitle ?? "",
         ctaText: slide?.ctaText ?? "",
         ctaHref: slide?.ctaHref ?? "",
         image: slide?.image ?? "",
+        layout: slide?.layout ?? "full",
+        bgColor: slide?.bgColor ?? "",
+        imageMode: slide?.imageMode ?? "cover",
       }))
+      return mapped.length > 0 ? mapped : defaultSettings.heroSlides
     }
     return defaultSettings.heroSlides
   } catch (error) {
@@ -139,6 +159,8 @@ export async function getSiteSettings(): Promise<SiteSettings> {
       heroSlides: parseHeroSlides(settings.heroSlides),
       heroMode: (settings.heroMode as "static" | "parallax") ?? defaultSettings.heroMode,
       heroStaticIndex: settings.heroStaticIndex ?? defaultSettings.heroStaticIndex,
+      heroAutoplaySeconds: settings.heroAutoplaySeconds ?? defaultSettings.heroAutoplaySeconds,
+      heroImageFit: (settings.heroImageFit as "cover" | "contain" | "none") ?? defaultSettings.heroImageFit,
       layoutMode: (settings.layoutMode as "full" | "container") ?? defaultSettings.layoutMode,
       layoutWidth: settings.layoutWidth ?? defaultSettings.layoutWidth,
       logoWidth: settings.logoWidth ?? defaultSettings.logoWidth,

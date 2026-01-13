@@ -7,6 +7,7 @@ import Link from "next/link"
 import { GraduationCap, BookOpen, School, Award, Activity, Package, ArrowRight, CheckCircle2, Star } from "lucide-react"
 import { prisma } from "@/lib/prisma"
 import { getSiteSettings } from "@/lib/site-settings"
+import { HeroSlider } from "@/components/hero-slider"
 
 // Ensure the homepage is served dynamically so it can gracefully handle missing data in production
 export const dynamic = "force-dynamic"
@@ -43,107 +44,18 @@ export default async function HomePage() {
       return []
     })
   const siteSettings = await getSiteSettings()
-  const slides =
-    siteSettings.heroSlides && siteSettings.heroSlides.length > 0 ? siteSettings.heroSlides : siteSettings.heroSlides
-  const heroMode = siteSettings.heroMode || "static"
-  const fallbackSlide = slides && slides.length > 0 ? slides[0] : null
-  const staticSlide =
-    heroMode === "static" && slides
-      ? slides[Math.min(Math.max(siteSettings.heroStaticIndex || 0, 0), slides.length - 1)]
-      : null
-
   return (
     <div className="flex flex-col min-h-screen">
       <Header settings={siteSettings} />
 
       <main className="flex-1">
-        {/* Hero Section */}
-        <section className="relative border-b border-border">
-          {slides && heroMode === "parallax" ? (
-            <Carousel opts={{ loop: true }} className="w-full">
-              <CarouselContent>
-                {slides.map((slide, idx) => (
-                  <CarouselItem key={idx}>
-                    <div
-                      className="relative overflow-hidden"
-                      style={{
-                        backgroundImage: slide.image ? `url(${slide.image})` : undefined,
-                        backgroundSize: "cover",
-                        backgroundPosition: "center",
-                        backgroundAttachment: "fixed",
-                      }}
-                    >
-                      <div className="bg-black/50">
-                        <div className="container mx-auto px-4 lg:px-8 py-20 lg:py-32">
-                          <div className="max-w-4xl mx-auto text-center space-y-8 text-white">
-                            <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-balance leading-tight">
-                              {slide.title}
-                            </h1>
-                            {slide.subtitle && (
-                              <p className="text-lg md:text-xl text-white/80 text-pretty max-w-2xl mx-auto leading-relaxed">
-                                {slide.subtitle}
-                              </p>
-                            )}
-                            <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-                              {slide.ctaText && slide.ctaHref && (
-                                <Button asChild size="lg" className="text-base">
-                                  <Link href={slide.ctaHref}>
-                                    {slide.ctaText}
-                                    <ArrowRight className="ml-2 h-5 w-5" />
-                                  </Link>
-                                </Button>
-                              )}
-                              <Button asChild variant="outline" size="lg" className="text-base bg-transparent">
-                                <Link href="/services">Explore Services</Link>
-                              </Button>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </CarouselItem>
-                ))}
-              </CarouselContent>
-            </Carousel>
-          ) : (
-            <div
-              className="relative bg-gradient-to-br from-primary/10 via-background to-accent/10"
-              style={
-                staticSlide?.image
-                  ? {
-                      backgroundImage: `url(${staticSlide.image})`,
-                      backgroundSize: "cover",
-                      backgroundPosition: "center",
-                    }
-                  : undefined
-              }
-            >
-              <div className="container mx-auto px-4 lg:px-8 py-20 lg:py-32">
-                <div className="max-w-4xl mx-auto text-center space-y-8">
-                  <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-balance leading-tight">
-                    {staticSlide?.title || fallbackSlide?.title || "Empowering Organizations with Innovative Software Solutions"}
-                  </h1>
-                  <p className="text-lg md:text-xl text-muted-foreground text-pretty max-w-2xl mx-auto leading-relaxed">
-                    {staticSlide?.subtitle ||
-                      fallbackSlide?.subtitle ||
-                      "Specialized software for educational institutions, Quran academies, professional training, and complete order supply solutions."}
-                  </p>
-                  <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-                    <Button asChild size="lg" className="text-base">
-                      <Link href={staticSlide?.ctaHref || fallbackSlide?.ctaHref || "/contact"}>
-                        {staticSlide?.ctaText || fallbackSlide?.ctaText || "Get Started"}
-                        <ArrowRight className="ml-2 h-5 w-5" />
-                      </Link>
-                    </Button>
-                    <Button asChild variant="outline" size="lg" className="text-base bg-transparent">
-                      <Link href="/services">Explore Services</Link>
-                    </Button>
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
-        </section>
+        <HeroSlider
+          slides={siteSettings.heroSlides || []}
+          mode={siteSettings.heroMode || "static"}
+          staticIndex={siteSettings.heroStaticIndex || 0}
+          autoplaySeconds={siteSettings.heroAutoplaySeconds || 6}
+          imageFit={siteSettings.heroImageFit || "cover"}
+        />
 
         {/* Services Section */}
         <section className="py-20 bg-background">

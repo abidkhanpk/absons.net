@@ -10,6 +10,8 @@ function hashPassword(password: string) {
 }
 
 async function main() {
+  const existingSettings = await prisma.siteSettings.findUnique({ where: { id: "site" } })
+
   await prisma.user.upsert({
     where: { id: "c6c1a6f0-4f2a-4e2e-9b7f-5c1e3e9c1b2f" },
     update: {},
@@ -41,27 +43,38 @@ async function main() {
       layoutWidth: 90,
       heroMode: "static",
       heroStaticIndex: 0,
+      heroAutoplaySeconds: 6,
+      heroImageFit: "cover",
       heroSlides: JSON.stringify([
         {
           title: "School & Madaris Management",
           subtitle: "Admissions, attendance, fee, and exam workflows tailored for Pakistani schools and madaris.",
           ctaText: "See Education Solutions",
           ctaHref: "/services",
-          image: "https://images.unsplash.com/photo-1509062522246-3755977927d7?auto=format&fit=crop&w=1600&q=80",
+          image: "https://images.unsplash.com/photo-1505666287802-931dc83948e0?auto=format&fit=crop&w=1600&q=80",
+          layout: "image-left",
+          imageMode: "cover",
+          bgColor: "#0f172a",
         },
         {
           title: "Certified Vibration Training",
           subtitle: "Mobius Institute-aligned vibration analysis training delivered locally with global credentials.",
           ctaText: "View Training Tracks",
           ctaHref: "/training",
-          image: "https://images.unsplash.com/photo-1518467166778-b88f373ffec7?auto=format&fit=crop&w=1600&q=80",
+          image: "https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?auto=format&fit=crop&w=1600&q=80",
+          layout: "image-right",
+          imageMode: "cover",
+          bgColor: "#0b132b",
         },
         {
           title: "Partner With ABSON",
           subtitle: "Custom software, dependable support, and general order supplies for growing organizations.",
           ctaText: "Talk to Us",
           ctaHref: "/contact",
-          image: "https://images.unsplash.com/photo-1520607162513-77705c0f0d4a?auto=format&fit=crop&w=1600&q=80",
+          image: "https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=1600&q=80",
+          layout: "full",
+          imageMode: "cover",
+          bgColor: "#111827",
         },
       ]),
       logoWidth: 40,
@@ -70,6 +83,48 @@ async function main() {
       showLoginLink: true,
     },
   })
+
+  if (!existingSettings || !existingSettings.heroSlides || existingSettings.heroSlides.trim() === "[]") {
+    await prisma.siteSettings.update({
+      where: { id: "site" },
+      data: {
+        heroMode: "static",
+        heroStaticIndex: 0,
+        heroSlides: JSON.stringify([
+          {
+            title: "School & Madaris Management",
+            subtitle: "Admissions, attendance, fee, and exam workflows tailored for Pakistani schools and madaris.",
+            ctaText: "See Education Solutions",
+            ctaHref: "/services",
+            image: "https://images.unsplash.com/photo-1505666287802-931dc83948e0?auto=format&fit=crop&w=1600&q=80",
+            layout: "image-left",
+            imageMode: "cover",
+            bgColor: "#0f172a",
+          },
+          {
+            title: "Certified Vibration Training",
+            subtitle: "Mobius Institute-aligned vibration analysis training delivered locally with global credentials.",
+            ctaText: "View Training Tracks",
+            ctaHref: "/training",
+            image: "https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?auto=format&fit=crop&w=1600&q=80",
+            layout: "image-right",
+            imageMode: "cover",
+            bgColor: "#0b132b",
+          },
+          {
+            title: "Partner With ABSON",
+            subtitle: "Custom software, dependable support, and general order supplies for growing organizations.",
+            ctaText: "Talk to Us",
+            ctaHref: "/contact",
+            image: "https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=1600&q=80",
+            layout: "full",
+            imageMode: "cover",
+            bgColor: "#111827",
+          },
+        ]),
+      },
+    })
+  }
 
   const services = [
     {
