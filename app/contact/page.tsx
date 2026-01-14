@@ -27,16 +27,97 @@ export default function ContactPage() {
   const [siteSettings, setSiteSettings] = useState<SiteSettings>({
     siteTitle: "ABSON Solutions",
     logoUrl: null,
+    faviconUrl: null,
     navAlignment: "left",
     navLoginText: "Login",
+    navCtaText: "Get Started",
+    navCtaHref: "/contact",
+    navCtaEnabled: true,
+    heroSlides: [],
+    heroMode: "static",
+    heroStaticIndex: 0,
+    heroAutoplaySeconds: 6,
+    heroHeight: 560,
+    showServices: true,
+    showTraining: true,
+    showTestimonials: true,
+    businessHours: "Mon - Sat, 9:00 AM - 6:00 PM",
+    businessDays: "Mon - Sat",
+    businessHoursSchedule: [
+      { day: "Monday", open: "09:00", close: "18:00", closed: false },
+      { day: "Tuesday", open: "09:00", close: "18:00", closed: false },
+      { day: "Wednesday", open: "09:00", close: "18:00", closed: false },
+      { day: "Thursday", open: "09:00", close: "18:00", closed: false },
+      { day: "Friday", open: "09:00", close: "18:00", closed: false },
+      { day: "Saturday", open: "10:00", close: "14:00", closed: false },
+      { day: "Sunday", open: "00:00", close: "00:00", closed: true },
+    ],
+    showBusinessHours: true,
+    layoutMode: "container",
+    layoutWidth: 90,
     logoWidth: 40,
     logoHeight: 40,
+    logoRadius: 0,
+    showLoginLink: true,
     contactEmail: "info@absonsolutions.com",
     contactPhone: "+92 XXX XXXXXXX",
     contactAddress: "Pakistan",
   })
 
+  const orderedDays = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
+
+  const formatTime = (value: string) => {
+    if (!value) return ""
+    const [h, m] = value.split(":").map(Number)
+    if (Number.isNaN(h) || Number.isNaN(m)) return value
+    const period = h >= 12 ? "PM" : "AM"
+    const hour = ((h + 11) % 12) + 1
+    return `${hour}:${m.toString().padStart(2, "0")} ${period}`
+  }
+
+  const groupSchedule = (schedule: { day: string; open: string; close: string; closed?: boolean }[]) => {
+    const normalized = orderedDays.map((day) => {
+      const found = schedule?.find((entry) => entry.day === day)
+      return (
+        found || {
+          day,
+          open: "",
+          close: "",
+          closed: true,
+        }
+      )
+    })
+
+    const groups: { days: string[]; open: string; close: string; closed?: boolean }[] = []
+    normalized.forEach((entry) => {
+      const last = groups[groups.length - 1]
+      const hasSameHours =
+        last && last.closed === entry.closed && last.open === entry.open && last.close === entry.close
+      if (last && hasSameHours) {
+        last.days.push(entry.day)
+      } else {
+        groups.push({ days: [entry.day], open: entry.open, close: entry.close, closed: entry.closed })
+      }
+    })
+
+    return groups.map((group) => ({
+      label: group.days.length > 1 ? `${group.days[0]} - ${group.days[group.days.length - 1]}` : group.days[0],
+      hours: group.closed ? "Closed" : `${formatTime(group.open)} - ${formatTime(group.close)}`,
+    }))
+  }
+
   useEffect(() => {
+    const parseSchedule = (raw: unknown) => {
+      try {
+        if (Array.isArray(raw)) return raw
+        if (!raw) return []
+        const parsed = JSON.parse(String(raw))
+        return Array.isArray(parsed) ? parsed : []
+      } catch {
+        return []
+      }
+    }
+
     const loadSettings = async () => {
       try {
         const res = await fetch("/api/site-settings")
@@ -45,10 +126,50 @@ export default function ContactPage() {
           setSiteSettings({
             siteTitle: json.settings.siteTitle ?? "ABSON Solutions",
             logoUrl: json.settings.logoUrl ?? null,
+            faviconUrl: json.settings.faviconUrl ?? null,
             navAlignment: json.settings.navAlignment ?? "left",
             navLoginText: json.settings.navLoginText ?? "Login",
+            navCtaText: json.settings.navCtaText ?? "Get Started",
+            navCtaHref: json.settings.navCtaHref ?? "/contact",
+            navCtaEnabled: json.settings.navCtaEnabled ?? true,
+            heroSlides:
+              typeof json.settings.heroSlides === "string"
+                ? (() => {
+                    try {
+                      return JSON.parse(json.settings.heroSlides || "[]")
+                    } catch {
+                      return []
+                    }
+                  })()
+                : json.settings.heroSlides ?? [],
+            heroMode: json.settings.heroMode ?? "static",
+            heroStaticIndex: json.settings.heroStaticIndex ?? 0,
+            heroAutoplaySeconds: json.settings.heroAutoplaySeconds ?? 6,
+            heroHeight: json.settings.heroHeight ?? 560,
+            showServices: json.settings.showServices ?? true,
+            showTraining: json.settings.showTraining ?? true,
+            showTestimonials: json.settings.showTestimonials ?? true,
+            businessHours: json.settings.businessHours ?? "Mon - Sat, 9:00 AM - 6:00 PM",
+            businessDays: json.settings.businessDays ?? "Mon - Sat",
+            businessHoursSchedule:
+              parseSchedule(json.settings.businessHoursSchedule).length > 0
+                ? parseSchedule(json.settings.businessHoursSchedule)
+                : [
+                    { day: "Monday", open: "09:00", close: "18:00", closed: false },
+                    { day: "Tuesday", open: "09:00", close: "18:00", closed: false },
+                    { day: "Wednesday", open: "09:00", close: "18:00", closed: false },
+                    { day: "Thursday", open: "09:00", close: "18:00", closed: false },
+                    { day: "Friday", open: "09:00", close: "18:00", closed: false },
+                    { day: "Saturday", open: "10:00", close: "14:00", closed: false },
+                    { day: "Sunday", open: "00:00", close: "00:00", closed: true },
+                  ],
+            showBusinessHours: json.settings.showBusinessHours ?? true,
+            layoutMode: json.settings.layoutMode ?? "container",
+            layoutWidth: json.settings.layoutWidth ?? 90,
             logoWidth: json.settings.logoWidth ?? 40,
             logoHeight: json.settings.logoHeight ?? 40,
+            logoRadius: json.settings.logoRadius ?? 0,
+            showLoginLink: json.settings.showLoginLink ?? true,
             contactEmail: json.settings.contactEmail ?? "info@absonsolutions.com",
             contactPhone: json.settings.contactPhone ?? "+92 XXX XXXXXXX",
             contactAddress: json.settings.contactAddress ?? "Pakistan",
@@ -250,25 +371,27 @@ export default function ContactPage() {
                   </CardContent>
                 </Card>
 
-                <Card className="border-border bg-primary text-primary-foreground">
-                  <CardContent className="p-6 space-y-3">
-                    <h3 className="text-xl font-semibold">Business Hours</h3>
-                    <div className="space-y-2 text-sm">
-                      <div className="flex justify-between">
-                        <span>Monday - Friday</span>
-                        <span>9:00 AM - 6:00 PM</span>
+                {siteSettings.showBusinessHours && (
+                  <Card className="border-border bg-primary text-primary-foreground">
+                    <CardContent className="p-6 space-y-3">
+                      <h3 className="text-xl font-semibold">Business Hours</h3>
+                      <p className="text-sm text-primary-foreground/90">
+                        We aim to reply to all enquiries within one business day.
+                      </p>
+                      <div className="space-y-2 text-sm">
+                        {groupSchedule(siteSettings.businessHoursSchedule).map((group) => (
+                          <div
+                            key={group.label}
+                            className="flex items-center justify-between rounded-md bg-primary-foreground/10 px-4 py-2"
+                          >
+                            <div className="font-semibold">{group.label}</div>
+                            <div className="text-right">{group.hours}</div>
+                          </div>
+                        ))}
                       </div>
-                      <div className="flex justify-between">
-                        <span>Saturday</span>
-                        <span>10:00 AM - 4:00 PM</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span>Sunday</span>
-                        <span>Closed</span>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
+                    </CardContent>
+                  </Card>
+                )}
               </div>
             </div>
           </div>

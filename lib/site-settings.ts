@@ -19,6 +19,8 @@ export type SiteSettings = {
   showTestimonials: boolean
   businessHours: string
   businessDays: string
+  businessHoursSchedule: BusinessHourEntry[]
+  showBusinessHours: boolean
   layoutMode: "full" | "container"
   layoutWidth: number
   logoWidth: number
@@ -38,6 +40,13 @@ export type HeroSlide = {
   image?: string
   layout?: "full" | "image-left" | "image-right" | "no-image"
   bgColor?: string
+}
+
+export type BusinessHourEntry = {
+  day: string
+  open: string
+  close: string
+  closed?: boolean
 }
 
 const defaultSettings: SiteSettings = {
@@ -94,6 +103,16 @@ const defaultSettings: SiteSettings = {
   showServices: true,
   showTraining: true,
   showTestimonials: true,
+  businessHoursSchedule: [
+    { day: "Monday", open: "09:00", close: "18:00" },
+    { day: "Tuesday", open: "09:00", close: "18:00" },
+    { day: "Wednesday", open: "09:00", close: "18:00" },
+    { day: "Thursday", open: "09:00", close: "18:00" },
+    { day: "Friday", open: "09:00", close: "18:00" },
+    { day: "Saturday", open: "10:00", close: "14:00" },
+    { day: "Sunday", open: "00:00", close: "00:00", closed: true },
+  ],
+  showBusinessHours: true,
   businessHours: "Mon - Sat, 9:00 AM - 6:00 PM",
   businessDays: "Mon - Sat",
   layoutMode: "container",
@@ -156,6 +175,24 @@ function parseHeroSlides(raw: string | null | undefined): HeroSlide[] {
   }
 }
 
+function parseBusinessHoursSchedule(raw: unknown): BusinessHourEntry[] {
+  try {
+    const parsed = Array.isArray(raw) ? raw : raw ? JSON.parse(String(raw)) : []
+    if (!Array.isArray(parsed)) return defaultSettings.businessHoursSchedule
+    const cleaned = parsed
+      .map((entry) => ({
+        day: entry?.day ?? "",
+        open: entry?.open ?? "",
+        close: entry?.close ?? "",
+        closed: Boolean(entry?.closed),
+      }))
+      .filter((entry) => entry.day)
+    return cleaned.length > 0 ? cleaned : defaultSettings.businessHoursSchedule
+  } catch {
+    return defaultSettings.businessHoursSchedule
+  }
+}
+
 export async function getSiteSettings(): Promise<SiteSettings> {
   try {
     const settings = await prisma.siteSettings.findUnique({ where: { id: "site" } })
@@ -178,6 +215,8 @@ export async function getSiteSettings(): Promise<SiteSettings> {
       showServices: settings.showServices ?? defaultSettings.showServices,
       showTraining: settings.showTraining ?? defaultSettings.showTraining,
       showTestimonials: settings.showTestimonials ?? defaultSettings.showTestimonials,
+      businessHoursSchedule: parseBusinessHoursSchedule(settings.businessHoursSchedule),
+      showBusinessHours: settings.showBusinessHours ?? defaultSettings.showBusinessHours,
       businessHours: settings.businessHours ?? defaultSettings.businessHours,
       businessDays: settings.businessDays ?? defaultSettings.businessDays,
       layoutMode: (settings.layoutMode as "full" | "container") ?? defaultSettings.layoutMode,

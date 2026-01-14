@@ -110,6 +110,8 @@ model SiteSettings {
   layoutWidth    Int      @default(90) @map("layout_width")
   businessHours  String   @default("Mon - Sat, 9:00 AM - 6:00 PM") @map("business_hours")
   businessDays   String   @default("Mon - Sat") @map("business_days")
+  businessHoursSchedule Json?    @map("business_hours_schedule")
+  showBusinessHours Boolean @default(true) @map("show_business_hours")
   heroSlides     String   @default("[]") @map("hero_slides")
   heroMode       String   @default("static") @map("hero_mode")
   heroStaticIndex Int     @default(0) @map("hero_static_index")

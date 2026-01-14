@@ -43,6 +43,16 @@ async function main() {
       layoutWidth: 90,
       businessHours: "Mon - Sat, 9:00 AM - 6:00 PM",
       businessDays: "Mon - Sat",
+      businessHoursSchedule: [
+        { day: "Monday", open: "09:00", close: "18:00", closed: false },
+        { day: "Tuesday", open: "09:00", close: "18:00", closed: false },
+        { day: "Wednesday", open: "09:00", close: "18:00", closed: false },
+        { day: "Thursday", open: "09:00", close: "18:00", closed: false },
+        { day: "Friday", open: "09:00", close: "18:00", closed: false },
+        { day: "Saturday", open: "10:00", close: "14:00", closed: false },
+        { day: "Sunday", open: "00:00", close: "00:00", closed: true },
+      ],
+      showBusinessHours: true,
       heroMode: "parallax",
       heroStaticIndex: 0,
       heroAutoplaySeconds: 6,
@@ -103,6 +113,16 @@ async function main() {
         heroStaticIndex: 0,
         businessHours: "Mon - Sat, 9:00 AM - 6:00 PM",
         businessDays: "Mon - Sat",
+        businessHoursSchedule: [
+          { day: "Monday", open: "09:00", close: "18:00", closed: false },
+          { day: "Tuesday", open: "09:00", close: "18:00", closed: false },
+          { day: "Wednesday", open: "09:00", close: "18:00", closed: false },
+          { day: "Thursday", open: "09:00", close: "18:00", closed: false },
+          { day: "Friday", open: "09:00", close: "18:00", closed: false },
+          { day: "Saturday", open: "10:00", close: "14:00", closed: false },
+          { day: "Sunday", open: "00:00", close: "00:00", closed: true },
+        ],
+        showBusinessHours: true,
         heroSlides: JSON.stringify([
           {
             title: "Empowering Organizations with Innovative Software Solutions",

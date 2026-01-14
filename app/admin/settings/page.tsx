@@ -51,6 +51,12 @@ export default async function SettingsPage() {
               hero_height: settings?.heroHeight ?? resolved.heroHeight ?? 560,
               business_hours: settings?.businessHours ?? resolved.businessHours ?? "Mon - Sat, 9:00 AM - 6:00 PM",
               business_days: settings?.businessDays ?? resolved.businessDays ?? "Mon - Sat",
+              business_hours_schedule: settings?.businessHoursSchedule
+                ? JSON.stringify(settings.businessHoursSchedule)
+                : settings?.businessHoursSchedule ?? resolved.businessHoursSchedule
+                ? JSON.stringify(resolved.businessHoursSchedule)
+                : undefined,
+              show_business_hours: settings?.showBusinessHours ?? resolved.showBusinessHours ?? true,
               show_services: settings?.showServices ?? resolved.showServices ?? true,
               show_training: settings?.showTraining ?? resolved.showTraining ?? true,
               show_testimonials: settings?.showTestimonials ?? resolved.showTestimonials ?? true,
