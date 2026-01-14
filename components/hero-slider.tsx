@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react"
 import { Button } from "@/components/ui/button"
-import { ArrowRight } from "lucide-react"
+import { ArrowRight, ArrowLeft, ArrowRight as ArrowRightIcon } from "lucide-react"
 import Link from "next/link"
 import type { HeroSlide } from "@/lib/site-settings"
 
@@ -20,11 +20,11 @@ export function HeroSlider({ slides, mode, staticIndex, autoplaySeconds }: HeroS
   useEffect(() => {
     if (mode !== "parallax" || safeSlides.length <= 1) return
     const ms = Math.max(2000, (autoplaySeconds || 6) * 1000)
-    const id = setInterval(() => {
+    const id = setTimeout(() => {
       setActive((prev) => (prev + 1) % safeSlides.length)
     }, ms)
-    return () => clearInterval(id)
-  }, [autoplaySeconds, mode, safeSlides.length])
+    return () => clearTimeout(id)
+  }, [autoplaySeconds, mode, safeSlides.length, active])
 
   useEffect(() => {
     if (mode === "static" && safeSlides.length > 0) {
@@ -130,19 +130,37 @@ export function HeroSlider({ slides, mode, staticIndex, autoplaySeconds }: HeroS
       </div>
 
       {mode === "parallax" && safeSlides.length > 1 && (
-        <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex items-center gap-2">
-          {safeSlides.map((_, idx) => (
-            <button
-              key={idx}
-              type="button"
-              onClick={() => setActive(idx)}
-              className={`h-2.5 w-2.5 rounded-full border border-white/60 transition ${
-                active === idx ? "bg-white" : "bg-white/30"
-              }`}
-              aria-label={`Go to slide ${idx + 1}`}
-            />
-          ))}
-        </div>
+        <>
+          <button
+            type="button"
+            onClick={() => setActive((active - 1 + safeSlides.length) % safeSlides.length)}
+            className="absolute left-4 top-1/2 -translate-y-1/2 rounded-full bg-black/40 text-white p-2 hover:bg-black/60 transition"
+            aria-label="Previous slide"
+          >
+            <ArrowLeft className="h-4 w-4" />
+          </button>
+          <button
+            type="button"
+            onClick={() => setActive((active + 1) % safeSlides.length)}
+            className="absolute right-4 top-1/2 -translate-y-1/2 rounded-full bg-black/40 text-white p-2 hover:bg-black/60 transition"
+            aria-label="Next slide"
+          >
+            <ArrowRightIcon className="h-4 w-4" />
+          </button>
+          <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex items-center gap-2">
+            {safeSlides.map((_, idx) => (
+              <button
+                key={idx}
+                type="button"
+                onClick={() => setActive(idx)}
+                className={`h-2.5 w-2.5 rounded-full border border-white/60 transition ${
+                  active === idx ? "bg-white" : "bg-white/30"
+                }`}
+                aria-label={`Go to slide ${idx + 1}`}
+              />
+            ))}
+          </div>
+        </>
       )}
     </section>
   )
