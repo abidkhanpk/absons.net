@@ -13,6 +13,10 @@ export type SiteSettings = {
   heroMode: "static" | "parallax"
   heroStaticIndex: number
   heroAutoplaySeconds: number
+  heroHeight: number
+  showServices: boolean
+  showTraining: boolean
+  showTestimonials: boolean
   layoutMode: "full" | "container"
   layoutWidth: number
   logoWidth: number
@@ -35,9 +39,9 @@ export type HeroSlide = {
 }
 
 const defaultSettings: SiteSettings = {
-  siteTitle: "ABSON Solutions",
+  siteTitle: "ABSON Innovations",
   logoUrl: "/uploads/default-logo.png",
-  faviconUrl: "/icon-light-32x32.png",
+  faviconUrl: "/uploads/default-icon-light-32x32.png",
   navAlignment: "left",
   navLoginText: "Login",
   navCtaText: "Get Started",
@@ -45,11 +49,20 @@ const defaultSettings: SiteSettings = {
   navCtaEnabled: true,
   heroSlides: [
     {
+      title: "Empowering Organizations with Innovative Software Solutions",
+      subtitle: "Specialized software for educational institutions, Quran academies, professional training, and complete order supply solutions.",
+      ctaText: "Explore Services",
+      ctaHref: "/services",
+      image: "https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&fit=crop&w=1600&q=80",
+      layout: "image-right",
+      bgColor: "#0f172a",
+    },
+    {
       title: "School & Madaris Management",
       subtitle: "Digital admissions, attendance, fee and exam workflows built for schools and madaris in Pakistan.",
       ctaText: "See Education Solutions",
       ctaHref: "/services",
-      image: "https://images.unsplash.com/photo-1500534314209-a25ddb2bd429?auto=format&fit=crop&w=1600&q=80",
+      image: "https://images.unsplash.com/photo-1503676260728-1c00da094a0b?auto=format&fit=crop&w=1600&q=80",
       layout: "image-left",
       bgColor: "#0f172a",
     },
@@ -58,7 +71,7 @@ const defaultSettings: SiteSettings = {
       subtitle: "Mobius Institute-aligned vibration analysis courses with local delivery and global credentials.",
       ctaText: "View Training Tracks",
       ctaHref: "/training",
-      image: "https://images.unsplash.com/photo-1434030216411-0b793f4b4173?auto=format&fit=crop&w=1600&q=80",
+      image: "https://images.unsplash.com/photo-1504805572947-34fad45aed93?auto=format&fit=crop&w=1600&q=80",
       layout: "image-right",
       bgColor: "#0b132b",
     },
@@ -67,20 +80,24 @@ const defaultSettings: SiteSettings = {
       subtitle: "From custom software to general order supplies, we deliver reliable outcomes for growing organizations.",
       ctaText: "Talk to Us",
       ctaHref: "/contact",
-      image: "https://images.unsplash.com/photo-1509042239860-f550ce710b93?auto=format&fit=crop&w=1600&q=80",
+      image: "https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?auto=format&fit=crop&w=1600&q=80",
       layout: "full",
       bgColor: "#111827",
     },
   ],
-  heroMode: "static",
+  heroMode: "parallax",
   heroStaticIndex: 0,
   heroAutoplaySeconds: 6,
+  heroHeight: 560,
+  showServices: true,
+  showTraining: true,
+  showTestimonials: true,
   layoutMode: "container",
   layoutWidth: 90,
   logoWidth: 40,
   logoHeight: 40,
-  logoRadius: 8,
-  showLoginLink: true,
+  logoRadius: 0,
+  showLoginLink: false,
   contactEmail: "info@absons.net",
   contactPhone: "+92 XXX XXXXXXX",
   contactAddress: "Pakistan",
@@ -153,6 +170,10 @@ export async function getSiteSettings(): Promise<SiteSettings> {
       heroMode: (settings.heroMode as "static" | "parallax") ?? defaultSettings.heroMode,
       heroStaticIndex: settings.heroStaticIndex ?? defaultSettings.heroStaticIndex,
       heroAutoplaySeconds: settings.heroAutoplaySeconds ?? defaultSettings.heroAutoplaySeconds,
+      heroHeight: settings.heroHeight ?? defaultSettings.heroHeight,
+      showServices: settings.showServices ?? defaultSettings.showServices,
+      showTraining: settings.showTraining ?? defaultSettings.showTraining,
+      showTestimonials: settings.showTestimonials ?? defaultSettings.showTestimonials,
       layoutMode: (settings.layoutMode as "full" | "container") ?? defaultSettings.layoutMode,
       layoutWidth: settings.layoutWidth ?? defaultSettings.layoutWidth,
       logoWidth: settings.logoWidth ?? defaultSettings.logoWidth,

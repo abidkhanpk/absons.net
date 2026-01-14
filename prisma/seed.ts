@@ -44,6 +44,10 @@ async function main() {
       heroMode: "parallax",
       heroStaticIndex: 0,
       heroAutoplaySeconds: 6,
+      heroHeight: 560,
+      showServices: true,
+      showTraining: true,
+      showTestimonials: true,
       heroSlides: JSON.stringify([
         {
           title: "Empowering Organizations with Innovative Solutions",

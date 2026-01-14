@@ -11,9 +11,10 @@ type HeroSliderProps = {
   mode: "static" | "parallax"
   staticIndex: number
   autoplaySeconds: number
+  height?: number
 }
 
-export function HeroSlider({ slides, mode, staticIndex, autoplaySeconds }: HeroSliderProps) {
+export function HeroSlider({ slides, mode, staticIndex, autoplaySeconds, height }: HeroSliderProps) {
   const safeSlides = useMemo(() => (slides && slides.length > 0 ? slides : []), [slides])
   const [active, setActive] = useState(0)
 
@@ -36,7 +37,7 @@ export function HeroSlider({ slides, mode, staticIndex, autoplaySeconds }: HeroS
   const currentSlide =
     mode === "static" ? safeSlides[Math.min(Math.max(staticIndex || 0, 0), safeSlides.length - 1)] : safeSlides[active]
 
-  const minHeight = "520px"
+  const minHeight = `${Math.max(360, height || 560)}px`
   const layout = currentSlide?.layout || "full"
   const bgStyle =
     layout === "full" && currentSlide?.image

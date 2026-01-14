@@ -23,10 +23,14 @@ export async function PUT(request: Request) {
       heroMode,
       heroStaticIndex,
       heroAutoplaySeconds,
+      heroHeight,
       logoWidth,
       logoHeight,
       logoRadius,
       showLoginLink,
+      showServices,
+      showTraining,
+      showTestimonials,
     } = body
 
     const session = await getSession()
@@ -57,10 +61,14 @@ export async function PUT(request: Request) {
         heroMode,
         heroStaticIndex,
         heroAutoplaySeconds,
+        heroHeight,
         logoWidth,
         logoHeight,
         logoRadius,
         showLoginLink,
+        showServices,
+        showTraining,
+        showTestimonials,
       },
     })
 

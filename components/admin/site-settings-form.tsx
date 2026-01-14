@@ -27,6 +27,10 @@ type SiteSettings = {
   hero_static_index?: number | null
   hero_slides?: string | null
   hero_autoplay_seconds?: number | null
+  hero_height?: number | null
+  show_services?: boolean | null
+  show_training?: boolean | null
+  show_testimonials?: boolean | null
   logo_width?: number | null
   logo_height?: number | null
   logo_radius?: number | null
@@ -71,6 +75,10 @@ export function SiteSettingsForm({ initial }: { initial: SiteSettings }) {
     heroStaticIndex: initial.hero_static_index ?? 0,
     heroSlides: safeParseSlides(initial.hero_slides),
     heroAutoplaySeconds: initial.hero_autoplay_seconds ?? 6,
+    heroHeight: initial.hero_height ?? 560,
+    showServices: initial.show_services ?? true,
+    showTraining: initial.show_training ?? true,
+    showTestimonials: initial.show_testimonials ?? true,
     logoWidth: initial.logo_width || 40,
     logoHeight: initial.logo_height || 40,
     logoRadius: initial.logo_radius ?? 8,
@@ -395,6 +403,17 @@ export function SiteSettingsForm({ initial }: { initial: SiteSettings }) {
                 />
               </div>
             )}
+            <div className="space-y-2">
+              <Label htmlFor="heroHeight">Hero Height (px)</Label>
+              <Input
+                id="heroHeight"
+                type="number"
+                min={360}
+                max={960}
+                value={formData.heroHeight}
+                onChange={(e) => setFormData({ ...formData, heroHeight: Number(e.target.value) })}
+              />
+            </div>
           </div>
 
           <Accordion type="single" collapsible className="space-y-3">
@@ -584,6 +603,48 @@ export function SiteSettingsForm({ initial }: { initial: SiteSettings }) {
               value={formData.contactAddress}
               onChange={(e) => setFormData({ ...formData, contactAddress: e.target.value })}
             />
+          </div>
+
+          <div className="grid gap-4 md:grid-cols-2">
+            <div className="space-y-2">
+              <Label className="font-semibold">Home Sections</Label>
+              <div className="flex items-center gap-3 pt-1">
+                <input
+                  id="showServices"
+                  type="checkbox"
+                  checked={formData.showServices}
+                  onChange={(e) => setFormData({ ...formData, showServices: e.target.checked })}
+                  className="h-4 w-4"
+                />
+                <Label htmlFor="showServices" className="text-sm text-muted-foreground font-normal">
+                  Show Services section
+                </Label>
+              </div>
+              <div className="flex items-center gap-3 pt-1">
+                <input
+                  id="showTraining"
+                  type="checkbox"
+                  checked={formData.showTraining}
+                  onChange={(e) => setFormData({ ...formData, showTraining: e.target.checked })}
+                  className="h-4 w-4"
+                />
+                <Label htmlFor="showTraining" className="text-sm text-muted-foreground font-normal">
+                  Show Training section
+                </Label>
+              </div>
+              <div className="flex items-center gap-3 pt-1">
+                <input
+                  id="showTestimonials"
+                  type="checkbox"
+                  checked={formData.showTestimonials}
+                  onChange={(e) => setFormData({ ...formData, showTestimonials: e.target.checked })}
+                  className="h-4 w-4"
+                />
+                <Label htmlFor="showTestimonials" className="text-sm text-muted-foreground font-normal">
+                  Show Testimonials section
+                </Label>
+              </div>
+            </div>
           </div>
         </TabsContent>
       </Tabs>

@@ -43,6 +43,17 @@ export default async function HomePage() {
       console.error("Failed to load testimonials, using empty list:", error)
       return []
     })
+  const trainings = await prisma.trainingCourse
+    .findMany({
+      where: { isActive: true },
+      orderBy: { displayOrder: "asc" },
+      take: 3,
+    })
+    .catch((error) => {
+      console.error("Failed to load training courses, using empty list:", error)
+      return []
+    })
+
   const siteSettings = await getSiteSettings()
   return (
     <div className="flex flex-col min-h-screen">
@@ -54,47 +65,87 @@ export default async function HomePage() {
           mode={siteSettings.heroMode || "static"}
           staticIndex={siteSettings.heroStaticIndex || 0}
           autoplaySeconds={siteSettings.heroAutoplaySeconds || 6}
+          height={siteSettings.heroHeight || 560}
         />
 
         {/* Services Section */}
-        <section className="py-20 bg-background">
-          <div className="container mx-auto px-4 lg:px-8">
-            <div className="text-center mb-12">
-              <h2 className="text-3xl md:text-4xl font-bold mb-4">Our Services</h2>
-              <p className="text-lg text-muted-foreground max-w-2xl mx-auto text-pretty leading-relaxed">
-                Comprehensive solutions tailored to your organization's specific needs
-              </p>
-            </div>
+        {siteSettings.showServices !== false && (
+          <section className="py-20 bg-background">
+            <div className="container mx-auto px-4 lg:px-8">
+              <div className="text-center mb-12">
+                <h2 className="text-3xl md:text-4xl font-bold mb-4">Our Services</h2>
+                <p className="text-lg text-muted-foreground max-w-2xl mx-auto text-pretty leading-relaxed">
+                  Comprehensive solutions tailored to your organization's specific needs
+                </p>
+              </div>
 
-            <div className="grid md:grid-cols-3 gap-6">
-              {services?.map((service) => {
-                const IconComponent = iconMap[service.icon as keyof typeof iconMap] || Package
-                return (
-                  <Card key={service.id} className="border-border hover:shadow-lg transition-shadow">
+              <div className="grid md:grid-cols-3 gap-6">
+                {services?.map((service) => {
+                  const IconComponent = iconMap[service.icon as keyof typeof iconMap] || Package
+                  return (
+                    <Card key={service.id} className="border-border hover:shadow-lg transition-shadow">
+                      <CardContent className="p-6 space-y-4">
+                        <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-primary/10 text-primary">
+                          <IconComponent className="h-6 w-6" />
+                        </div>
+                        <h3 className="text-xl font-semibold">{service.title}</h3>
+                        <p className="text-muted-foreground leading-relaxed">{service.description}</p>
+                        <Button asChild variant="link" className="p-0">
+                          <Link href="/services">
+                            Learn more <ArrowRight className="ml-2 h-4 w-4" />
+                          </Link>
+                        </Button>
+                      </CardContent>
+                    </Card>
+                  )
+                })}
+              </div>
+
+              <div className="text-center mt-8">
+                <Button asChild variant="outline" size="lg">
+                  <Link href="/services">View All Services</Link>
+                </Button>
+              </div>
+            </div>
+          </section>
+        )}
+
+        {siteSettings.showTraining !== false && trainings && trainings.length > 0 && (
+          <section className="py-20 bg-muted/30">
+            <div className="container mx-auto px-4 lg:px-8">
+              <div className="text-center mb-12">
+                <h2 className="text-3xl md:text-4xl font-bold mb-4">Training Programs</h2>
+                <p className="text-lg text-muted-foreground max-w-2xl mx-auto text-pretty leading-relaxed">
+                  Vibration analysis training aligned with Mobius Institute standards.
+                </p>
+              </div>
+              <div className="grid md:grid-cols-3 gap-6">
+                {trainings.map((course) => (
+                  <Card key={course.id} className="border-border hover:shadow-lg transition-shadow">
                     <CardContent className="p-6 space-y-4">
-                      <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-primary/10 text-primary">
-                        <IconComponent className="h-6 w-6" />
+                      <h3 className="text-xl font-semibold">{course.title}</h3>
+                      <p className="text-muted-foreground leading-relaxed">{course.description}</p>
+                      <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                        {course.duration && <span>Duration: {course.duration}</span>}
+                        {course.level && <span>Level: {course.level}</span>}
                       </div>
-                      <h3 className="text-xl font-semibold">{service.title}</h3>
-                      <p className="text-muted-foreground leading-relaxed">{service.description}</p>
                       <Button asChild variant="link" className="p-0">
-                        <Link href="/services">
+                        <Link href="/training">
                           Learn more <ArrowRight className="ml-2 h-4 w-4" />
                         </Link>
                       </Button>
                     </CardContent>
                   </Card>
-                )
-              })}
+                ))}
+              </div>
+              <div className="text-center mt-8">
+                <Button asChild variant="outline" size="lg">
+                  <Link href="/training">View All Training</Link>
+                </Button>
+              </div>
             </div>
-
-            <div className="text-center mt-8">
-              <Button asChild variant="outline" size="lg">
-                <Link href="/services">View All Services</Link>
-              </Button>
-            </div>
-          </div>
-        </section>
+          </section>
+        )}
 
         {/* Why Choose Us Section */}
         <section className="py-20 bg-muted/30">
@@ -159,7 +210,7 @@ export default async function HomePage() {
         </section>
 
         {/* Testimonials Section */}
-        {testimonials && testimonials.length > 0 && (
+        {siteSettings.showTestimonials !== false && testimonials && testimonials.length > 0 && (
           <section className="py-20 bg-background">
             <div className="container mx-auto px-4 lg:px-8">
               <div className="text-center mb-12">
