@@ -17,6 +17,8 @@ export type SiteSettings = {
   showServices: boolean
   showTraining: boolean
   showTestimonials: boolean
+  businessHours: string
+  businessDays: string
   layoutMode: "full" | "container"
   layoutWidth: number
   logoWidth: number
@@ -92,6 +94,8 @@ const defaultSettings: SiteSettings = {
   showServices: true,
   showTraining: true,
   showTestimonials: true,
+  businessHours: "Mon - Sat, 9:00 AM - 6:00 PM",
+  businessDays: "Mon - Sat",
   layoutMode: "container",
   layoutWidth: 90,
   logoWidth: 40,
@@ -174,6 +178,8 @@ export async function getSiteSettings(): Promise<SiteSettings> {
       showServices: settings.showServices ?? defaultSettings.showServices,
       showTraining: settings.showTraining ?? defaultSettings.showTraining,
       showTestimonials: settings.showTestimonials ?? defaultSettings.showTestimonials,
+      businessHours: settings.businessHours ?? defaultSettings.businessHours,
+      businessDays: settings.businessDays ?? defaultSettings.businessDays,
       layoutMode: (settings.layoutMode as "full" | "container") ?? defaultSettings.layoutMode,
       layoutWidth: settings.layoutWidth ?? defaultSettings.layoutWidth,
       logoWidth: settings.logoWidth ?? defaultSettings.logoWidth,

@@ -41,6 +41,8 @@ async function main() {
       navCtaEnabled: true,
       layoutMode: "container",
       layoutWidth: 90,
+      businessHours: "Mon - Sat, 9:00 AM - 6:00 PM",
+      businessDays: "Mon - Sat",
       heroMode: "parallax",
       heroStaticIndex: 0,
       heroAutoplaySeconds: 6,
@@ -99,6 +101,8 @@ async function main() {
       data: {
         heroMode: "parallax",
         heroStaticIndex: 0,
+        businessHours: "Mon - Sat, 9:00 AM - 6:00 PM",
+        businessDays: "Mon - Sat",
         heroSlides: JSON.stringify([
           {
             title: "Empowering Organizations with Innovative Software Solutions",

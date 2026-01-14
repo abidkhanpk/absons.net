@@ -49,6 +49,8 @@ export default async function SettingsPage() {
               hero_slides: JSON.stringify(settings?.heroSlides ? JSON.parse(settings.heroSlides) : resolved.heroSlides),
               hero_autoplay_seconds: settings?.heroAutoplaySeconds ?? resolved.heroAutoplaySeconds ?? 6,
               hero_height: settings?.heroHeight ?? resolved.heroHeight ?? 560,
+              business_hours: settings?.businessHours ?? resolved.businessHours ?? "Mon - Sat, 9:00 AM - 6:00 PM",
+              business_days: settings?.businessDays ?? resolved.businessDays ?? "Mon - Sat",
               show_services: settings?.showServices ?? resolved.showServices ?? true,
               show_training: settings?.showTraining ?? resolved.showTraining ?? true,
               show_testimonials: settings?.showTestimonials ?? resolved.showTestimonials ?? true,

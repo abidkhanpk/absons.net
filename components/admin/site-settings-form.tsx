@@ -16,6 +16,8 @@ type SiteSettings = {
   contact_email: string | null
   contact_phone: string | null
   contact_address: string | null
+  business_hours?: string | null
+  business_days?: string | null
   nav_alignment: "left" | "center" | "right"
   nav_login_text: string
   nav_cta_text?: string | null
@@ -43,6 +45,8 @@ type HeroSlide = {
   ctaText?: string
   ctaHref?: string
   image?: string
+  layout?: "full" | "image-left" | "image-right" | "no-image"
+  bgColor?: string
 }
 
 function safeParseSlides(raw: string | null | undefined): HeroSlide[] {
@@ -64,6 +68,8 @@ export function SiteSettingsForm({ initial }: { initial: SiteSettings }) {
     contactEmail: initial.contact_email || "",
     contactPhone: initial.contact_phone || "",
     contactAddress: initial.contact_address || "",
+    businessHours: initial.business_hours || "Mon - Sat, 9:00 AM - 6:00 PM",
+    businessDays: initial.business_days || "Mon - Sat",
     navAlignment: (initial.nav_alignment as "left" | "center" | "right") || "left",
     navLoginText: initial.nav_login_text || "Login",
     navCtaText: initial.nav_cta_text || "Get Started",
@@ -88,7 +94,7 @@ export function SiteSettingsForm({ initial }: { initial: SiteSettings }) {
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState(false)
   const [uploading, setUploading] = useState(false)
-  const [activeTab, setActiveTab] = useState<"branding" | "navigation" | "contact" | "hero">("branding")
+  const [activeTab, setActiveTab] = useState<"general" | "navigation" | "hero">("general")
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -149,13 +155,12 @@ export function SiteSettingsForm({ initial }: { initial: SiteSettings }) {
     <form className="space-y-6" onSubmit={handleSubmit}>
       <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as typeof activeTab)} className="space-y-6">
         <TabsList>
-          <TabsTrigger value="branding">Branding</TabsTrigger>
+          <TabsTrigger value="general">General</TabsTrigger>
           <TabsTrigger value="navigation">Navigation & Layout</TabsTrigger>
           <TabsTrigger value="hero">Hero Slides</TabsTrigger>
-          <TabsTrigger value="contact">Contact</TabsTrigger>
         </TabsList>
 
-        <TabsContent value="branding" className="space-y-6">
+        <TabsContent value="general" className="space-y-6">
           <div className="grid gap-4 md:grid-cols-2">
             <div className="space-y-2">
               <Label htmlFor="siteTitle">Website Title</Label>
@@ -254,6 +259,96 @@ export function SiteSettingsForm({ initial }: { initial: SiteSettings }) {
                 value={formData.logoRadius}
                 onChange={(e) => setFormData({ ...formData, logoRadius: Number(e.target.value) })}
               />
+            </div>
+          </div>
+
+          <div className="grid gap-4 md:grid-cols-2">
+            <div className="space-y-2">
+              <Label htmlFor="contactEmail">Contact Email</Label>
+              <Input
+                id="contactEmail"
+                value={formData.contactEmail}
+                onChange={(e) => setFormData({ ...formData, contactEmail: e.target.value })}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="contactPhone">Contact Phone</Label>
+              <Input
+                id="contactPhone"
+                value={formData.contactPhone}
+                onChange={(e) => setFormData({ ...formData, contactPhone: e.target.value })}
+              />
+            </div>
+          </div>
+
+          <div className="grid gap-4 md:grid-cols-2">
+            <div className="space-y-2">
+              <Label htmlFor="contactAddress">Contact Address</Label>
+              <Input
+                id="contactAddress"
+                value={formData.contactAddress}
+                onChange={(e) => setFormData({ ...formData, contactAddress: e.target.value })}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="businessHours">Business Hours</Label>
+              <Input
+                id="businessHours"
+                value={formData.businessHours}
+                onChange={(e) => setFormData({ ...formData, businessHours: e.target.value })}
+                placeholder="Mon - Sat, 9:00 AM - 6:00 PM"
+              />
+              <Label htmlFor="businessDays" className="pt-2">
+                Business Days
+              </Label>
+              <Input
+                id="businessDays"
+                value={formData.businessDays}
+                onChange={(e) => setFormData({ ...formData, businessDays: e.target.value })}
+                placeholder="Mon - Sat"
+              />
+            </div>
+          </div>
+
+          <div className="grid gap-4 md:grid-cols-2">
+            <div className="space-y-2">
+              <Label className="font-semibold">Home Sections</Label>
+              <div className="flex items-center gap-3 pt-1">
+                <input
+                  id="showServices"
+                  type="checkbox"
+                  checked={formData.showServices}
+                  onChange={(e) => setFormData({ ...formData, showServices: e.target.checked })}
+                  className="h-4 w-4"
+                />
+                <Label htmlFor="showServices" className="text-sm text-muted-foreground font-normal">
+                  Show Services section
+                </Label>
+              </div>
+              <div className="flex items-center gap-3 pt-1">
+                <input
+                  id="showTraining"
+                  type="checkbox"
+                  checked={formData.showTraining}
+                  onChange={(e) => setFormData({ ...formData, showTraining: e.target.checked })}
+                  className="h-4 w-4"
+                />
+                <Label htmlFor="showTraining" className="text-sm text-muted-foreground font-normal">
+                  Show Training section
+                </Label>
+              </div>
+              <div className="flex items-center gap-3 pt-1">
+                <input
+                  id="showTestimonials"
+                  type="checkbox"
+                  checked={formData.showTestimonials}
+                  onChange={(e) => setFormData({ ...formData, showTestimonials: e.target.checked })}
+                  className="h-4 w-4"
+                />
+                <Label htmlFor="showTestimonials" className="text-sm text-muted-foreground font-normal">
+                  Show Testimonials section
+                </Label>
+              </div>
             </div>
           </div>
         </TabsContent>
@@ -576,77 +671,6 @@ export function SiteSettingsForm({ initial }: { initial: SiteSettings }) {
           </Button>
         </TabsContent>
 
-        <TabsContent value="contact" className="space-y-6">
-          <div className="grid gap-4 md:grid-cols-2">
-            <div className="space-y-2">
-              <Label htmlFor="contactEmail">Contact Email</Label>
-              <Input
-                id="contactEmail"
-                value={formData.contactEmail}
-                onChange={(e) => setFormData({ ...formData, contactEmail: e.target.value })}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="contactPhone">Contact Phone</Label>
-              <Input
-                id="contactPhone"
-                value={formData.contactPhone}
-                onChange={(e) => setFormData({ ...formData, contactPhone: e.target.value })}
-              />
-            </div>
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="contactAddress">Contact Address</Label>
-            <Input
-              id="contactAddress"
-              value={formData.contactAddress}
-              onChange={(e) => setFormData({ ...formData, contactAddress: e.target.value })}
-            />
-          </div>
-
-          <div className="grid gap-4 md:grid-cols-2">
-            <div className="space-y-2">
-              <Label className="font-semibold">Home Sections</Label>
-              <div className="flex items-center gap-3 pt-1">
-                <input
-                  id="showServices"
-                  type="checkbox"
-                  checked={formData.showServices}
-                  onChange={(e) => setFormData({ ...formData, showServices: e.target.checked })}
-                  className="h-4 w-4"
-                />
-                <Label htmlFor="showServices" className="text-sm text-muted-foreground font-normal">
-                  Show Services section
-                </Label>
-              </div>
-              <div className="flex items-center gap-3 pt-1">
-                <input
-                  id="showTraining"
-                  type="checkbox"
-                  checked={formData.showTraining}
-                  onChange={(e) => setFormData({ ...formData, showTraining: e.target.checked })}
-                  className="h-4 w-4"
-                />
-                <Label htmlFor="showTraining" className="text-sm text-muted-foreground font-normal">
-                  Show Training section
-                </Label>
-              </div>
-              <div className="flex items-center gap-3 pt-1">
-                <input
-                  id="showTestimonials"
-                  type="checkbox"
-                  checked={formData.showTestimonials}
-                  onChange={(e) => setFormData({ ...formData, showTestimonials: e.target.checked })}
-                  className="h-4 w-4"
-                />
-                <Label htmlFor="showTestimonials" className="text-sm text-muted-foreground font-normal">
-                  Show Testimonials section
-                </Label>
-              </div>
-            </div>
-          </div>
-        </TabsContent>
       </Tabs>
 
       {error && <p className="text-sm text-destructive">{error}</p>}
