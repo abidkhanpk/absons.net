@@ -41,8 +41,8 @@ export default function ContactPage() {
     showServices: true,
     showTraining: true,
     showTestimonials: true,
-    businessHours: "Mon - Sat, 9:00 AM - 6:00 PM",
-    businessDays: "Mon - Sat",
+    businessHours: "Mon - Sat",
+    businessDays: "9:00 AM - 6:00 PM",
     businessHoursMode: "table",
     businessHoursSchedule: [
       { day: "Monday", open: "09:00", close: "18:00", closed: false },
@@ -152,8 +152,8 @@ export default function ContactPage() {
             showServices: json.settings.showServices ?? true,
             showTraining: json.settings.showTraining ?? true,
             showTestimonials: json.settings.showTestimonials ?? true,
-            businessHours: json.settings.businessHours ?? "Mon - Sat, 9:00 AM - 6:00 PM",
-            businessDays: json.settings.businessDays ?? "Mon - Sat",
+            businessHours: json.settings.businessHours ?? "Mon - Sat",
+            businessDays: json.settings.businessDays ?? "9:00 AM - 6:00 PM",
             businessHoursSchedule:
               parseSchedule(json.settings.businessHoursSchedule).length > 0
                 ? parseSchedule(json.settings.businessHoursSchedule)
@@ -408,14 +408,18 @@ export default function ContactPage() {
                         </div>
                       ) : siteSettings.businessHoursMode === "summary" ? (
                         <div className="space-y-1 text-sm rounded-md bg-primary-foreground/10 px-4 py-3">
-                          <div className="flex items-center justify-between">
-                            <span className="font-semibold">Days</span>
-                            <span className="text-right">{summaryDays}</span>
-                          </div>
-                          <div className="flex items-center justify-between">
-                            <span className="font-semibold">Hours</span>
-                            <span className="text-right">{summaryHours}</span>
-                          </div>
+                          {summaryDays && (
+                            <div className="flex items-center justify-between">
+                              <span className="font-semibold">Line 1</span>
+                              <span className="text-right">{summaryDays}</span>
+                            </div>
+                          )}
+                          {summaryHours && (
+                            <div className="flex items-center justify-between">
+                              <span className="font-semibold">Line 2</span>
+                              <span className="text-right">{summaryHours}</span>
+                            </div>
+                          )}
                         </div>
                       ) : null}
                     </CardContent>
