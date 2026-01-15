@@ -27,6 +27,7 @@ export async function PUT(request: Request) {
       businessHours,
       businessDays,
       businessHoursSchedule,
+      businessHoursMode,
       showBusinessHours,
       logoWidth,
       logoHeight,
@@ -70,6 +71,7 @@ export async function PUT(request: Request) {
         businessDays,
         businessHoursSchedule:
           typeof businessHoursSchedule === "string" ? businessHoursSchedule : JSON.stringify(businessHoursSchedule ?? []),
+        businessHoursMode,
         showBusinessHours,
         logoWidth,
         logoHeight,

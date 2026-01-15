@@ -20,6 +20,7 @@ type SiteSettings = {
   business_days?: string | null
   business_hours_schedule?: string | null
   show_business_hours?: boolean | null
+  business_hours_mode?: "table" | "summary" | "hidden" | null
   nav_alignment: "left" | "center" | "right"
   nav_login_text: string
   nav_cta_text?: string | null
@@ -105,6 +106,7 @@ export function SiteSettingsForm({ initial }: { initial: SiteSettings }) {
         ? safeParseHours(initial.business_hours_schedule)
         : defaultSchedule,
     showBusinessHours: initial.show_business_hours ?? true,
+    businessHoursMode: (initial.business_hours_mode as "table" | "summary" | "hidden") || "table",
     navAlignment: (initial.nav_alignment as "left" | "center" | "right") || "left",
     navLoginText: initial.nav_login_text || "Login",
     navCtaText: initial.nav_cta_text || "Get Started",
@@ -145,6 +147,7 @@ export function SiteSettingsForm({ initial }: { initial: SiteSettings }) {
           ...formData,
           heroSlides: formData.heroSlides,
           businessHoursSchedule: formData.businessHoursSchedule,
+          businessHoursMode: formData.businessHoursMode,
         }),
       })
 
@@ -371,26 +374,39 @@ export function SiteSettingsForm({ initial }: { initial: SiteSettings }) {
                 onChange={(e) => setFormData({ ...formData, contactAddress: e.target.value })}
               />
             </div>
+          </div>
+
             <div className="space-y-2">
               <div className="flex items-center justify-between">
                 <div className="space-y-1">
                   <Label className="font-semibold">Business Hours</Label>
-                  <p className="text-xs text-muted-foreground">Set per-day hours and mark days off.</p>
+                  <p className="text-xs text-muted-foreground">Choose detailed table or two custom lines.</p>
                 </div>
-                <div className="flex items-center gap-2">
-                  <input
-                    id="showBusinessHours"
-                    type="checkbox"
-                    checked={formData.showBusinessHours}
-                    onChange={(e) => setFormData({ ...formData, showBusinessHours: e.target.checked })}
-                    className="h-4 w-4"
-                  />
-                  <Label htmlFor="showBusinessHours" className="text-sm text-muted-foreground font-normal">
-                    Show on contact page
-                  </Label>
-                </div>
+              <div className="flex items-center gap-3 text-sm">
+                <Label className="text-muted-foreground">Display</Label>
+                <Select
+                  value={formData.businessHoursMode}
+                  onValueChange={(value: "table" | "summary" | "hidden") =>
+                    setFormData({
+                      ...formData,
+                      businessHoursMode: value,
+                      showBusinessHours: value === "table",
+                    })
+                  }
+                >
+                  <SelectTrigger className="w-40">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="table">Detailed table</SelectItem>
+                    <SelectItem value="summary">Summary only</SelectItem>
+                    <SelectItem value="hidden">Hide</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
+            </div>
 
+            {formData.businessHoursMode === "table" && (
               <div className="rounded-md border border-dashed">
                 {formData.businessHoursSchedule.map((entry, idx) => (
                   <div
@@ -457,26 +473,32 @@ export function SiteSettingsForm({ initial }: { initial: SiteSettings }) {
                   </div>
                 ))}
               </div>
+            )}
 
-              <div className="grid gap-2">
-                <Label htmlFor="businessHours">Summary Line (optional)</Label>
-                <Input
-                  id="businessHours"
-                  value={formData.businessHours}
-                  onChange={(e) => setFormData({ ...formData, businessHours: e.target.value })}
-                  placeholder="Mon - Sat, 9:00 AM - 6:00 PM"
-                />
-                <Label htmlFor="businessDays" className="pt-1">
-                  Business Days (optional)
-                </Label>
-                <Input
-                  id="businessDays"
-                  value={formData.businessDays}
-                  onChange={(e) => setFormData({ ...formData, businessDays: e.target.value })}
-                  placeholder="Mon - Sat"
-                />
+            {formData.businessHoursMode === "summary" && (
+              <div className="grid gap-2 md:grid-cols-2">
+                <div className="space-y-1">
+                  <Label htmlFor="businessHours">Line 1</Label>
+                  <Input
+                    id="businessHours"
+                    value={formData.businessHours}
+                    onChange={(e) => setFormData({ ...formData, businessHours: e.target.value })}
+                    placeholder="e.g. Mon - Sat"
+                  />
+                </div>
+                <div className="space-y-1">
+                  <Label htmlFor="businessDays" className="pt-1">
+                    Line 2
+                  </Label>
+                  <Input
+                    id="businessDays"
+                    value={formData.businessDays}
+                    onChange={(e) => setFormData({ ...formData, businessDays: e.target.value })}
+                    placeholder="e.g. 9:00 AM - 6:00 PM"
+                  />
+                </div>
               </div>
-            </div>
+            )}
           </div>
         </TabsContent>
 

@@ -112,6 +112,7 @@ model SiteSettings {
   businessDays   String   @default("Mon - Sat") @map("business_days")
   businessHoursSchedule Json?    @map("business_hours_schedule")
   showBusinessHours Boolean @default(true) @map("show_business_hours")
+  businessHoursMode String @default("table") @map("business_hours_mode")
   heroSlides     String   @default("[]") @map("hero_slides")
   heroMode       String   @default("static") @map("hero_mode")
   heroStaticIndex Int     @default(0) @map("hero_static_index")

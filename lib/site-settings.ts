@@ -21,6 +21,7 @@ export type SiteSettings = {
   businessDays: string
   businessHoursSchedule: BusinessHourEntry[]
   showBusinessHours: boolean
+  businessHoursMode: "table" | "summary" | "hidden"
   layoutMode: "full" | "container"
   layoutWidth: number
   logoWidth: number
@@ -113,6 +114,7 @@ const defaultSettings: SiteSettings = {
     { day: "Sunday", open: "00:00", close: "00:00", closed: true },
   ],
   showBusinessHours: true,
+  businessHoursMode: "table",
   businessHours: "Mon - Sat, 9:00 AM - 6:00 PM",
   businessDays: "Mon - Sat",
   layoutMode: "container",
@@ -217,6 +219,7 @@ export async function getSiteSettings(): Promise<SiteSettings> {
       showTestimonials: settings.showTestimonials ?? defaultSettings.showTestimonials,
       businessHoursSchedule: parseBusinessHoursSchedule(settings.businessHoursSchedule),
       showBusinessHours: settings.showBusinessHours ?? defaultSettings.showBusinessHours,
+      businessHoursMode: (settings.businessHoursMode as "table" | "summary" | "hidden") ?? defaultSettings.businessHoursMode,
       businessHours: settings.businessHours ?? defaultSettings.businessHours,
       businessDays: settings.businessDays ?? defaultSettings.businessDays,
       layoutMode: (settings.layoutMode as "full" | "container") ?? defaultSettings.layoutMode,

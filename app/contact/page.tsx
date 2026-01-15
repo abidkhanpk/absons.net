@@ -43,6 +43,7 @@ export default function ContactPage() {
     showTestimonials: true,
     businessHours: "Mon - Sat, 9:00 AM - 6:00 PM",
     businessDays: "Mon - Sat",
+    businessHoursMode: "table",
     businessHoursSchedule: [
       { day: "Monday", open: "09:00", close: "18:00", closed: false },
       { day: "Tuesday", open: "09:00", close: "18:00", closed: false },
@@ -166,6 +167,7 @@ export default function ContactPage() {
                     { day: "Sunday", open: "00:00", close: "00:00", closed: true },
                   ],
             showBusinessHours: json.settings.showBusinessHours ?? true,
+            businessHoursMode: json.settings.businessHoursMode ?? "table",
             layoutMode: json.settings.layoutMode ?? "container",
             layoutWidth: json.settings.layoutWidth ?? 90,
             logoWidth: json.settings.logoWidth ?? 40,
@@ -373,27 +375,53 @@ export default function ContactPage() {
                   </CardContent>
                 </Card>
 
-                {siteSettings.showBusinessHours && (
+                {(() => {
+                  const grouped = groupSchedule(siteSettings.businessHoursSchedule)
+                  const fallbackDays = grouped.map((g) => g.label).join(", ")
+                  const fallbackHours = grouped.map((g) => `${g.label}: ${g.hours}`).join("; ")
+                  const summaryDays = siteSettings.businessDays || fallbackDays
+                  const summaryHours = siteSettings.businessHours || fallbackHours
+                  const hasContent =
+                    siteSettings.businessHoursMode !== "hidden" &&
+                    (siteSettings.showBusinessHours || summaryDays || summaryHours)
+
+                  if (!hasContent) return null
+
+                  return (
                   <Card className="border-border bg-primary text-primary-foreground">
                     <CardContent className="p-6 space-y-3">
                       <h3 className="text-xl font-semibold">Business Hours</h3>
                       <p className="text-sm text-primary-foreground/90">
                         We aim to reply to all enquiries within one business day.
                       </p>
-                      <div className="space-y-2 text-sm">
-                        {groupSchedule(siteSettings.businessHoursSchedule).map((group) => (
-                          <div
-                            key={group.label}
-                            className="flex items-center justify-between rounded-md bg-primary-foreground/10 px-4 py-2"
-                          >
-                            <div className="font-semibold">{group.label}</div>
-                            <div className="text-right">{group.hours}</div>
+                      {siteSettings.businessHoursMode === "table" ? (
+                        <div className="space-y-2 text-sm">
+                          {groupSchedule(siteSettings.businessHoursSchedule).map((group) => (
+                            <div
+                              key={group.label}
+                              className="flex items-center justify-between rounded-md bg-primary-foreground/10 px-4 py-2"
+                            >
+                              <div className="font-semibold">{group.label}</div>
+                              <div className="text-right">{group.hours}</div>
+                            </div>
+                          ))}
+                        </div>
+                      ) : siteSettings.businessHoursMode === "summary" ? (
+                        <div className="space-y-1 text-sm rounded-md bg-primary-foreground/10 px-4 py-3">
+                          <div className="flex items-center justify-between">
+                            <span className="font-semibold">Days</span>
+                            <span className="text-right">{summaryDays}</span>
                           </div>
-                        ))}
-                      </div>
+                          <div className="flex items-center justify-between">
+                            <span className="font-semibold">Hours</span>
+                            <span className="text-right">{summaryHours}</span>
+                          </div>
+                        </div>
+                      ) : null}
                     </CardContent>
                   </Card>
-                )}
+                  )
+                })()}
               </div>
             </div>
           </div>

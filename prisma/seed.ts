@@ -53,6 +53,7 @@ async function main() {
         { day: "Sunday", open: "00:00", close: "00:00", closed: true },
       ],
       showBusinessHours: true,
+      businessHoursMode: "table",
       heroMode: "parallax",
       heroStaticIndex: 0,
       heroAutoplaySeconds: 6,
@@ -123,6 +124,7 @@ async function main() {
           { day: "Sunday", open: "00:00", close: "00:00", closed: true },
         ],
         showBusinessHours: true,
+        businessHoursMode: "table",
         heroSlides: JSON.stringify([
           {
             title: "Empowering Organizations with Innovative Software Solutions",

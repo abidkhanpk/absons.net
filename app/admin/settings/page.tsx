@@ -56,6 +56,7 @@ export default async function SettingsPage() {
                 : settings?.businessHoursSchedule ?? resolved.businessHoursSchedule
                 ? JSON.stringify(resolved.businessHoursSchedule)
                 : undefined,
+              business_hours_mode: settings?.businessHoursMode ?? resolved.businessHoursMode ?? "table",
               show_business_hours: settings?.showBusinessHours ?? resolved.showBusinessHours ?? true,
               show_services: settings?.showServices ?? resolved.showServices ?? true,
               show_training: settings?.showTraining ?? resolved.showTraining ?? true,
