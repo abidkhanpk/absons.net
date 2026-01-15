@@ -487,9 +487,7 @@ export function SiteSettingsForm({ initial }: { initial: SiteSettings }) {
                   />
                 </div>
                 <div className="space-y-1">
-                  <Label htmlFor="businessDays" className="pt-1">
-                    Line 2
-                  </Label>
+                  <Label htmlFor="businessDays">Line 2</Label>
                   <Input
                     id="businessDays"
                     value={formData.businessDays}

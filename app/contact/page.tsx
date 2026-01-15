@@ -407,19 +407,9 @@ export default function ContactPage() {
                           ))}
                         </div>
                       ) : siteSettings.businessHoursMode === "summary" ? (
-                        <div className="space-y-1 text-sm rounded-md bg-primary-foreground/10 px-4 py-3">
-                          {summaryDays && (
-                            <div className="flex items-center justify-between">
-                              <span className="font-semibold">Line 1</span>
-                              <span className="text-right">{summaryDays}</span>
-                            </div>
-                          )}
-                          {summaryHours && (
-                            <div className="flex items-center justify-between">
-                              <span className="font-semibold">Line 2</span>
-                              <span className="text-right">{summaryHours}</span>
-                            </div>
-                          )}
+                        <div className="space-y-1 text-sm rounded-md bg-primary-foreground/10 px-4 py-3 text-right">
+                          {summaryDays && <div>{summaryDays}</div>}
+                          {summaryHours && <div>{summaryHours}</div>}
                         </div>
                       ) : null}
                     </CardContent>
