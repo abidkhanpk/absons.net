@@ -129,7 +129,7 @@ export function SiteSettingsForm({ initial }: { initial: SiteSettings }) {
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState(false)
   const [uploading, setUploading] = useState(false)
-  const [activeTab, setActiveTab] = useState<"general" | "navigation" | "hero">("general")
+  const [activeTab, setActiveTab] = useState<"general" | "navigation" | "hero" | "contact">("general")
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -194,6 +194,7 @@ export function SiteSettingsForm({ initial }: { initial: SiteSettings }) {
           <TabsTrigger value="general">General</TabsTrigger>
           <TabsTrigger value="navigation">Navigation & Layout</TabsTrigger>
           <TabsTrigger value="hero">Hero Slides</TabsTrigger>
+          <TabsTrigger value="contact">Contact</TabsTrigger>
         </TabsList>
 
         <TabsContent value="general" className="space-y-6">
@@ -298,6 +299,50 @@ export function SiteSettingsForm({ initial }: { initial: SiteSettings }) {
             </div>
           </div>
 
+          <div className="grid gap-4 md:grid-cols-2">
+            <div className="space-y-2">
+              <Label className="font-semibold">Home Sections</Label>
+              <div className="flex items-center gap-3 pt-1">
+                <input
+                  id="showServices"
+                  type="checkbox"
+                  checked={formData.showServices}
+                  onChange={(e) => setFormData({ ...formData, showServices: e.target.checked })}
+                  className="h-4 w-4"
+                />
+                <Label htmlFor="showServices" className="text-sm text-muted-foreground font-normal">
+                  Show Services section
+                </Label>
+              </div>
+              <div className="flex items-center gap-3 pt-1">
+                <input
+                  id="showTraining"
+                  type="checkbox"
+                  checked={formData.showTraining}
+                  onChange={(e) => setFormData({ ...formData, showTraining: e.target.checked })}
+                  className="h-4 w-4"
+                />
+                <Label htmlFor="showTraining" className="text-sm text-muted-foreground font-normal">
+                  Show Training section
+                </Label>
+              </div>
+              <div className="flex items-center gap-3 pt-1">
+                <input
+                  id="showTestimonials"
+                  type="checkbox"
+                  checked={formData.showTestimonials}
+                  onChange={(e) => setFormData({ ...formData, showTestimonials: e.target.checked })}
+                  className="h-4 w-4"
+                />
+                <Label htmlFor="showTestimonials" className="text-sm text-muted-foreground font-normal">
+                  Show Testimonials section
+                </Label>
+              </div>
+            </div>
+          </div>
+        </TabsContent>
+
+        <TabsContent value="contact" className="space-y-6">
           <div className="grid gap-4 md:grid-cols-2">
             <div className="space-y-2">
               <Label htmlFor="contactEmail">Contact Email</Label>
@@ -430,48 +475,6 @@ export function SiteSettingsForm({ initial }: { initial: SiteSettings }) {
                   onChange={(e) => setFormData({ ...formData, businessDays: e.target.value })}
                   placeholder="Mon - Sat"
                 />
-              </div>
-            </div>
-          </div>
-
-          <div className="grid gap-4 md:grid-cols-2">
-            <div className="space-y-2">
-              <Label className="font-semibold">Home Sections</Label>
-              <div className="flex items-center gap-3 pt-1">
-                <input
-                  id="showServices"
-                  type="checkbox"
-                  checked={formData.showServices}
-                  onChange={(e) => setFormData({ ...formData, showServices: e.target.checked })}
-                  className="h-4 w-4"
-                />
-                <Label htmlFor="showServices" className="text-sm text-muted-foreground font-normal">
-                  Show Services section
-                </Label>
-              </div>
-              <div className="flex items-center gap-3 pt-1">
-                <input
-                  id="showTraining"
-                  type="checkbox"
-                  checked={formData.showTraining}
-                  onChange={(e) => setFormData({ ...formData, showTraining: e.target.checked })}
-                  className="h-4 w-4"
-                />
-                <Label htmlFor="showTraining" className="text-sm text-muted-foreground font-normal">
-                  Show Training section
-                </Label>
-              </div>
-              <div className="flex items-center gap-3 pt-1">
-                <input
-                  id="showTestimonials"
-                  type="checkbox"
-                  checked={formData.showTestimonials}
-                  onChange={(e) => setFormData({ ...formData, showTestimonials: e.target.checked })}
-                  className="h-4 w-4"
-                />
-                <Label htmlFor="showTestimonials" className="text-sm text-muted-foreground font-normal">
-                  Show Testimonials section
-                </Label>
               </div>
             </div>
           </div>

@@ -90,13 +90,15 @@ export default function ContactPage() {
 
     const groups: { days: string[]; open: string; close: string; closed?: boolean }[] = []
     normalized.forEach((entry) => {
+      const normalizedOpen = entry.closed ? "closed" : entry.open
+      const normalizedClose = entry.closed ? "closed" : entry.close
       const last = groups[groups.length - 1]
       const hasSameHours =
-        last && last.closed === entry.closed && last.open === entry.open && last.close === entry.close
+        last && last.closed === entry.closed && last.open === normalizedOpen && last.close === normalizedClose
       if (last && hasSameHours) {
         last.days.push(entry.day)
       } else {
-        groups.push({ days: [entry.day], open: entry.open, close: entry.close, closed: entry.closed })
+        groups.push({ days: [entry.day], open: normalizedOpen, close: normalizedClose, closed: entry.closed })
       }
     })
 
