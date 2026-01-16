@@ -275,8 +275,8 @@ export function ContactPageClient({ settings }: ContactPageClientProps) {
 
                   return (
                     <Card className="border-border bg-primary text-primary-foreground">
-                      <CardContent className="p-6 space-y-3">
-                        <h3 className="text-xl font-semibold">Business Hours</h3>
+                      <CardContent className="p-3">
+                        <h3 className="text-xl font-semibold mb-1">Business Hours</h3>
                         {settings.businessHoursMode === "table" ? (
                           <div className="space-y-2 text-sm">
                             {groupSchedule(settings.businessHoursSchedule).map((group) => (
@@ -290,7 +290,7 @@ export function ContactPageClient({ settings }: ContactPageClientProps) {
                             ))}
                           </div>
                         ) : settings.businessHoursMode === "summary" ? (
-                          <div className="space-y-1 text-sm rounded-md bg-primary-foreground/10 px-4 py-3 text-left">
+                          <div className="space-y-1 text-sm rounded-md bg-primary-foreground/10 px-3 py-1 text-left">
                             {summaryDays && <div>{summaryDays}</div>}
                             {summaryHours && <div>{summaryHours}</div>}
                           </div>
