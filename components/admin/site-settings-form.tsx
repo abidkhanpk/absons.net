@@ -249,18 +249,60 @@ export function SiteSettingsForm({ initial }: { initial: SiteSettings }) {
     return next
   }
 
+  const syncNavItemsWithHomeSections = (navItems: NavItem[], homeSections: HomeSection[]) => {
+    const orderMap = new Map(homeSections.map((section, index) => [section.id, index]))
+    const enabledMap = new Map(homeSections.map((section) => [section.id, section.enabled]))
+    const positions = navItems
+      .map((item, index) => ({ item, index }))
+      .filter(({ item }) => orderMap.has(item.id))
+    if (positions.length === 0) return navItems
+
+    const orderedItems = positions
+      .map(({ item }) => ({
+        ...item,
+        enabled: enabledMap.has(item.id) ? Boolean(enabledMap.get(item.id)) : item.enabled,
+      }))
+      .sort((a, b) => (orderMap.get(a.id) ?? 0) - (orderMap.get(b.id) ?? 0))
+    const sortedPositions = positions.map((entry) => entry.index).sort((a, b) => a - b)
+    const next = [...navItems]
+    sortedPositions.forEach((pos, idx) => {
+      next[pos] = orderedItems[idx]
+    })
+    return next
+  }
+
+  const syncHomeSectionsWithNavItems = (homeSections: HomeSection[], navItems: NavItem[]) => {
+    const navOrder = navItems
+      .filter((item) => homeSections.some((section) => section.id === item.id))
+      .map((item) => item.id as HomeSection["id"])
+    if (navOrder.length === 0) return homeSections
+    const ordered = navOrder
+      .map((id) => homeSections.find((section) => section.id === id))
+      .filter(Boolean) as HomeSection[]
+    const remaining = homeSections.filter((section) => !navOrder.includes(section.id))
+    return [...ordered, ...remaining]
+  }
+
   const moveHomeSection = (index: number, direction: -1 | 1) => {
-    setFormData((prev) => ({
-      ...prev,
-      homeSections: moveItem(prev.homeSections, index, index + direction),
-    }))
+    setFormData((prev) => {
+      const homeSections = moveItem(prev.homeSections, index, index + direction)
+      return {
+        ...prev,
+        homeSections,
+        navItems: syncNavItemsWithHomeSections(prev.navItems, homeSections),
+      }
+    })
   }
 
   const moveNavItem = (index: number, direction: -1 | 1) => {
-    setFormData((prev) => ({
-      ...prev,
-      navItems: moveItem(prev.navItems, index, index + direction),
-    }))
+    setFormData((prev) => {
+      const navItems = moveItem(prev.navItems, index, index + direction)
+      return {
+        ...prev,
+        navItems,
+        homeSections: syncHomeSectionsWithNavItems(prev.homeSections, navItems),
+      }
+    })
   }
 
   const toggleHomeSection = (id: HomeSection["id"], enabled: boolean) => {
@@ -271,6 +313,7 @@ export function SiteSettingsForm({ initial }: { initial: SiteSettings }) {
       return {
         ...prev,
         homeSections,
+        navItems: syncNavItemsWithHomeSections(prev.navItems, homeSections),
         showServices: id === "services" ? enabled : prev.showServices,
         showTraining: id === "training" ? enabled : prev.showTraining,
         showTestimonials: id === "testimonials" ? enabled : prev.showTestimonials,
@@ -279,10 +322,20 @@ export function SiteSettingsForm({ initial }: { initial: SiteSettings }) {
   }
 
   const toggleNavItem = (id: NavItem["id"], enabled: boolean) => {
-    setFormData((prev) => ({
-      ...prev,
-      navItems: prev.navItems.map((item) => (item.id === id ? { ...item, enabled } : item)),
-    }))
+    setFormData((prev) => {
+      const navItems = prev.navItems.map((item) => (item.id === id ? { ...item, enabled } : item))
+      const homeSections = prev.homeSections.map((section) =>
+        section.id === id ? { ...section, enabled } : section,
+      )
+      return {
+        ...prev,
+        navItems,
+        homeSections,
+        showServices: id === "services" ? enabled : prev.showServices,
+        showTraining: id === "training" ? enabled : prev.showTraining,
+        showTestimonials: id === "testimonials" ? enabled : prev.showTestimonials,
+      }
+    })
   }
 
   const handleSubmit = async (e: React.FormEvent) => {

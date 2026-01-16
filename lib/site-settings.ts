@@ -273,6 +273,29 @@ function parseHomeSections(
   }
 }
 
+function syncNavItemsWithHomeSections(navItems: NavItem[], homeSections: HomeSection[]): NavItem[] {
+  const orderMap = new Map(homeSections.map((section, index) => [section.id, index]))
+  if (orderMap.size === 0) return navItems
+  const enabledMap = new Map(homeSections.map((section) => [section.id, section.enabled]))
+  const positions = navItems
+    .map((item, index) => ({ item, index }))
+    .filter(({ item }) => orderMap.has(item.id))
+  if (positions.length === 0) return navItems
+
+  const orderedItems = positions
+    .map(({ item }) => ({
+      ...item,
+      enabled: enabledMap.has(item.id) ? Boolean(enabledMap.get(item.id)) : item.enabled,
+    }))
+    .sort((a, b) => (orderMap.get(a.id) ?? 0) - (orderMap.get(b.id) ?? 0))
+  const sortedPositions = positions.map((entry) => entry.index).sort((a, b) => a - b)
+  const next = [...navItems]
+  sortedPositions.forEach((pos, idx) => {
+    next[pos] = orderedItems[idx]
+  })
+  return next
+}
+
 function parseBusinessHoursSchedule(raw: unknown): BusinessHourEntry[] {
   try {
     const parsed = Array.isArray(raw) ? raw : raw ? JSON.parse(String(raw)) : []
@@ -314,6 +337,8 @@ export async function getSiteSettings(): Promise<SiteSettings> {
       },
     )
 
+    const navItems = syncNavItemsWithHomeSections(parseNavItems(settings.navItems), homeSections)
+
     return {
       siteTitle: settings.siteTitle ?? defaultSettings.siteTitle,
       logoUrl: resolveLogoUrl(settings.logoUrl),
@@ -331,7 +356,7 @@ export async function getSiteSettings(): Promise<SiteSettings> {
       showServices: resolvedVisibility.services,
       showTraining: resolvedVisibility.training,
       showTestimonials: resolvedVisibility.testimonials,
-      navItems: parseNavItems(settings.navItems),
+      navItems,
       homeSections,
       businessHoursSchedule: parseBusinessHoursSchedule(settings.businessHoursSchedule),
       showBusinessHours: settings.showBusinessHours ?? defaultSettings.showBusinessHours,
