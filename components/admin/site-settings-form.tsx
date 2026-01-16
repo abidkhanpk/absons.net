@@ -478,20 +478,20 @@ export function SiteSettingsForm({ initial }: { initial: SiteSettings }) {
             {formData.businessHoursMode === "summary" && (
               <div className="grid gap-2 md:grid-cols-2">
                 <div className="space-y-1">
-                  <Label htmlFor="businessHours">Line 1</Label>
-                  <Input
-                    id="businessHours"
-                    value={formData.businessHours}
-                    onChange={(e) => setFormData({ ...formData, businessHours: e.target.value })}
-                    placeholder="e.g. Mon - Sat"
-                  />
-                </div>
-                <div className="space-y-1">
-                  <Label htmlFor="businessDays">Line 2</Label>
+                  <Label htmlFor="businessDays">Line 1</Label>
                   <Input
                     id="businessDays"
                     value={formData.businessDays}
                     onChange={(e) => setFormData({ ...formData, businessDays: e.target.value })}
+                    placeholder="e.g. Mon - Sat"
+                  />
+                </div>
+                <div className="space-y-1">
+                  <Label htmlFor="businessHours">Line 2</Label>
+                  <Input
+                    id="businessHours"
+                    value={formData.businessHours}
+                    onChange={(e) => setFormData({ ...formData, businessHours: e.target.value })}
                     placeholder="e.g. 9:00 AM - 6:00 PM"
                   />
                 </div>
