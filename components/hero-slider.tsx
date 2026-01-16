@@ -37,7 +37,7 @@ export function HeroSlider({ slides, mode, staticIndex, autoplaySeconds, height 
   const currentSlide =
     mode === "static" ? safeSlides[Math.min(Math.max(staticIndex || 0, 0), safeSlides.length - 1)] : safeSlides[active]
 
-  const minHeight = `${Math.max(360, height || 560)}px`
+  const heightValue = `${Math.max(360, height || 560)}px`
   const layout = currentSlide?.layout || "full"
   const bgStyle =
     layout === "full" && currentSlide?.image
@@ -54,13 +54,16 @@ export function HeroSlider({ slides, mode, staticIndex, autoplaySeconds, height 
 
   return (
     <section className="relative border-b border-border">
-      <div className="relative" style={{ ...bgStyle, minHeight }}>
+      <div className="relative overflow-hidden" style={{ ...bgStyle, height: heightValue }}>
         <div className={layout === "full" && currentSlide?.image ? "bg-black/50" : ""}>
-          <div className="container mx-auto px-4 lg:px-8 py-20 lg:py-32" style={{ minHeight }}>
+          <div
+            className="container mx-auto px-4 lg:px-8 py-12 lg:py-20 h-full flex items-center"
+            style={{ height: heightValue }}
+          >
             {layout === "image-left" || layout === "image-right" ? (
-              <div className="grid md:grid-cols-2 gap-8 items-center">
+              <div className="grid md:grid-cols-2 gap-8 items-center w-full min-h-0">
                 {layout === "image-left" && currentSlide?.image && (
-                  <div className="relative h-full min-h-[280px] w-full overflow-hidden rounded-xl shadow-lg bg-background">
+                  <div className="relative h-full min-h-[280px] w-full overflow-hidden rounded-xl shadow-lg bg-background max-h-full">
                     <div
                       className="absolute inset-0"
                       style={{
@@ -72,7 +75,7 @@ export function HeroSlider({ slides, mode, staticIndex, autoplaySeconds, height 
                     />
                   </div>
                 )}
-                <div className="space-y-6 text-white text-left md:text-left">
+                <div className="space-y-6 text-white text-left md:text-left min-h-0">
                   <h1 className="text-4xl md:text-5xl font-bold leading-tight">
                     {currentSlide?.title || "Empowering Organizations with Innovative Software Solutions"}
                   </h1>
@@ -92,7 +95,7 @@ export function HeroSlider({ slides, mode, staticIndex, autoplaySeconds, height 
                   </div>
                 </div>
                 {layout === "image-right" && currentSlide?.image && (
-                  <div className="relative h-full min-h-[280px] w-full overflow-hidden rounded-xl shadow-lg bg-background">
+                  <div className="relative h-full min-h-[280px] w-full overflow-hidden rounded-xl shadow-lg bg-background max-h-full">
                     <div
                       className="absolute inset-0"
                       style={{
@@ -106,7 +109,7 @@ export function HeroSlider({ slides, mode, staticIndex, autoplaySeconds, height 
                 )}
               </div>
             ) : (
-              <div className="max-w-4xl mx-auto text-center space-y-8 text-white">
+              <div className="max-w-4xl mx-auto text-center space-y-8 text-white w-full">
                 <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-balance leading-tight">
                   {currentSlide?.title || "Empowering Organizations with Innovative Software Solutions"}
                 </h1>
