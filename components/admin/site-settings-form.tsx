@@ -5,9 +5,10 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Switch } from "@/components/ui/switch"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion"
-import { UploadCloud } from "lucide-react"
+import { ArrowDown, ArrowUp, UploadCloud } from "lucide-react"
 
 type SiteSettings = {
   site_title: string
@@ -40,6 +41,8 @@ type SiteSettings = {
   logo_height?: number | null
   logo_radius?: number | null
   show_login_link?: boolean | null
+  nav_items?: string | null
+  home_sections?: string | null
 }
 
 type HeroSlide = {
@@ -57,6 +60,18 @@ type BusinessHourEntry = {
   open: string
   close: string
   closed?: boolean
+}
+
+type NavItem = {
+  id: "home" | "about" | "services" | "training" | "blog" | "contact"
+  label: string
+  href: string
+  enabled: boolean
+}
+
+type HomeSection = {
+  id: "services" | "training" | "testimonials"
+  enabled: boolean
 }
 
 function safeParseSlides(raw: string | null | undefined): HeroSlide[] {
@@ -81,6 +96,82 @@ function safeParseHours(raw: string | null | undefined): BusinessHourEntry[] {
   }
 }
 
+function safeParseNavItems(raw: string | null | undefined, fallback: NavItem[]): NavItem[] {
+  if (!raw) return fallback
+  try {
+    const parsed = JSON.parse(raw)
+    if (!Array.isArray(parsed)) return fallback
+    const lookup = new Map(fallback.map((item) => [item.id, item]))
+    const normalized: NavItem[] = []
+    const seen = new Set<string>()
+    parsed.forEach((entry) => {
+      if (!entry || typeof entry !== "object") return
+      const id = String(entry.id)
+      const base = lookup.get(id as NavItem["id"])
+      if (!base || seen.has(id)) return
+      normalized.push({
+        id: base.id,
+        label: typeof entry.label === "string" && entry.label.trim() ? entry.label : base.label,
+        href: typeof entry.href === "string" && entry.href.trim() ? entry.href : base.href,
+        enabled: typeof entry.enabled === "boolean" ? entry.enabled : base.enabled,
+      })
+      seen.add(id)
+    })
+    fallback.forEach((item) => {
+      if (!seen.has(item.id)) normalized.push(item)
+    })
+    return normalized
+  } catch {
+    return fallback
+  }
+}
+
+function safeParseHomeSections(
+  raw: string | null | undefined,
+  fallback: { services: boolean; training: boolean; testimonials: boolean },
+): HomeSection[] {
+  if (!raw) {
+    return [
+      { id: "services", enabled: fallback.services },
+      { id: "training", enabled: fallback.training },
+      { id: "testimonials", enabled: fallback.testimonials },
+    ]
+  }
+  try {
+    const parsed = JSON.parse(raw)
+    if (!Array.isArray(parsed)) {
+      return [
+        { id: "services", enabled: fallback.services },
+        { id: "training", enabled: fallback.training },
+        { id: "testimonials", enabled: fallback.testimonials },
+      ]
+    }
+    const allowed: HomeSection["id"][] = ["services", "training", "testimonials"]
+    const normalized: HomeSection[] = []
+    const seen = new Set<string>()
+    parsed.forEach((entry) => {
+      if (!entry || typeof entry !== "object") return
+      const id = String(entry.id) as HomeSection["id"]
+      if (!allowed.includes(id) || seen.has(id)) return
+      normalized.push({
+        id,
+        enabled: typeof entry.enabled === "boolean" ? entry.enabled : fallback[id],
+      })
+      seen.add(id)
+    })
+    allowed.forEach((id) => {
+      if (!seen.has(id)) normalized.push({ id, enabled: fallback[id] })
+    })
+    return normalized
+  } catch {
+    return [
+      { id: "services", enabled: fallback.services },
+      { id: "training", enabled: fallback.training },
+      { id: "testimonials", enabled: fallback.testimonials },
+    ]
+  }
+}
+
 export function SiteSettingsForm({ initial }: { initial: SiteSettings }) {
   const defaultSchedule: BusinessHourEntry[] = [
     { day: "Monday", open: "09:00", close: "18:00", closed: false },
@@ -91,6 +182,21 @@ export function SiteSettingsForm({ initial }: { initial: SiteSettings }) {
     { day: "Saturday", open: "10:00", close: "14:00", closed: false },
     { day: "Sunday", open: "00:00", close: "00:00", closed: true },
   ]
+  const defaultNavItems: NavItem[] = [
+    { id: "home", label: "Home", href: "/", enabled: true },
+    { id: "about", label: "About", href: "/about", enabled: true },
+    { id: "services", label: "Services", href: "/services", enabled: true },
+    { id: "training", label: "Training", href: "/training", enabled: true },
+    { id: "blog", label: "Blog", href: "/blog", enabled: true },
+    { id: "contact", label: "Contact", href: "/contact", enabled: true },
+  ]
+  const defaultHomeFallback = {
+    services: initial.show_services ?? true,
+    training: initial.show_training ?? true,
+    testimonials: initial.show_testimonials ?? true,
+  }
+  const initialHomeSections = safeParseHomeSections(initial.home_sections, defaultHomeFallback)
+  const initialNavItems = safeParseNavItems(initial.nav_items, defaultNavItems)
 
   const [formData, setFormData] = useState({
     siteTitle: initial.site_title || "",
@@ -119,19 +225,65 @@ export function SiteSettingsForm({ initial }: { initial: SiteSettings }) {
     heroSlides: safeParseSlides(initial.hero_slides),
     heroAutoplaySeconds: initial.hero_autoplay_seconds ?? 6,
     heroHeight: initial.hero_height ?? 560,
-    showServices: initial.show_services ?? true,
-    showTraining: initial.show_training ?? true,
-    showTestimonials: initial.show_testimonials ?? true,
+    showServices: initialHomeSections.find((section) => section.id === "services")?.enabled ?? true,
+    showTraining: initialHomeSections.find((section) => section.id === "training")?.enabled ?? true,
+    showTestimonials: initialHomeSections.find((section) => section.id === "testimonials")?.enabled ?? true,
     logoWidth: initial.logo_width || 40,
     logoHeight: initial.logo_height || 40,
     logoRadius: initial.logo_radius ?? 8,
     showLoginLink: initial.show_login_link ?? true,
+    navItems: initialNavItems,
+    homeSections: initialHomeSections,
   })
   const [isSaving, setIsSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState(false)
   const [uploading, setUploading] = useState(false)
   const [activeTab, setActiveTab] = useState<"general" | "navigation" | "hero" | "contact">("general")
+
+  const moveItem = <T,>(items: T[], fromIndex: number, toIndex: number) => {
+    if (toIndex < 0 || toIndex >= items.length) return items
+    const next = [...items]
+    const [moved] = next.splice(fromIndex, 1)
+    next.splice(toIndex, 0, moved)
+    return next
+  }
+
+  const moveHomeSection = (index: number, direction: -1 | 1) => {
+    setFormData((prev) => ({
+      ...prev,
+      homeSections: moveItem(prev.homeSections, index, index + direction),
+    }))
+  }
+
+  const moveNavItem = (index: number, direction: -1 | 1) => {
+    setFormData((prev) => ({
+      ...prev,
+      navItems: moveItem(prev.navItems, index, index + direction),
+    }))
+  }
+
+  const toggleHomeSection = (id: HomeSection["id"], enabled: boolean) => {
+    setFormData((prev) => {
+      const homeSections = prev.homeSections.map((section) =>
+        section.id === id ? { ...section, enabled } : section,
+      )
+      return {
+        ...prev,
+        homeSections,
+        showServices: id === "services" ? enabled : prev.showServices,
+        showTraining: id === "training" ? enabled : prev.showTraining,
+        showTestimonials: id === "testimonials" ? enabled : prev.showTestimonials,
+      }
+    })
+  }
+
+  const toggleNavItem = (id: NavItem["id"], enabled: boolean) => {
+    setFormData((prev) => ({
+      ...prev,
+      navItems: prev.navItems.map((item) => (item.id === id ? { ...item, enabled } : item)),
+    }))
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -145,6 +297,8 @@ export function SiteSettingsForm({ initial }: { initial: SiteSettings }) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           ...formData,
+          navItems: formData.navItems,
+          homeSections: formData.homeSections,
           heroSlides: formData.heroSlides,
           businessHoursSchedule: formData.businessHoursSchedule,
           businessHoursMode: formData.businessHoursMode,
@@ -305,41 +459,54 @@ export function SiteSettingsForm({ initial }: { initial: SiteSettings }) {
           <div className="grid gap-4 md:grid-cols-2">
             <div className="space-y-2">
               <Label className="font-semibold">Home Sections</Label>
-              <div className="flex items-center gap-3 pt-1">
-                <input
-                  id="showServices"
-                  type="checkbox"
-                  checked={formData.showServices}
-                  onChange={(e) => setFormData({ ...formData, showServices: e.target.checked })}
-                  className="h-4 w-4"
-                />
-                <Label htmlFor="showServices" className="text-sm text-muted-foreground font-normal">
-                  Show Services section
-                </Label>
-              </div>
-              <div className="flex items-center gap-3 pt-1">
-                <input
-                  id="showTraining"
-                  type="checkbox"
-                  checked={formData.showTraining}
-                  onChange={(e) => setFormData({ ...formData, showTraining: e.target.checked })}
-                  className="h-4 w-4"
-                />
-                <Label htmlFor="showTraining" className="text-sm text-muted-foreground font-normal">
-                  Show Training section
-                </Label>
-              </div>
-              <div className="flex items-center gap-3 pt-1">
-                <input
-                  id="showTestimonials"
-                  type="checkbox"
-                  checked={formData.showTestimonials}
-                  onChange={(e) => setFormData({ ...formData, showTestimonials: e.target.checked })}
-                  className="h-4 w-4"
-                />
-                <Label htmlFor="showTestimonials" className="text-sm text-muted-foreground font-normal">
-                  Show Testimonials section
-                </Label>
+              <div className="space-y-2 pt-1">
+                {formData.homeSections.map((section, index) => {
+                  const label =
+                    section.id === "services"
+                      ? "Services"
+                      : section.id === "training"
+                        ? "Training"
+                        : "Testimonials"
+                  return (
+                    <div
+                      key={section.id}
+                      className="flex items-center justify-between rounded-md border border-border/60 bg-muted/40 px-3 py-2"
+                    >
+                      <div className="flex items-center gap-3">
+                        <Switch
+                          id={`home-section-${section.id}`}
+                          checked={section.enabled}
+                          onCheckedChange={(checked) => toggleHomeSection(section.id, checked)}
+                        />
+                        <Label htmlFor={`home-section-${section.id}`} className="text-sm text-muted-foreground font-normal">
+                          {label} section
+                        </Label>
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => moveHomeSection(index, -1)}
+                          disabled={index === 0}
+                          aria-label={`Move ${label} up`}
+                        >
+                          <ArrowUp className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => moveHomeSection(index, 1)}
+                          disabled={index === formData.homeSections.length - 1}
+                          aria-label={`Move ${label} down`}
+                        >
+                          <ArrowDown className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </div>
+                  )
+                })}
               </div>
             </div>
           </div>
@@ -502,6 +669,50 @@ export function SiteSettingsForm({ initial }: { initial: SiteSettings }) {
 
         <TabsContent value="navigation" className="space-y-6">
           <div className="grid gap-4 md:grid-cols-2">
+            <div className="space-y-2 md:col-span-2">
+              <Label className="font-semibold">Navigation Menu Items</Label>
+              <div className="space-y-2 pt-1">
+                {formData.navItems.map((item, index) => (
+                  <div
+                    key={item.id}
+                    className="flex items-center justify-between rounded-md border border-border/60 bg-muted/40 px-3 py-2"
+                  >
+                    <div className="flex items-center gap-3">
+                      <Switch
+                        id={`nav-item-${item.id}`}
+                        checked={item.enabled}
+                        onCheckedChange={(checked) => toggleNavItem(item.id, checked)}
+                      />
+                      <Label htmlFor={`nav-item-${item.id}`} className="text-sm text-muted-foreground font-normal">
+                        {item.label}
+                      </Label>
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => moveNavItem(index, -1)}
+                        disabled={index === 0}
+                        aria-label={`Move ${item.label} up`}
+                      >
+                        <ArrowUp className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => moveNavItem(index, 1)}
+                        disabled={index === formData.navItems.length - 1}
+                        aria-label={`Move ${item.label} down`}
+                      >
+                        <ArrowDown className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
             <div className="space-y-2">
               <Label>Menu Alignment</Label>
               <Select

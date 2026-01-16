@@ -3,6 +3,8 @@ import { Mail, Phone, MapPin } from "lucide-react"
 import type { SiteSettings } from "@/lib/site-settings"
 
 export function Footer({ settings }: { settings: SiteSettings }) {
+  const navItems = (settings.navItems || []).filter((item) => item.enabled !== false)
+
   return (
     <footer className="bg-muted/30 border-t border-border">
       <div className="container mx-auto px-4 lg:px-8 py-12">
@@ -22,32 +24,13 @@ export function Footer({ settings }: { settings: SiteSettings }) {
           <div>
             <h3 className="font-semibold mb-4">Quick Links</h3>
             <ul className="space-y-3">
-              <li>
-                <Link href="/" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
-                  Home
-                </Link>
-              </li>
-              <li>
-                <Link href="/about" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
-                  About Us
-                </Link>
-              </li>
-              <li>
-                <Link
-                  href="/services"
-                  className="text-sm text-muted-foreground hover:text-foreground transition-colors"
-                >
-                  Services
-                </Link>
-              </li>
-              <li>
-                <Link
-                  href="/training"
-                  className="text-sm text-muted-foreground hover:text-foreground transition-colors"
-                >
-                  Training
-                </Link>
-              </li>
+              {navItems.map((item) => (
+                <li key={item.id}>
+                  <Link href={item.href} className="text-sm text-muted-foreground hover:text-foreground transition-colors">
+                    {item.label}
+                  </Link>
+                </li>
+              ))}
             </ul>
           </div>
 
@@ -117,4 +100,3 @@ export function Footer({ settings }: { settings: SiteSettings }) {
     </footer>
   )
 }
-

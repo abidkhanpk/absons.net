@@ -65,6 +65,16 @@ export default async function SettingsPage() {
               logo_height: settings?.logoHeight || 40,
               logo_radius: settings?.logoRadius ?? 8,
               show_login_link: settings?.showLoginLink ?? true,
+              nav_items: settings?.navItems
+                ? JSON.stringify(settings.navItems)
+                : resolved.navItems
+                  ? JSON.stringify(resolved.navItems)
+                  : undefined,
+              home_sections: settings?.homeSections
+                ? JSON.stringify(settings.homeSections)
+                : resolved.homeSections
+                  ? JSON.stringify(resolved.homeSections)
+                  : undefined,
             }}
           />
         </CardContent>

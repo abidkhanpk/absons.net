@@ -17,6 +17,8 @@ export type SiteSettings = {
   showServices: boolean
   showTraining: boolean
   showTestimonials: boolean
+  navItems: NavItem[]
+  homeSections: HomeSection[]
   businessHours: string
   businessDays: string
   businessHoursSchedule: BusinessHourEntry[]
@@ -31,6 +33,18 @@ export type SiteSettings = {
   contactEmail: string | null
   contactPhone: string | null
   contactAddress: string | null
+}
+
+export type NavItem = {
+  id: "home" | "about" | "services" | "training" | "blog" | "contact"
+  label: string
+  href: string
+  enabled: boolean
+}
+
+export type HomeSection = {
+  id: "services" | "training" | "testimonials"
+  enabled: boolean
 }
 
 export type HeroSlide = {
@@ -104,6 +118,19 @@ const defaultSettings: SiteSettings = {
   showServices: true,
   showTraining: true,
   showTestimonials: true,
+  navItems: [
+    { id: "home", label: "Home", href: "/", enabled: true },
+    { id: "about", label: "About", href: "/about", enabled: true },
+    { id: "services", label: "Services", href: "/services", enabled: true },
+    { id: "training", label: "Training", href: "/training", enabled: true },
+    { id: "blog", label: "Blog", href: "/blog", enabled: true },
+    { id: "contact", label: "Contact", href: "/contact", enabled: true },
+  ],
+  homeSections: [
+    { id: "services", enabled: true },
+    { id: "training", enabled: true },
+    { id: "testimonials", enabled: true },
+  ],
   businessHoursSchedule: [
     { day: "Monday", open: "09:00", close: "18:00" },
     { day: "Tuesday", open: "09:00", close: "18:00" },
@@ -177,6 +204,75 @@ function parseHeroSlides(raw: string | null | undefined): HeroSlide[] {
   }
 }
 
+function parseNavItems(raw: unknown): NavItem[] {
+  try {
+    const parsed = Array.isArray(raw) ? raw : raw ? JSON.parse(String(raw)) : []
+    if (!Array.isArray(parsed)) return defaultSettings.navItems
+    const lookup = new Map(defaultSettings.navItems.map((item) => [item.id, item]))
+    const normalized: NavItem[] = []
+    const seen = new Set<string>()
+    parsed.forEach((entry) => {
+      if (!entry || typeof entry !== "object") return
+      const id = String(entry.id)
+      const base = lookup.get(id as NavItem["id"])
+      if (!base || seen.has(id)) return
+      normalized.push({
+        id: base.id,
+        label: typeof entry.label === "string" && entry.label.trim() ? entry.label : base.label,
+        href: typeof entry.href === "string" && entry.href.trim() ? entry.href : base.href,
+        enabled: typeof entry.enabled === "boolean" ? entry.enabled : base.enabled,
+      })
+      seen.add(id)
+    })
+    defaultSettings.navItems.forEach((item) => {
+      if (!seen.has(item.id)) normalized.push(item)
+    })
+    return normalized
+  } catch {
+    return defaultSettings.navItems
+  }
+}
+
+function parseHomeSections(
+  raw: unknown,
+  fallback: { services: boolean; training: boolean; testimonials: boolean },
+): HomeSection[] {
+  try {
+    const parsed = Array.isArray(raw) ? raw : raw ? JSON.parse(String(raw)) : []
+    if (!Array.isArray(parsed)) {
+      return [
+        { id: "services", enabled: fallback.services },
+        { id: "training", enabled: fallback.training },
+        { id: "testimonials", enabled: fallback.testimonials },
+      ]
+    }
+    const allowed: HomeSection["id"][] = ["services", "training", "testimonials"]
+    const normalized: HomeSection[] = []
+    const seen = new Set<string>()
+    parsed.forEach((entry) => {
+      if (!entry || typeof entry !== "object") return
+      const id = String(entry.id) as HomeSection["id"]
+      if (!allowed.includes(id) || seen.has(id)) return
+      const fallbackEnabled = fallback[id]
+      normalized.push({
+        id,
+        enabled: typeof entry.enabled === "boolean" ? entry.enabled : fallbackEnabled,
+      })
+      seen.add(id)
+    })
+    allowed.forEach((id) => {
+      if (!seen.has(id)) normalized.push({ id, enabled: fallback[id] })
+    })
+    return normalized
+  } catch {
+    return [
+      { id: "services", enabled: fallback.services },
+      { id: "training", enabled: fallback.training },
+      { id: "testimonials", enabled: fallback.testimonials },
+    ]
+  }
+}
+
 function parseBusinessHoursSchedule(raw: unknown): BusinessHourEntry[] {
   try {
     const parsed = Array.isArray(raw) ? raw : raw ? JSON.parse(String(raw)) : []
@@ -200,6 +296,24 @@ export async function getSiteSettings(): Promise<SiteSettings> {
     const settings = await prisma.siteSettings.findUnique({ where: { id: "site" } })
     if (!settings) return defaultSettings
 
+    const fallbackHomeVisibility = {
+      services: settings.showServices ?? defaultSettings.showServices,
+      training: settings.showTraining ?? defaultSettings.showTraining,
+      testimonials: settings.showTestimonials ?? defaultSettings.showTestimonials,
+    }
+    const homeSections = parseHomeSections(settings.homeSections, fallbackHomeVisibility)
+    const resolvedVisibility = homeSections.reduce(
+      (acc, section) => {
+        acc[section.id] = section.enabled
+        return acc
+      },
+      {
+        services: fallbackHomeVisibility.services,
+        training: fallbackHomeVisibility.training,
+        testimonials: fallbackHomeVisibility.testimonials,
+      },
+    )
+
     return {
       siteTitle: settings.siteTitle ?? defaultSettings.siteTitle,
       logoUrl: resolveLogoUrl(settings.logoUrl),
@@ -214,9 +328,11 @@ export async function getSiteSettings(): Promise<SiteSettings> {
       heroStaticIndex: settings.heroStaticIndex ?? defaultSettings.heroStaticIndex,
       heroAutoplaySeconds: settings.heroAutoplaySeconds ?? defaultSettings.heroAutoplaySeconds,
       heroHeight: settings.heroHeight ?? defaultSettings.heroHeight,
-      showServices: settings.showServices ?? defaultSettings.showServices,
-      showTraining: settings.showTraining ?? defaultSettings.showTraining,
-      showTestimonials: settings.showTestimonials ?? defaultSettings.showTestimonials,
+      showServices: resolvedVisibility.services,
+      showTraining: resolvedVisibility.training,
+      showTestimonials: resolvedVisibility.testimonials,
+      navItems: parseNavItems(settings.navItems),
+      homeSections,
       businessHoursSchedule: parseBusinessHoursSchedule(settings.businessHoursSchedule),
       showBusinessHours: settings.showBusinessHours ?? defaultSettings.showBusinessHours,
       businessHoursMode: (settings.businessHoursMode as "table" | "summary" | "hidden") ?? defaultSettings.businessHoursMode,

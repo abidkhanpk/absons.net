@@ -17,6 +17,7 @@ export async function PUT(request: Request) {
       navCtaText,
       navCtaHref,
       navCtaEnabled,
+      navItems,
       layoutMode,
       layoutWidth,
       heroSlides,
@@ -36,6 +37,7 @@ export async function PUT(request: Request) {
       showServices,
       showTraining,
       showTestimonials,
+      homeSections,
     } = body
 
     const session = await getSession()
@@ -60,6 +62,7 @@ export async function PUT(request: Request) {
         navCtaText,
         navCtaHref,
         navCtaEnabled,
+        navItems: Array.isArray(navItems) ? navItems : undefined,
         layoutMode,
         layoutWidth,
         heroSlides: typeof heroSlides === "string" ? heroSlides : JSON.stringify(heroSlides ?? []),
@@ -80,6 +83,7 @@ export async function PUT(request: Request) {
         showServices,
         showTraining,
         showTestimonials,
+        homeSections: Array.isArray(homeSections) ? homeSections : undefined,
       },
     })
 

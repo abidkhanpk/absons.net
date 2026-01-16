@@ -16,6 +16,7 @@ export function Header({ settings }: HeaderProps) {
 
   const logoRadius = Math.max(0, Math.min(512, settings.logoRadius ?? 8))
   const showCta = settings.navCtaEnabled !== false
+  const navItems = (settings.navItems || []).filter((item) => item.enabled !== false)
 
   const navAlignmentClass = useMemo(() => {
     switch (settings.navAlignment) {
@@ -61,42 +62,15 @@ export function Header({ settings }: HeaderProps) {
           {/* Desktop Navigation */}
           <div className={`hidden md:flex flex-1 ${navAlignmentClass}`}>
             <div className="flex items-center gap-8">
-              <Link
-                href="/"
-                className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
-              >
-                Home
-              </Link>
-              <Link
-                href="/about"
-                className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
-              >
-                About
-              </Link>
-              <Link
-                href="/services"
-                className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
-              >
-                Services
-              </Link>
-              <Link
-                href="/training"
-                className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
-              >
-                Training
-              </Link>
-              <Link
-                href="/blog"
-                className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
-              >
-                Blog
-              </Link>
-              <Link
-                href="/contact"
-                className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
-              >
-                Contact
-              </Link>
+              {navItems.map((item) => (
+                <Link
+                  key={item.id}
+                  href={item.href}
+                  className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
+                >
+                  {item.label}
+                </Link>
+              ))}
             </div>
           </div>
 
@@ -132,48 +106,16 @@ export function Header({ settings }: HeaderProps) {
         {mobileMenuOpen && (
           <div className="md:hidden py-4 border-t border-border/40">
             <div className="flex flex-col gap-4">
-              <Link
-                href="/"
-                className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
-                onClick={() => setMobileMenuOpen(false)}
-              >
-                Home
-              </Link>
-              <Link
-                href="/about"
-                className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
-                onClick={() => setMobileMenuOpen(false)}
-              >
-                About
-              </Link>
-              <Link
-                href="/services"
-                className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
-                onClick={() => setMobileMenuOpen(false)}
-              >
-                Services
-              </Link>
-              <Link
-                href="/training"
-                className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
-                onClick={() => setMobileMenuOpen(false)}
-              >
-                Training
-              </Link>
-              <Link
-                href="/blog"
-                className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
-                onClick={() => setMobileMenuOpen(false)}
-              >
-                Blog
-              </Link>
-              <Link
-                href="/contact"
-                className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
-                onClick={() => setMobileMenuOpen(false)}
-              >
-                Contact
-              </Link>
+              {navItems.map((item) => (
+                <Link
+                  key={item.id}
+                  href={item.href}
+                  className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  {item.label}
+                </Link>
+              ))}
               <div className="flex items-center justify-between gap-3">
                 {showCta && (
                   <Button asChild className="flex-1">
