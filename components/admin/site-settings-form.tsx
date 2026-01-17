@@ -809,243 +809,251 @@ export function SiteSettingsForm({ initial, pages }: { initial: SiteSettings; pa
 
         <TabsContent value="navigation" className="space-y-6">
           <div className="grid gap-4 md:grid-cols-2">
-            <div className="space-y-2 md:col-span-2">
-              <Label className="font-semibold">Header Menu Items</Label>
-              <div className="flex flex-col gap-3 pt-1">
-                <div className="flex flex-col gap-2 md:flex-row md:items-center">
-                  <Select value={selectedHeaderPage} onValueChange={setSelectedHeaderPage}>
-                    <SelectTrigger className="md:w-80">
-                      <SelectValue placeholder="Add a page to the header menu" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {pages.length === 0 ? (
-                        <SelectItem value="none" disabled>
-                          No pages available
-                        </SelectItem>
-                      ) : (
-                        pages.map((page) => (
-                          <SelectItem key={page.id} value={page.id}>
-                            {page.title} {page.published ? "" : "(draft)"}
-                          </SelectItem>
-                        ))
-                      )}
-                    </SelectContent>
-                  </Select>
-                  <div className="flex gap-2">
-                    <Button
-                      type="button"
-                      variant="outline"
-                      onClick={() => addPageToMenu(selectedHeaderPage, "header")}
-                      disabled={!selectedHeaderPage || selectedHeaderPage === "none"}
-                    >
-                      Add Page
-                    </Button>
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      onClick={() => addNavItem(createCustomNavItem("New Item", "/"))}
-                    >
-                      Add Custom Link
-                    </Button>
-                  </div>
-                </div>
+            <div className="md:col-span-2">
+              <Accordion type="single" collapsible className="space-y-3">
+                <AccordionItem value="header-menu" className="border border-border rounded-lg">
+                  <AccordionTrigger className="px-4 py-3 text-sm font-semibold">Header Menu Items</AccordionTrigger>
+                  <AccordionContent className="px-4 pb-4">
+                    <div className="flex flex-col gap-3">
+                      <div className="flex flex-col gap-2 md:flex-row md:items-center">
+                        <Select value={selectedHeaderPage} onValueChange={setSelectedHeaderPage}>
+                          <SelectTrigger className="md:w-80">
+                            <SelectValue placeholder="Add a page to the header menu" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {pages.length === 0 ? (
+                              <SelectItem value="none" disabled>
+                                No pages available
+                              </SelectItem>
+                            ) : (
+                              pages.map((page) => (
+                                <SelectItem key={page.id} value={page.id}>
+                                  {page.title} {page.published ? "" : "(draft)"}
+                                </SelectItem>
+                              ))
+                            )}
+                          </SelectContent>
+                        </Select>
+                        <div className="flex gap-2">
+                          <Button
+                            type="button"
+                            variant="outline"
+                            onClick={() => addPageToMenu(selectedHeaderPage, "header")}
+                            disabled={!selectedHeaderPage || selectedHeaderPage === "none"}
+                          >
+                            Add Page
+                          </Button>
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            onClick={() => addNavItem(createCustomNavItem("New Item", "/"))}
+                          >
+                            Add Custom Link
+                          </Button>
+                        </div>
+                      </div>
 
-                {formData.navItems.map((item, index) => (
-                  <div
-                    key={item.id}
-                    className="flex flex-col gap-3 rounded-md border border-border/60 bg-muted/40 px-3 py-3 md:flex-row md:items-center md:justify-between"
-                  >
-                    <div className="flex flex-1 flex-col gap-2 md:flex-row md:items-center">
-                      <div className="flex items-center gap-3">
-                        <Switch
-                          id={`nav-item-${item.id}`}
-                          checked={item.enabled}
-                          onCheckedChange={(checked) => toggleNavItem(item.id, checked)}
-                        />
-                        <Label htmlFor={`nav-item-${item.id}`} className="text-sm text-muted-foreground font-normal">
-                          Visible
-                        </Label>
-                      </div>
-                      <div className="flex flex-1 flex-col gap-2 md:flex-row md:items-center">
-                        <div className="flex-1">
-                          <Label htmlFor={`nav-item-label-${item.id}`} className="sr-only">
-                            Menu label
-                          </Label>
-                          <Input
-                            id={`nav-item-label-${item.id}`}
-                            value={item.label}
-                            onChange={(e) => updateNavItem(item.id, { label: e.target.value })}
-                            placeholder="Label"
-                          />
-                        </div>
-                        <div className="flex-1">
-                          <Label htmlFor={`nav-item-href-${item.id}`} className="sr-only">
-                            Menu link
-                          </Label>
-                          <Input
-                            id={`nav-item-href-${item.id}`}
-                            value={item.href}
-                            onChange={(e) => updateNavItem(item.id, { href: e.target.value })}
-                            placeholder="/path"
-                          />
-                        </div>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-1 self-end md:self-auto">
-                      {!defaultNavItemIds.has(item.id) && (
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => removeNavItem(item.id)}
-                          aria-label={`Remove ${item.label}`}
+                      {formData.navItems.map((item, index) => (
+                        <div
+                          key={item.id}
+                          className="flex flex-col gap-3 rounded-md border border-border/60 bg-muted/40 px-3 py-3 md:flex-row md:items-center md:justify-between"
                         >
-                          <Trash2 className="h-4 w-4 text-destructive" />
-                        </Button>
-                      )}
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => moveNavItem(index, -1)}
-                        disabled={index === 0}
-                        aria-label={`Move ${item.label} up`}
-                      >
-                        <ArrowUp className="h-4 w-4" />
-                      </Button>
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => moveNavItem(index, 1)}
-                        disabled={index === formData.navItems.length - 1}
-                        aria-label={`Move ${item.label} down`}
-                      >
-                        <ArrowDown className="h-4 w-4" />
-                      </Button>
+                          <div className="flex flex-1 flex-col gap-2 md:flex-row md:items-center">
+                            <div className="flex items-center gap-3">
+                              <Switch
+                                id={`nav-item-${item.id}`}
+                                checked={item.enabled}
+                                onCheckedChange={(checked) => toggleNavItem(item.id, checked)}
+                              />
+                              <Label htmlFor={`nav-item-${item.id}`} className="text-sm text-muted-foreground font-normal">
+                                Visible
+                              </Label>
+                            </div>
+                            <div className="flex flex-1 flex-col gap-2 md:flex-row md:items-center">
+                              <div className="flex-1">
+                                <Label htmlFor={`nav-item-label-${item.id}`} className="sr-only">
+                                  Menu label
+                                </Label>
+                                <Input
+                                  id={`nav-item-label-${item.id}`}
+                                  value={item.label}
+                                  onChange={(e) => updateNavItem(item.id, { label: e.target.value })}
+                                  placeholder="Label"
+                                />
+                              </div>
+                              <div className="flex-1">
+                                <Label htmlFor={`nav-item-href-${item.id}`} className="sr-only">
+                                  Menu link
+                                </Label>
+                                <Input
+                                  id={`nav-item-href-${item.id}`}
+                                  value={item.href}
+                                  onChange={(e) => updateNavItem(item.id, { href: e.target.value })}
+                                  placeholder="/path"
+                                />
+                              </div>
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-1 self-end md:self-auto">
+                            {!defaultNavItemIds.has(item.id) && (
+                              <Button
+                                type="button"
+                                variant="ghost"
+                                size="icon"
+                                onClick={() => removeNavItem(item.id)}
+                                aria-label={`Remove ${item.label}`}
+                              >
+                                <Trash2 className="h-4 w-4 text-destructive" />
+                              </Button>
+                            )}
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => moveNavItem(index, -1)}
+                              disabled={index === 0}
+                              aria-label={`Move ${item.label} up`}
+                            >
+                              <ArrowUp className="h-4 w-4" />
+                            </Button>
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => moveNavItem(index, 1)}
+                              disabled={index === formData.navItems.length - 1}
+                              aria-label={`Move ${item.label} down`}
+                            >
+                              <ArrowDown className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        </div>
+                      ))}
                     </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-            <div className="space-y-2 md:col-span-2">
-              <Label className="font-semibold">Footer Menu Items</Label>
-              <div className="flex flex-col gap-3 pt-1">
-                <div className="flex flex-col gap-2 md:flex-row md:items-center">
-                  <Select value={selectedFooterPage} onValueChange={setSelectedFooterPage}>
-                    <SelectTrigger className="md:w-80">
-                      <SelectValue placeholder="Add a page to the footer menu" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {pages.length === 0 ? (
-                        <SelectItem value="none" disabled>
-                          No pages available
-                        </SelectItem>
-                      ) : (
-                        pages.map((page) => (
-                          <SelectItem key={page.id} value={page.id}>
-                            {page.title} {page.published ? "" : "(draft)"}
-                          </SelectItem>
-                        ))
-                      )}
-                    </SelectContent>
-                  </Select>
-                  <div className="flex gap-2">
-                    <Button
-                      type="button"
-                      variant="outline"
-                      onClick={() => addPageToMenu(selectedFooterPage, "footer")}
-                      disabled={!selectedFooterPage || selectedFooterPage === "none"}
-                    >
-                      Add Page
-                    </Button>
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      onClick={() => addFooterNavItem(createCustomNavItem("New Item", "/"))}
-                    >
-                      Add Custom Link
-                    </Button>
-                  </div>
-                </div>
+                  </AccordionContent>
+                </AccordionItem>
+                <AccordionItem value="footer-menu" className="border border-border rounded-lg">
+                  <AccordionTrigger className="px-4 py-3 text-sm font-semibold">Footer Menu Items</AccordionTrigger>
+                  <AccordionContent className="px-4 pb-4">
+                    <div className="flex flex-col gap-3">
+                      <div className="flex flex-col gap-2 md:flex-row md:items-center">
+                        <Select value={selectedFooterPage} onValueChange={setSelectedFooterPage}>
+                          <SelectTrigger className="md:w-80">
+                            <SelectValue placeholder="Add a page to the footer menu" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {pages.length === 0 ? (
+                              <SelectItem value="none" disabled>
+                                No pages available
+                              </SelectItem>
+                            ) : (
+                              pages.map((page) => (
+                                <SelectItem key={page.id} value={page.id}>
+                                  {page.title} {page.published ? "" : "(draft)"}
+                                </SelectItem>
+                              ))
+                            )}
+                          </SelectContent>
+                        </Select>
+                        <div className="flex gap-2">
+                          <Button
+                            type="button"
+                            variant="outline"
+                            onClick={() => addPageToMenu(selectedFooterPage, "footer")}
+                            disabled={!selectedFooterPage || selectedFooterPage === "none"}
+                          >
+                            Add Page
+                          </Button>
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            onClick={() => addFooterNavItem(createCustomNavItem("New Item", "/"))}
+                          >
+                            Add Custom Link
+                          </Button>
+                        </div>
+                      </div>
 
-                {formData.footerNavItems.map((item, index) => (
-                  <div
-                    key={item.id}
-                    className="flex flex-col gap-3 rounded-md border border-border/60 bg-muted/40 px-3 py-3 md:flex-row md:items-center md:justify-between"
-                  >
-                    <div className="flex flex-1 flex-col gap-2 md:flex-row md:items-center">
-                      <div className="flex items-center gap-3">
-                        <Switch
-                          id={`footer-nav-item-${item.id}`}
-                          checked={item.enabled}
-                          onCheckedChange={(checked) => toggleFooterNavItem(item.id, checked)}
-                        />
-                        <Label htmlFor={`footer-nav-item-${item.id}`} className="text-sm text-muted-foreground font-normal">
-                          Visible
-                        </Label>
-                      </div>
-                      <div className="flex flex-1 flex-col gap-2 md:flex-row md:items-center">
-                        <div className="flex-1">
-                          <Label htmlFor={`footer-nav-item-label-${item.id}`} className="sr-only">
-                            Footer menu label
-                          </Label>
-                          <Input
-                            id={`footer-nav-item-label-${item.id}`}
-                            value={item.label}
-                            onChange={(e) => updateFooterNavItem(item.id, { label: e.target.value })}
-                            placeholder="Label"
-                          />
-                        </div>
-                        <div className="flex-1">
-                          <Label htmlFor={`footer-nav-item-href-${item.id}`} className="sr-only">
-                            Footer menu link
-                          </Label>
-                          <Input
-                            id={`footer-nav-item-href-${item.id}`}
-                            value={item.href}
-                            onChange={(e) => updateFooterNavItem(item.id, { href: e.target.value })}
-                            placeholder="/path"
-                          />
-                        </div>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-1 self-end md:self-auto">
-                      {!defaultNavItemIds.has(item.id) && (
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => removeFooterNavItem(item.id)}
-                          aria-label={`Remove ${item.label}`}
+                      {formData.footerNavItems.map((item, index) => (
+                        <div
+                          key={item.id}
+                          className="flex flex-col gap-3 rounded-md border border-border/60 bg-muted/40 px-3 py-3 md:flex-row md:items-center md:justify-between"
                         >
-                          <Trash2 className="h-4 w-4 text-destructive" />
-                        </Button>
-                      )}
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => moveFooterNavItem(index, -1)}
-                        disabled={index === 0}
-                        aria-label={`Move ${item.label} up`}
-                      >
-                        <ArrowUp className="h-4 w-4" />
-                      </Button>
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => moveFooterNavItem(index, 1)}
-                        disabled={index === formData.footerNavItems.length - 1}
-                        aria-label={`Move ${item.label} down`}
-                      >
-                        <ArrowDown className="h-4 w-4" />
-                      </Button>
+                          <div className="flex flex-1 flex-col gap-2 md:flex-row md:items-center">
+                            <div className="flex items-center gap-3">
+                              <Switch
+                                id={`footer-nav-item-${item.id}`}
+                                checked={item.enabled}
+                                onCheckedChange={(checked) => toggleFooterNavItem(item.id, checked)}
+                              />
+                              <Label htmlFor={`footer-nav-item-${item.id}`} className="text-sm text-muted-foreground font-normal">
+                                Visible
+                              </Label>
+                            </div>
+                            <div className="flex flex-1 flex-col gap-2 md:flex-row md:items-center">
+                              <div className="flex-1">
+                                <Label htmlFor={`footer-nav-item-label-${item.id}`} className="sr-only">
+                                  Footer menu label
+                                </Label>
+                                <Input
+                                  id={`footer-nav-item-label-${item.id}`}
+                                  value={item.label}
+                                  onChange={(e) => updateFooterNavItem(item.id, { label: e.target.value })}
+                                  placeholder="Label"
+                                />
+                              </div>
+                              <div className="flex-1">
+                                <Label htmlFor={`footer-nav-item-href-${item.id}`} className="sr-only">
+                                  Footer menu link
+                                </Label>
+                                <Input
+                                  id={`footer-nav-item-href-${item.id}`}
+                                  value={item.href}
+                                  onChange={(e) => updateFooterNavItem(item.id, { href: e.target.value })}
+                                  placeholder="/path"
+                                />
+                              </div>
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-1 self-end md:self-auto">
+                            {!defaultNavItemIds.has(item.id) && (
+                              <Button
+                                type="button"
+                                variant="ghost"
+                                size="icon"
+                                onClick={() => removeFooterNavItem(item.id)}
+                                aria-label={`Remove ${item.label}`}
+                              >
+                                <Trash2 className="h-4 w-4 text-destructive" />
+                              </Button>
+                            )}
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => moveFooterNavItem(index, -1)}
+                              disabled={index === 0}
+                              aria-label={`Move ${item.label} up`}
+                            >
+                              <ArrowUp className="h-4 w-4" />
+                            </Button>
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => moveFooterNavItem(index, 1)}
+                              disabled={index === formData.footerNavItems.length - 1}
+                              aria-label={`Move ${item.label} down`}
+                            >
+                              <ArrowDown className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        </div>
+                      ))}
                     </div>
-                  </div>
-                ))}
-              </div>
+                  </AccordionContent>
+                </AccordionItem>
+              </Accordion>
             </div>
             <div className="space-y-2">
               <Label>Menu Alignment</Label>
