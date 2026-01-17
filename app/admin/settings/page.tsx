@@ -15,6 +15,10 @@ export default async function SettingsPage() {
 
   const settings = await prisma.siteSettings.findUnique({ where: { id: "site" } })
   const resolved = await getSiteSettings()
+  const pages = await prisma.page.findMany({
+    select: { id: true, title: true, slug: true, published: true },
+    orderBy: { createdAt: "desc" },
+  })
 
   return (
     <div className="p-6 lg:p-8 space-y-6">
@@ -75,6 +79,7 @@ export default async function SettingsPage() {
                   ? JSON.stringify(resolved.homeSections)
                   : undefined,
             }}
+            pages={pages}
           />
         </CardContent>
       </Card>

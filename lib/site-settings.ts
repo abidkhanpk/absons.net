@@ -37,7 +37,7 @@ export type SiteSettings = {
 }
 
 export type NavItem = {
-  id: "home" | "about" | "services" | "training" | "blog" | "contact"
+  id: string
   label: string
   href: string
   enabled: boolean
@@ -222,15 +222,27 @@ function parseNavItems(raw: unknown, fallback: NavItem[] = defaultSettings.navIt
     const seen = new Set<string>()
     parsed.forEach((entry) => {
       if (!entry || typeof entry !== "object") return
-      const id = String(entry.id)
-      const base = lookup.get(id as NavItem["id"])
-      if (!base || seen.has(id)) return
-      normalized.push({
-        id: base.id,
-        label: typeof entry.label === "string" && entry.label.trim() ? entry.label : base.label,
-        href: typeof entry.href === "string" && entry.href.trim() ? entry.href : base.href,
-        enabled: typeof entry.enabled === "boolean" ? entry.enabled : base.enabled,
-      })
+      const id = typeof (entry as { id?: unknown }).id === "string" ? (entry as { id: string }).id.trim() : ""
+      if (!id || seen.has(id)) return
+      const base = lookup.get(id)
+      if (base) {
+        normalized.push({
+          id: base.id,
+          label: typeof entry.label === "string" && entry.label.trim() ? entry.label : base.label,
+          href: typeof entry.href === "string" && entry.href.trim() ? entry.href : base.href,
+          enabled: typeof entry.enabled === "boolean" ? entry.enabled : base.enabled,
+        })
+      } else {
+        const label = typeof entry.label === "string" ? entry.label.trim() : ""
+        const href = typeof entry.href === "string" ? entry.href.trim() : ""
+        if (!label || !href) return
+        normalized.push({
+          id,
+          label,
+          href,
+          enabled: typeof entry.enabled === "boolean" ? entry.enabled : true,
+        })
+      }
       seen.add(id)
     })
     fallback.forEach((item) => {

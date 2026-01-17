@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button"
 import {
   LayoutDashboard,
   FileText,
+  FileStack,
   Briefcase,
   GraduationCap,
   MessageSquare,
@@ -21,6 +22,7 @@ import { useEffect, useState } from "react"
 
 const navItems = [
   { href: "/admin", label: "Dashboard", icon: LayoutDashboard },
+  { href: "/admin/pages", label: "Pages", icon: FileStack },
   { href: "/admin/blog", label: "Blog Posts", icon: FileText },
   { href: "/admin/services", label: "Services", icon: Briefcase },
   { href: "/admin/training", label: "Training", icon: GraduationCap },

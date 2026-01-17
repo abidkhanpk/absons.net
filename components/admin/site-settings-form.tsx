@@ -8,7 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Switch } from "@/components/ui/switch"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion"
-import { ArrowDown, ArrowUp, UploadCloud } from "lucide-react"
+import { ArrowDown, ArrowUp, Trash2, UploadCloud } from "lucide-react"
 
 type SiteSettings = {
   site_title: string
@@ -62,8 +62,15 @@ type BusinessHourEntry = {
   closed?: boolean
 }
 
+type PageSummary = {
+  id: string
+  title: string
+  slug: string
+  published: boolean
+}
+
 type NavItem = {
-  id: "home" | "about" | "services" | "training" | "blog" | "contact"
+  id: string
   label: string
   href: string
   enabled: boolean
@@ -106,15 +113,27 @@ function safeParseNavItems(raw: unknown, fallback: NavItem[]): NavItem[] {
     const seen = new Set<string>()
     parsed.forEach((entry) => {
       if (!entry || typeof entry !== "object") return
-      const id = String(entry.id)
-      const base = lookup.get(id as NavItem["id"])
-      if (!base || seen.has(id)) return
-      normalized.push({
-        id: base.id,
-        label: typeof entry.label === "string" && entry.label.trim() ? entry.label : base.label,
-        href: typeof entry.href === "string" && entry.href.trim() ? entry.href : base.href,
-        enabled: typeof entry.enabled === "boolean" ? entry.enabled : base.enabled,
-      })
+      const id = typeof (entry as { id?: unknown }).id === "string" ? (entry as { id: string }).id.trim() : ""
+      if (!id || seen.has(id)) return
+      const base = lookup.get(id)
+      if (base) {
+        normalized.push({
+          id: base.id,
+          label: typeof entry.label === "string" && entry.label.trim() ? entry.label : base.label,
+          href: typeof entry.href === "string" && entry.href.trim() ? entry.href : base.href,
+          enabled: typeof entry.enabled === "boolean" ? entry.enabled : base.enabled,
+        })
+      } else {
+        const label = typeof entry.label === "string" ? entry.label.trim() : ""
+        const href = typeof entry.href === "string" ? entry.href.trim() : ""
+        if (!label || !href) return
+        normalized.push({
+          id,
+          label,
+          href,
+          enabled: typeof entry.enabled === "boolean" ? entry.enabled : true,
+        })
+      }
       seen.add(id)
     })
     fallback.forEach((item) => {
@@ -194,7 +213,7 @@ function safeParseHomeSections(
   }
 }
 
-export function SiteSettingsForm({ initial }: { initial: SiteSettings }) {
+export function SiteSettingsForm({ initial, pages }: { initial: SiteSettings; pages: PageSummary[] }) {
   const defaultSchedule: BusinessHourEntry[] = [
     { day: "Monday", open: "09:00", close: "18:00", closed: false },
     { day: "Tuesday", open: "09:00", close: "18:00", closed: false },
@@ -212,6 +231,7 @@ export function SiteSettingsForm({ initial }: { initial: SiteSettings }) {
     { id: "blog", label: "Blog", href: "/blog", enabled: true },
     { id: "contact", label: "Contact", href: "/contact", enabled: true },
   ]
+  const defaultNavItemIds = new Set(defaultNavItems.map((item) => item.id))
   const defaultHomeFallback = {
     services: initial.show_services ?? true,
     training: initial.show_training ?? true,
@@ -266,6 +286,8 @@ export function SiteSettingsForm({ initial }: { initial: SiteSettings }) {
   const [success, setSuccess] = useState(false)
   const [uploading, setUploading] = useState(false)
   const [activeTab, setActiveTab] = useState<"general" | "navigation" | "hero" | "contact">("general")
+  const [selectedHeaderPage, setSelectedHeaderPage] = useState("")
+  const [selectedFooterPage, setSelectedFooterPage] = useState("")
 
   const moveItem = <T,>(items: T[], fromIndex: number, toIndex: number) => {
     if (toIndex < 0 || toIndex >= items.length) return items
@@ -352,6 +374,54 @@ export function SiteSettingsForm({ initial }: { initial: SiteSettings }) {
       ...prev,
       footerNavItems: prev.footerNavItems.map((item) => (item.id === id ? { ...item, ...updates } : item)),
     }))
+  }
+
+  const createCustomNavItem = (label: string, href: string) => ({
+    id: `custom-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+    label,
+    href,
+    enabled: true,
+  })
+
+  const addNavItem = (item: NavItem) => {
+    setFormData((prev) => {
+      if (prev.navItems.some((existing) => existing.id === item.id)) return prev
+      return { ...prev, navItems: [...prev.navItems, item] }
+    })
+  }
+
+  const addFooterNavItem = (item: NavItem) => {
+    setFormData((prev) => {
+      if (prev.footerNavItems.some((existing) => existing.id === item.id)) return prev
+      return { ...prev, footerNavItems: [...prev.footerNavItems, item] }
+    })
+  }
+
+  const removeNavItem = (id: NavItem["id"]) => {
+    setFormData((prev) => ({
+      ...prev,
+      navItems: prev.navItems.filter((item) => item.id !== id),
+    }))
+  }
+
+  const removeFooterNavItem = (id: NavItem["id"]) => {
+    setFormData((prev) => ({
+      ...prev,
+      footerNavItems: prev.footerNavItems.filter((item) => item.id !== id),
+    }))
+  }
+
+  const addPageToMenu = (pageId: string, target: "header" | "footer") => {
+    const page = pages.find((entry) => entry.id === pageId)
+    if (!page) return
+    const item = createCustomNavItem(page.title, `/${page.slug}`)
+    if (target === "header") {
+      addNavItem(item)
+      setSelectedHeaderPage("")
+    } else {
+      addFooterNavItem(item)
+      setSelectedFooterPage("")
+    }
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -741,7 +811,45 @@ export function SiteSettingsForm({ initial }: { initial: SiteSettings }) {
           <div className="grid gap-4 md:grid-cols-2">
             <div className="space-y-2 md:col-span-2">
               <Label className="font-semibold">Header Menu Items</Label>
-              <div className="space-y-2 pt-1">
+              <div className="flex flex-col gap-3 pt-1">
+                <div className="flex flex-col gap-2 md:flex-row md:items-center">
+                  <Select value={selectedHeaderPage} onValueChange={setSelectedHeaderPage}>
+                    <SelectTrigger className="md:w-80">
+                      <SelectValue placeholder="Add a page to the header menu" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {pages.length === 0 ? (
+                        <SelectItem value="none" disabled>
+                          No pages available
+                        </SelectItem>
+                      ) : (
+                        pages.map((page) => (
+                          <SelectItem key={page.id} value={page.id}>
+                            {page.title} {page.published ? "" : "(draft)"}
+                          </SelectItem>
+                        ))
+                      )}
+                    </SelectContent>
+                  </Select>
+                  <div className="flex gap-2">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => addPageToMenu(selectedHeaderPage, "header")}
+                      disabled={!selectedHeaderPage || selectedHeaderPage === "none"}
+                    >
+                      Add Page
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      onClick={() => addNavItem(createCustomNavItem("New Item", "/"))}
+                    >
+                      Add Custom Link
+                    </Button>
+                  </div>
+                </div>
+
                 {formData.navItems.map((item, index) => (
                   <div
                     key={item.id}
@@ -784,6 +892,17 @@ export function SiteSettingsForm({ initial }: { initial: SiteSettings }) {
                       </div>
                     </div>
                     <div className="flex items-center gap-1 self-end md:self-auto">
+                      {!defaultNavItemIds.has(item.id) && (
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => removeNavItem(item.id)}
+                          aria-label={`Remove ${item.label}`}
+                        >
+                          <Trash2 className="h-4 w-4 text-destructive" />
+                        </Button>
+                      )}
                       <Button
                         type="button"
                         variant="ghost"
@@ -811,7 +930,45 @@ export function SiteSettingsForm({ initial }: { initial: SiteSettings }) {
             </div>
             <div className="space-y-2 md:col-span-2">
               <Label className="font-semibold">Footer Menu Items</Label>
-              <div className="space-y-2 pt-1">
+              <div className="flex flex-col gap-3 pt-1">
+                <div className="flex flex-col gap-2 md:flex-row md:items-center">
+                  <Select value={selectedFooterPage} onValueChange={setSelectedFooterPage}>
+                    <SelectTrigger className="md:w-80">
+                      <SelectValue placeholder="Add a page to the footer menu" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {pages.length === 0 ? (
+                        <SelectItem value="none" disabled>
+                          No pages available
+                        </SelectItem>
+                      ) : (
+                        pages.map((page) => (
+                          <SelectItem key={page.id} value={page.id}>
+                            {page.title} {page.published ? "" : "(draft)"}
+                          </SelectItem>
+                        ))
+                      )}
+                    </SelectContent>
+                  </Select>
+                  <div className="flex gap-2">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => addPageToMenu(selectedFooterPage, "footer")}
+                      disabled={!selectedFooterPage || selectedFooterPage === "none"}
+                    >
+                      Add Page
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      onClick={() => addFooterNavItem(createCustomNavItem("New Item", "/"))}
+                    >
+                      Add Custom Link
+                    </Button>
+                  </div>
+                </div>
+
                 {formData.footerNavItems.map((item, index) => (
                   <div
                     key={item.id}
@@ -854,6 +1011,17 @@ export function SiteSettingsForm({ initial }: { initial: SiteSettings }) {
                       </div>
                     </div>
                     <div className="flex items-center gap-1 self-end md:self-auto">
+                      {!defaultNavItemIds.has(item.id) && (
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => removeFooterNavItem(item.id)}
+                          aria-label={`Remove ${item.label}`}
+                        >
+                          <Trash2 className="h-4 w-4 text-destructive" />
+                        </Button>
+                      )}
                       <Button
                         type="button"
                         variant="ghost"
