@@ -65,11 +65,10 @@ export default async function SettingsPage() {
               logo_height: settings?.logoHeight || 40,
               logo_radius: settings?.logoRadius ?? 8,
               show_login_link: settings?.showLoginLink ?? true,
-              nav_items: resolved.navItems
-                ? JSON.stringify(resolved.navItems)
-                : settings?.navItems
-                  ? JSON.stringify(settings.navItems)
-                  : undefined,
+              nav_items: JSON.stringify({
+                main: resolved.navItems,
+                footer: resolved.footerNavItems,
+              }),
               home_sections: settings?.homeSections
                 ? JSON.stringify(settings.homeSections)
                 : resolved.homeSections

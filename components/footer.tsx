@@ -3,7 +3,7 @@ import { Mail, Phone, MapPin } from "lucide-react"
 import type { SiteSettings } from "@/lib/site-settings"
 
 export function Footer({ settings }: { settings: SiteSettings }) {
-  const navItems = (settings.navItems || []).filter((item) => item.enabled !== false)
+  const navItems = (settings.footerNavItems || []).filter((item) => item.enabled !== false)
 
   return (
     <footer className="bg-muted/30 border-t border-border">

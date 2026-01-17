@@ -96,10 +96,10 @@ function safeParseHours(raw: string | null | undefined): BusinessHourEntry[] {
   }
 }
 
-function safeParseNavItems(raw: string | null | undefined, fallback: NavItem[]): NavItem[] {
+function safeParseNavItems(raw: unknown, fallback: NavItem[]): NavItem[] {
   if (!raw) return fallback
   try {
-    const parsed = JSON.parse(raw)
+    const parsed = Array.isArray(raw) ? raw : JSON.parse(String(raw))
     if (!Array.isArray(parsed)) return fallback
     const lookup = new Map(fallback.map((item) => [item.id, item]))
     const normalized: NavItem[] = []
@@ -124,6 +124,28 @@ function safeParseNavItems(raw: string | null | undefined, fallback: NavItem[]):
   } catch {
     return fallback
   }
+}
+
+function safeParseNavItemsGroup(raw: string | null | undefined, fallback: NavItem[]) {
+  if (!raw) {
+    return { main: fallback, footer: fallback }
+  }
+  try {
+    const parsed = JSON.parse(raw)
+    if (Array.isArray(parsed)) {
+      const normalized = safeParseNavItems(parsed, fallback)
+      return { main: normalized, footer: normalized }
+    }
+    if (parsed && typeof parsed === "object") {
+      return {
+        main: safeParseNavItems((parsed as { main?: unknown }).main, fallback),
+        footer: safeParseNavItems((parsed as { footer?: unknown }).footer, fallback),
+      }
+    }
+  } catch {
+    return { main: fallback, footer: fallback }
+  }
+  return { main: fallback, footer: fallback }
 }
 
 function safeParseHomeSections(
@@ -196,7 +218,10 @@ export function SiteSettingsForm({ initial }: { initial: SiteSettings }) {
     testimonials: initial.show_testimonials ?? true,
   }
   const initialHomeSections = safeParseHomeSections(initial.home_sections, defaultHomeFallback)
-  const initialNavItems = safeParseNavItems(initial.nav_items, defaultNavItems)
+  const { main: initialNavItems, footer: initialFooterNavItems } = safeParseNavItemsGroup(
+    initial.nav_items,
+    defaultNavItems,
+  )
 
   const [formData, setFormData] = useState({
     siteTitle: initial.site_title || "",
@@ -233,6 +258,7 @@ export function SiteSettingsForm({ initial }: { initial: SiteSettings }) {
     logoRadius: initial.logo_radius ?? 8,
     showLoginLink: initial.show_login_link ?? true,
     navItems: initialNavItems,
+    footerNavItems: initialFooterNavItems,
     homeSections: initialHomeSections,
   })
   const [isSaving, setIsSaving] = useState(false)
@@ -249,47 +275,12 @@ export function SiteSettingsForm({ initial }: { initial: SiteSettings }) {
     return next
   }
 
-  const syncNavItemsWithHomeSections = (navItems: NavItem[], homeSections: HomeSection[]) => {
-    const orderMap = new Map(homeSections.map((section, index) => [section.id, index]))
-    const enabledMap = new Map(homeSections.map((section) => [section.id, section.enabled]))
-    const positions = navItems
-      .map((item, index) => ({ item, index }))
-      .filter(({ item }) => orderMap.has(item.id))
-    if (positions.length === 0) return navItems
-
-    const orderedItems = positions
-      .map(({ item }) => ({
-        ...item,
-        enabled: enabledMap.has(item.id) ? Boolean(enabledMap.get(item.id)) : item.enabled,
-      }))
-      .sort((a, b) => (orderMap.get(a.id) ?? 0) - (orderMap.get(b.id) ?? 0))
-    const sortedPositions = positions.map((entry) => entry.index).sort((a, b) => a - b)
-    const next = [...navItems]
-    sortedPositions.forEach((pos, idx) => {
-      next[pos] = orderedItems[idx]
-    })
-    return next
-  }
-
-  const syncHomeSectionsWithNavItems = (homeSections: HomeSection[], navItems: NavItem[]) => {
-    const navOrder = navItems
-      .filter((item) => homeSections.some((section) => section.id === item.id))
-      .map((item) => item.id as HomeSection["id"])
-    if (navOrder.length === 0) return homeSections
-    const ordered = navOrder
-      .map((id) => homeSections.find((section) => section.id === id))
-      .filter(Boolean) as HomeSection[]
-    const remaining = homeSections.filter((section) => !navOrder.includes(section.id))
-    return [...ordered, ...remaining]
-  }
-
   const moveHomeSection = (index: number, direction: -1 | 1) => {
     setFormData((prev) => {
       const homeSections = moveItem(prev.homeSections, index, index + direction)
       return {
         ...prev,
         homeSections,
-        navItems: syncNavItemsWithHomeSections(prev.navItems, homeSections),
       }
     })
   }
@@ -300,7 +291,16 @@ export function SiteSettingsForm({ initial }: { initial: SiteSettings }) {
       return {
         ...prev,
         navItems,
-        homeSections: syncHomeSectionsWithNavItems(prev.homeSections, navItems),
+      }
+    })
+  }
+
+  const moveFooterNavItem = (index: number, direction: -1 | 1) => {
+    setFormData((prev) => {
+      const footerNavItems = moveItem(prev.footerNavItems, index, index + direction)
+      return {
+        ...prev,
+        footerNavItems,
       }
     })
   }
@@ -313,7 +313,6 @@ export function SiteSettingsForm({ initial }: { initial: SiteSettings }) {
       return {
         ...prev,
         homeSections,
-        navItems: syncNavItemsWithHomeSections(prev.navItems, homeSections),
         showServices: id === "services" ? enabled : prev.showServices,
         showTraining: id === "training" ? enabled : prev.showTraining,
         showTestimonials: id === "testimonials" ? enabled : prev.showTestimonials,
@@ -324,18 +323,35 @@ export function SiteSettingsForm({ initial }: { initial: SiteSettings }) {
   const toggleNavItem = (id: NavItem["id"], enabled: boolean) => {
     setFormData((prev) => {
       const navItems = prev.navItems.map((item) => (item.id === id ? { ...item, enabled } : item))
-      const homeSections = prev.homeSections.map((section) =>
-        section.id === id ? { ...section, enabled } : section,
-      )
       return {
         ...prev,
         navItems,
-        homeSections,
-        showServices: id === "services" ? enabled : prev.showServices,
-        showTraining: id === "training" ? enabled : prev.showTraining,
-        showTestimonials: id === "testimonials" ? enabled : prev.showTestimonials,
       }
     })
+  }
+
+  const toggleFooterNavItem = (id: NavItem["id"], enabled: boolean) => {
+    setFormData((prev) => {
+      const footerNavItems = prev.footerNavItems.map((item) => (item.id === id ? { ...item, enabled } : item))
+      return {
+        ...prev,
+        footerNavItems,
+      }
+    })
+  }
+
+  const updateNavItem = (id: NavItem["id"], updates: Partial<NavItem>) => {
+    setFormData((prev) => ({
+      ...prev,
+      navItems: prev.navItems.map((item) => (item.id === id ? { ...item, ...updates } : item)),
+    }))
+  }
+
+  const updateFooterNavItem = (id: NavItem["id"], updates: Partial<NavItem>) => {
+    setFormData((prev) => ({
+      ...prev,
+      footerNavItems: prev.footerNavItems.map((item) => (item.id === id ? { ...item, ...updates } : item)),
+    }))
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -351,6 +367,7 @@ export function SiteSettingsForm({ initial }: { initial: SiteSettings }) {
         body: JSON.stringify({
           ...formData,
           navItems: formData.navItems,
+          footerNavItems: formData.footerNavItems,
           homeSections: formData.homeSections,
           heroSlides: formData.heroSlides,
           businessHoursSchedule: formData.businessHoursSchedule,
@@ -723,24 +740,50 @@ export function SiteSettingsForm({ initial }: { initial: SiteSettings }) {
         <TabsContent value="navigation" className="space-y-6">
           <div className="grid gap-4 md:grid-cols-2">
             <div className="space-y-2 md:col-span-2">
-              <Label className="font-semibold">Navigation Menu Items</Label>
+              <Label className="font-semibold">Header Menu Items</Label>
               <div className="space-y-2 pt-1">
                 {formData.navItems.map((item, index) => (
                   <div
                     key={item.id}
-                    className="flex items-center justify-between rounded-md border border-border/60 bg-muted/40 px-3 py-2"
+                    className="flex flex-col gap-3 rounded-md border border-border/60 bg-muted/40 px-3 py-3 md:flex-row md:items-center md:justify-between"
                   >
-                    <div className="flex items-center gap-3">
-                      <Switch
-                        id={`nav-item-${item.id}`}
-                        checked={item.enabled}
-                        onCheckedChange={(checked) => toggleNavItem(item.id, checked)}
-                      />
-                      <Label htmlFor={`nav-item-${item.id}`} className="text-sm text-muted-foreground font-normal">
-                        {item.label}
-                      </Label>
+                    <div className="flex flex-1 flex-col gap-2 md:flex-row md:items-center">
+                      <div className="flex items-center gap-3">
+                        <Switch
+                          id={`nav-item-${item.id}`}
+                          checked={item.enabled}
+                          onCheckedChange={(checked) => toggleNavItem(item.id, checked)}
+                        />
+                        <Label htmlFor={`nav-item-${item.id}`} className="text-sm text-muted-foreground font-normal">
+                          Visible
+                        </Label>
+                      </div>
+                      <div className="flex flex-1 flex-col gap-2 md:flex-row md:items-center">
+                        <div className="flex-1">
+                          <Label htmlFor={`nav-item-label-${item.id}`} className="sr-only">
+                            Menu label
+                          </Label>
+                          <Input
+                            id={`nav-item-label-${item.id}`}
+                            value={item.label}
+                            onChange={(e) => updateNavItem(item.id, { label: e.target.value })}
+                            placeholder="Label"
+                          />
+                        </div>
+                        <div className="flex-1">
+                          <Label htmlFor={`nav-item-href-${item.id}`} className="sr-only">
+                            Menu link
+                          </Label>
+                          <Input
+                            id={`nav-item-href-${item.id}`}
+                            value={item.href}
+                            onChange={(e) => updateNavItem(item.id, { href: e.target.value })}
+                            placeholder="/path"
+                          />
+                        </div>
+                      </div>
                     </div>
-                    <div className="flex items-center gap-1">
+                    <div className="flex items-center gap-1 self-end md:self-auto">
                       <Button
                         type="button"
                         variant="ghost"
@@ -757,6 +800,76 @@ export function SiteSettingsForm({ initial }: { initial: SiteSettings }) {
                         size="icon"
                         onClick={() => moveNavItem(index, 1)}
                         disabled={index === formData.navItems.length - 1}
+                        aria-label={`Move ${item.label} down`}
+                      >
+                        <ArrowDown className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+            <div className="space-y-2 md:col-span-2">
+              <Label className="font-semibold">Footer Menu Items</Label>
+              <div className="space-y-2 pt-1">
+                {formData.footerNavItems.map((item, index) => (
+                  <div
+                    key={item.id}
+                    className="flex flex-col gap-3 rounded-md border border-border/60 bg-muted/40 px-3 py-3 md:flex-row md:items-center md:justify-between"
+                  >
+                    <div className="flex flex-1 flex-col gap-2 md:flex-row md:items-center">
+                      <div className="flex items-center gap-3">
+                        <Switch
+                          id={`footer-nav-item-${item.id}`}
+                          checked={item.enabled}
+                          onCheckedChange={(checked) => toggleFooterNavItem(item.id, checked)}
+                        />
+                        <Label htmlFor={`footer-nav-item-${item.id}`} className="text-sm text-muted-foreground font-normal">
+                          Visible
+                        </Label>
+                      </div>
+                      <div className="flex flex-1 flex-col gap-2 md:flex-row md:items-center">
+                        <div className="flex-1">
+                          <Label htmlFor={`footer-nav-item-label-${item.id}`} className="sr-only">
+                            Footer menu label
+                          </Label>
+                          <Input
+                            id={`footer-nav-item-label-${item.id}`}
+                            value={item.label}
+                            onChange={(e) => updateFooterNavItem(item.id, { label: e.target.value })}
+                            placeholder="Label"
+                          />
+                        </div>
+                        <div className="flex-1">
+                          <Label htmlFor={`footer-nav-item-href-${item.id}`} className="sr-only">
+                            Footer menu link
+                          </Label>
+                          <Input
+                            id={`footer-nav-item-href-${item.id}`}
+                            value={item.href}
+                            onChange={(e) => updateFooterNavItem(item.id, { href: e.target.value })}
+                            placeholder="/path"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-1 self-end md:self-auto">
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => moveFooterNavItem(index, -1)}
+                        disabled={index === 0}
+                        aria-label={`Move ${item.label} up`}
+                      >
+                        <ArrowUp className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => moveFooterNavItem(index, 1)}
+                        disabled={index === formData.footerNavItems.length - 1}
                         aria-label={`Move ${item.label} down`}
                       >
                         <ArrowDown className="h-4 w-4" />

@@ -18,6 +18,7 @@ export async function PUT(request: Request) {
       navCtaHref,
       navCtaEnabled,
       navItems,
+      footerNavItems,
       layoutMode,
       layoutWidth,
       heroSlides,
@@ -62,7 +63,14 @@ export async function PUT(request: Request) {
         navCtaText,
         navCtaHref,
         navCtaEnabled,
-        navItems: Array.isArray(navItems) ? navItems : undefined,
+        navItems:
+          Array.isArray(navItems) && Array.isArray(footerNavItems)
+            ? { main: navItems, footer: footerNavItems }
+            : Array.isArray(navItems)
+              ? navItems
+              : typeof navItems === "object" && navItems !== null
+                ? navItems
+                : undefined,
         layoutMode,
         layoutWidth,
         heroSlides: typeof heroSlides === "string" ? heroSlides : JSON.stringify(heroSlides ?? []),

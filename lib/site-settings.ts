@@ -18,6 +18,7 @@ export type SiteSettings = {
   showTraining: boolean
   showTestimonials: boolean
   navItems: NavItem[]
+  footerNavItems: NavItem[]
   homeSections: HomeSection[]
   businessHours: string
   businessDays: string
@@ -126,6 +127,14 @@ const defaultSettings: SiteSettings = {
     { id: "blog", label: "Blog", href: "/blog", enabled: true },
     { id: "contact", label: "Contact", href: "/contact", enabled: true },
   ],
+  footerNavItems: [
+    { id: "home", label: "Home", href: "/", enabled: true },
+    { id: "about", label: "About", href: "/about", enabled: true },
+    { id: "services", label: "Services", href: "/services", enabled: true },
+    { id: "training", label: "Training", href: "/training", enabled: true },
+    { id: "blog", label: "Blog", href: "/blog", enabled: true },
+    { id: "contact", label: "Contact", href: "/contact", enabled: true },
+  ],
   homeSections: [
     { id: "services", enabled: true },
     { id: "training", enabled: true },
@@ -204,11 +213,11 @@ function parseHeroSlides(raw: string | null | undefined): HeroSlide[] {
   }
 }
 
-function parseNavItems(raw: unknown): NavItem[] {
+function parseNavItems(raw: unknown, fallback: NavItem[] = defaultSettings.navItems): NavItem[] {
   try {
-    const parsed = Array.isArray(raw) ? raw : raw ? JSON.parse(String(raw)) : []
-    if (!Array.isArray(parsed)) return defaultSettings.navItems
-    const lookup = new Map(defaultSettings.navItems.map((item) => [item.id, item]))
+    const parsed = Array.isArray(raw) ? raw : typeof raw === "string" && raw ? JSON.parse(raw) : []
+    if (!Array.isArray(parsed)) return fallback
+    const lookup = new Map(fallback.map((item) => [item.id, item]))
     const normalized: NavItem[] = []
     const seen = new Set<string>()
     parsed.forEach((entry) => {
@@ -224,12 +233,37 @@ function parseNavItems(raw: unknown): NavItem[] {
       })
       seen.add(id)
     })
-    defaultSettings.navItems.forEach((item) => {
+    fallback.forEach((item) => {
       if (!seen.has(item.id)) normalized.push(item)
     })
     return normalized
   } catch {
-    return defaultSettings.navItems
+    return fallback
+  }
+}
+
+function parseNavItemsGroup(raw: unknown) {
+  try {
+    if (!raw) {
+      return { main: defaultSettings.navItems, footer: defaultSettings.footerNavItems }
+    }
+    if (Array.isArray(raw)) {
+      const normalized = parseNavItems(raw, defaultSettings.navItems)
+      return { main: normalized, footer: parseNavItems(raw, defaultSettings.footerNavItems) }
+    }
+    const parsed = typeof raw === "string" ? JSON.parse(raw) : raw
+    if (Array.isArray(parsed)) {
+      const normalized = parseNavItems(parsed, defaultSettings.navItems)
+      return { main: normalized, footer: parseNavItems(parsed, defaultSettings.footerNavItems) }
+    }
+    if (parsed && typeof parsed === "object") {
+      const main = parseNavItems((parsed as { main?: unknown }).main, defaultSettings.navItems)
+      const footer = parseNavItems((parsed as { footer?: unknown }).footer, defaultSettings.footerNavItems)
+      return { main, footer }
+    }
+    return { main: defaultSettings.navItems, footer: defaultSettings.footerNavItems }
+  } catch {
+    return { main: defaultSettings.navItems, footer: defaultSettings.footerNavItems }
   }
 }
 
@@ -273,29 +307,6 @@ function parseHomeSections(
   }
 }
 
-function syncNavItemsWithHomeSections(navItems: NavItem[], homeSections: HomeSection[]): NavItem[] {
-  const orderMap = new Map(homeSections.map((section, index) => [section.id, index]))
-  if (orderMap.size === 0) return navItems
-  const enabledMap = new Map(homeSections.map((section) => [section.id, section.enabled]))
-  const positions = navItems
-    .map((item, index) => ({ item, index }))
-    .filter(({ item }) => orderMap.has(item.id))
-  if (positions.length === 0) return navItems
-
-  const orderedItems = positions
-    .map(({ item }) => ({
-      ...item,
-      enabled: enabledMap.has(item.id) ? Boolean(enabledMap.get(item.id)) : item.enabled,
-    }))
-    .sort((a, b) => (orderMap.get(a.id) ?? 0) - (orderMap.get(b.id) ?? 0))
-  const sortedPositions = positions.map((entry) => entry.index).sort((a, b) => a - b)
-  const next = [...navItems]
-  sortedPositions.forEach((pos, idx) => {
-    next[pos] = orderedItems[idx]
-  })
-  return next
-}
-
 function parseBusinessHoursSchedule(raw: unknown): BusinessHourEntry[] {
   try {
     const parsed = Array.isArray(raw) ? raw : raw ? JSON.parse(String(raw)) : []
@@ -337,7 +348,7 @@ export async function getSiteSettings(): Promise<SiteSettings> {
       },
     )
 
-    const navItems = syncNavItemsWithHomeSections(parseNavItems(settings.navItems), homeSections)
+    const navItemsGroup = parseNavItemsGroup(settings.navItems)
 
     return {
       siteTitle: settings.siteTitle ?? defaultSettings.siteTitle,
@@ -356,7 +367,8 @@ export async function getSiteSettings(): Promise<SiteSettings> {
       showServices: resolvedVisibility.services,
       showTraining: resolvedVisibility.training,
       showTestimonials: resolvedVisibility.testimonials,
-      navItems,
+      navItems: navItemsGroup.main,
+      footerNavItems: navItemsGroup.footer,
       homeSections,
       businessHoursSchedule: parseBusinessHoursSchedule(settings.businessHoursSchedule),
       showBusinessHours: settings.showBusinessHours ?? defaultSettings.showBusinessHours,
