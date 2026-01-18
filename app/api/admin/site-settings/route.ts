@@ -44,6 +44,7 @@ export async function PUT(request: Request) {
       whyChooseSubtitle,
       whyChooseItems,
       whyChooseLayout,
+      whyChooseMobileLayout,
       whyChooseScrollSpeed,
     } = body
 
@@ -103,6 +104,7 @@ export async function PUT(request: Request) {
         whyChooseSubtitle,
         whyChooseItems: Array.isArray(whyChooseItems) ? whyChooseItems : undefined,
         whyChooseLayout,
+        whyChooseMobileLayout,
         whyChooseScrollSpeed,
       },
     })

@@ -36,6 +36,7 @@ export default async function WhyChoosePage() {
               whyChooseSubtitle: settings.whyChooseSubtitle,
               whyChooseItems: settings.whyChooseItems,
               whyChooseLayout: settings.whyChooseLayout,
+              whyChooseMobileLayout: settings.whyChooseMobileLayout,
               whyChooseScrollSpeed: settings.whyChooseScrollSpeed,
             }}
           />

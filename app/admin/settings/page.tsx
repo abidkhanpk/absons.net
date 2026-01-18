@@ -87,6 +87,7 @@ export default async function SettingsPage() {
                   ? JSON.stringify(resolved.whyChooseItems)
                   : undefined,
               why_choose_layout: settings?.whyChooseLayout ?? resolved.whyChooseLayout ?? "grid",
+              why_choose_mobile_layout: settings?.whyChooseMobileLayout ?? resolved.whyChooseMobileLayout ?? "match",
               why_choose_scroll_speed: settings?.whyChooseScrollSpeed ?? resolved.whyChooseScrollSpeed ?? 30,
               nav_items: JSON.stringify({
                 main: resolved.navItems,

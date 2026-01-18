@@ -46,6 +46,7 @@ type SiteSettings = {
   why_choose_subtitle?: string | null
   why_choose_items?: string | null
   why_choose_layout?: string | null
+  why_choose_mobile_layout?: string | null
   why_choose_scroll_speed?: number | null
   nav_items?: string | null
   home_sections?: string | null
@@ -342,6 +343,7 @@ export function SiteSettingsForm({ initial, pages }: { initial: SiteSettings; pa
     whyChooseSubtitle: initial.why_choose_subtitle || "Trusted by educational institutions and organizations across Pakistan",
     whyChooseItems: initialWhyChooseItems,
     whyChooseLayout: (initial.why_choose_layout as "grid" | "scroll") || "grid",
+    whyChooseMobileLayout: (initial.why_choose_mobile_layout as "match" | "grid" | "scroll") || "match",
     whyChooseScrollSpeed: initial.why_choose_scroll_speed ?? 30,
     navItems: initialNavItems,
     footerNavItems: initialFooterNavItems,
@@ -525,6 +527,7 @@ export function SiteSettingsForm({ initial, pages }: { initial: SiteSettings; pa
           whyChooseSubtitle: formData.whyChooseSubtitle,
           whyChooseItems: formData.whyChooseItems,
           whyChooseLayout: formData.whyChooseLayout,
+          whyChooseMobileLayout: formData.whyChooseMobileLayout,
           whyChooseScrollSpeed: formData.whyChooseScrollSpeed,
           heroSlides: formData.heroSlides,
           businessHoursSchedule: formData.businessHoursSchedule,

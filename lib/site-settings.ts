@@ -36,6 +36,7 @@ export type SiteSettings = {
   whyChooseSubtitle: string
   whyChooseItems: WhyChooseItem[]
   whyChooseLayout: "grid" | "scroll"
+  whyChooseMobileLayout: "match" | "grid" | "scroll"
   whyChooseScrollSpeed: number
   contactEmail: string | null
   contactPhone: string | null
@@ -176,6 +177,7 @@ const defaultSettings: SiteSettings = {
   whyChooseTitle: "Why Choose ABSON Solutions",
   whyChooseSubtitle: "Trusted by educational institutions and organizations across Pakistan",
   whyChooseLayout: "grid",
+  whyChooseMobileLayout: "match",
   whyChooseScrollSpeed: 30,
   whyChooseItems: [
     { title: "Proven Expertise", description: "Years of experience delivering quality solutions", icon: "check" },
@@ -455,6 +457,8 @@ export async function getSiteSettings(): Promise<SiteSettings> {
       whyChooseSubtitle: settings.whyChooseSubtitle ?? defaultSettings.whyChooseSubtitle,
       whyChooseItems: parseWhyChooseItems(settings.whyChooseItems),
       whyChooseLayout: (settings.whyChooseLayout as "grid" | "scroll") ?? defaultSettings.whyChooseLayout,
+      whyChooseMobileLayout:
+        (settings.whyChooseMobileLayout as "match" | "grid" | "scroll") ?? defaultSettings.whyChooseMobileLayout,
       whyChooseScrollSpeed: settings.whyChooseScrollSpeed ?? defaultSettings.whyChooseScrollSpeed,
       contactEmail: settings.contactEmail ?? defaultSettings.contactEmail,
       contactPhone: settings.contactPhone ?? defaultSettings.contactPhone,

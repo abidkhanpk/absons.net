@@ -150,6 +150,7 @@ model SiteSettings {
   whyChooseSubtitle String? @map("why_choose_subtitle")
   whyChooseItems Json?    @map("why_choose_items")
   whyChooseLayout String? @map("why_choose_layout")
+  whyChooseMobileLayout String? @map("why_choose_mobile_layout")
   whyChooseScrollSpeed Int? @map("why_choose_scroll_speed")
   createdAt      DateTime @default(dbgenerated("now()")) @db.Timestamptz(6) @map("created_at")
   updatedAt      DateTime @default(dbgenerated("now()")) @db.Timestamptz(6) @map("updated_at")

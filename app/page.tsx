@@ -63,6 +63,50 @@ export default async function HomePage() {
     })
 
   const siteSettings = await getSiteSettings()
+  const mobileWhyChooseLayout =
+    siteSettings.whyChooseMobileLayout === "match" ? siteSettings.whyChooseLayout : siteSettings.whyChooseMobileLayout
+  const renderWhyChooseLayout = (layout: "grid" | "scroll") =>
+    layout === "scroll" ? (
+      <div className="why-choose-scroll">
+        <div
+          className="why-choose-track"
+          style={{ ["--why-choose-duration" as string]: `${siteSettings.whyChooseScrollSpeed || 30}s` }}
+        >
+          {[...siteSettings.whyChooseItems, ...siteSettings.whyChooseItems].map((item, index) => {
+            const Icon = whyChooseIconMap[item.icon] || CheckCircle2
+            return (
+              <div key={`${item.title}-${index}`} className="why-choose-tile text-center space-y-3">
+                <div className="flex justify-center">
+                  <div className="flex h-14 w-14 items-center justify-center rounded-full bg-primary/10 text-primary">
+                    <Icon className="h-7 w-7" />
+                  </div>
+                </div>
+                <h3 className="text-lg font-semibold">{item.title}</h3>
+                <p className="text-sm text-muted-foreground leading-relaxed">{item.description}</p>
+              </div>
+            )
+          })}
+        </div>
+      </div>
+    ) : (
+      <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+        {siteSettings.whyChooseItems.map((item, index) => {
+          const Icon = whyChooseIconMap[item.icon] || CheckCircle2
+          return (
+            <div key={`${item.title}-${index}`} className="text-center space-y-3">
+              <div className="flex justify-center">
+                <div className="flex h-14 w-14 items-center justify-center rounded-full bg-primary/10 text-primary">
+                  <Icon className="h-7 w-7" />
+                </div>
+              </div>
+              <h3 className="text-lg font-semibold">{item.title}</h3>
+              <p className="text-sm text-muted-foreground leading-relaxed">{item.description}</p>
+            </div>
+          )
+        })}
+      </div>
+    )
+
   const homeSectionBlocks = {
     services: (
       <section className="py-20 bg-background">
@@ -188,45 +232,13 @@ export default async function HomePage() {
             </p>
           </div>
 
-          {siteSettings.whyChooseLayout === "scroll" ? (
-            <div className="why-choose-scroll">
-              <div
-                className="why-choose-track"
-                style={{ ["--why-choose-duration" as string]: `${siteSettings.whyChooseScrollSpeed || 30}s` }}
-              >
-                {[...siteSettings.whyChooseItems, ...siteSettings.whyChooseItems].map((item, index) => {
-                  const Icon = whyChooseIconMap[item.icon] || CheckCircle2
-                  return (
-                    <div key={`${item.title}-${index}`} className="why-choose-tile text-center space-y-3">
-                      <div className="flex justify-center">
-                        <div className="flex h-14 w-14 items-center justify-center rounded-full bg-primary/10 text-primary">
-                          <Icon className="h-7 w-7" />
-                        </div>
-                      </div>
-                      <h3 className="text-lg font-semibold">{item.title}</h3>
-                      <p className="text-sm text-muted-foreground leading-relaxed">{item.description}</p>
-                    </div>
-                  )
-                })}
-              </div>
-            </div>
+          {mobileWhyChooseLayout === siteSettings.whyChooseLayout ? (
+            renderWhyChooseLayout(siteSettings.whyChooseLayout)
           ) : (
-            <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
-              {siteSettings.whyChooseItems.map((item, index) => {
-                const Icon = whyChooseIconMap[item.icon] || CheckCircle2
-                return (
-                  <div key={`${item.title}-${index}`} className="text-center space-y-3">
-                    <div className="flex justify-center">
-                      <div className="flex h-14 w-14 items-center justify-center rounded-full bg-primary/10 text-primary">
-                        <Icon className="h-7 w-7" />
-                      </div>
-                    </div>
-                    <h3 className="text-lg font-semibold">{item.title}</h3>
-                    <p className="text-sm text-muted-foreground leading-relaxed">{item.description}</p>
-                  </div>
-                )
-              })}
-            </div>
+            <>
+              <div className="block md:hidden">{renderWhyChooseLayout(mobileWhyChooseLayout)}</div>
+              <div className="hidden md:block">{renderWhyChooseLayout(siteSettings.whyChooseLayout)}</div>
+            </>
           )}
         </div>
       </section>

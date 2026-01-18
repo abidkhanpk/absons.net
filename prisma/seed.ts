@@ -64,6 +64,7 @@ async function main() {
       whyChooseTitle: "Why Choose Us",
       whyChooseSubtitle: "Trusted by educational institutions and organizations across Pakistan",
       whyChooseLayout: "grid",
+      whyChooseMobileLayout: "match",
       whyChooseScrollSpeed: 30,
       whyChooseItems: [
         { title: "Proven Expertise", description: "Years of experience delivering quality solutions", icon: "check" },
@@ -189,6 +190,7 @@ async function main() {
         whyChooseTitle: "Why Choose Us",
         whyChooseSubtitle: "Trusted by educational institutions and organizations across Pakistan",
         whyChooseLayout: "grid",
+        whyChooseMobileLayout: "match",
         whyChooseScrollSpeed: 30,
         whyChooseItems: [
           { title: "Proven Expertise", description: "Years of experience delivering quality solutions", icon: "check" },
