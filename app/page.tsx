@@ -23,6 +23,13 @@ const iconMap = {
   Package,
 }
 
+const whyChooseIconMap = {
+  check: CheckCircle2,
+  award: Award,
+  book: BookOpen,
+  star: Star,
+}
+
 export default async function HomePage() {
   const services = await prisma.service
     .findMany({
@@ -169,6 +176,61 @@ export default async function HomePage() {
           </div>
         </section>
       ) : null,
+    "why-choose": (
+      <section className="py-20 bg-muted/30">
+        <div className="container mx-auto px-4 lg:px-8">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl md:text-4xl font-bold mb-4">
+              {siteSettings.whyChooseTitle || "Why Choose ABSON Solutions"}
+            </h2>
+            <p className="text-lg text-muted-foreground max-w-2xl mx-auto text-pretty leading-relaxed">
+              {siteSettings.whyChooseSubtitle || "Trusted by educational institutions and organizations across Pakistan"}
+            </p>
+          </div>
+
+          {siteSettings.whyChooseLayout === "scroll" ? (
+            <div className="why-choose-scroll">
+              <div
+                className="why-choose-track"
+                style={{ ["--why-choose-duration" as string]: `${siteSettings.whyChooseScrollSpeed || 30}s` }}
+              >
+                {[...siteSettings.whyChooseItems, ...siteSettings.whyChooseItems].map((item, index) => {
+                  const Icon = whyChooseIconMap[item.icon] || CheckCircle2
+                  return (
+                    <div key={`${item.title}-${index}`} className="why-choose-tile text-center space-y-3">
+                      <div className="flex justify-center">
+                        <div className="flex h-14 w-14 items-center justify-center rounded-full bg-primary/10 text-primary">
+                          <Icon className="h-7 w-7" />
+                        </div>
+                      </div>
+                      <h3 className="text-lg font-semibold">{item.title}</h3>
+                      <p className="text-sm text-muted-foreground leading-relaxed">{item.description}</p>
+                    </div>
+                  )
+                })}
+              </div>
+            </div>
+          ) : (
+            <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+              {siteSettings.whyChooseItems.map((item, index) => {
+                const Icon = whyChooseIconMap[item.icon] || CheckCircle2
+                return (
+                  <div key={`${item.title}-${index}`} className="text-center space-y-3">
+                    <div className="flex justify-center">
+                      <div className="flex h-14 w-14 items-center justify-center rounded-full bg-primary/10 text-primary">
+                        <Icon className="h-7 w-7" />
+                      </div>
+                    </div>
+                    <h3 className="text-lg font-semibold">{item.title}</h3>
+                    <p className="text-sm text-muted-foreground leading-relaxed">{item.description}</p>
+                  </div>
+                )
+              })}
+            </div>
+          )}
+        </div>
+      </section>
+    ),
   }
   const orderedHomeSections = siteSettings.homeSections || []
   const enabledHomeSections = orderedHomeSections.filter((section) => section.enabled)
@@ -192,68 +254,6 @@ export default async function HomePage() {
           if (!content) return null
           return <Fragment key={section.id}>{content}</Fragment>
         })}
-
-        {/* Why Choose Us Section */}
-        <section className="py-20 bg-muted/30">
-          <div className="container mx-auto px-4 lg:px-8">
-            <div className="text-center mb-12">
-              <h2 className="text-3xl md:text-4xl font-bold mb-4">Why Choose ABSON Solutions</h2>
-              <p className="text-lg text-muted-foreground max-w-2xl mx-auto text-pretty leading-relaxed">
-                Trusted by educational institutions and organizations across Pakistan
-              </p>
-            </div>
-
-            <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
-              <div className="text-center space-y-3">
-                <div className="flex justify-center">
-                  <div className="flex h-14 w-14 items-center justify-center rounded-full bg-primary/10 text-primary">
-                    <CheckCircle2 className="h-7 w-7" />
-                  </div>
-                </div>
-                <h3 className="text-lg font-semibold">Proven Expertise</h3>
-                <p className="text-sm text-muted-foreground leading-relaxed">
-                  Years of experience delivering quality solutions
-                </p>
-              </div>
-
-              <div className="text-center space-y-3">
-                <div className="flex justify-center">
-                  <div className="flex h-14 w-14 items-center justify-center rounded-full bg-primary/10 text-primary">
-                    <Award className="h-7 w-7" />
-                  </div>
-                </div>
-                <h3 className="text-lg font-semibold">Certified Training</h3>
-                <p className="text-sm text-muted-foreground leading-relaxed">
-                  Mobius Institute certified vibration analysis programs
-                </p>
-              </div>
-
-              <div className="text-center space-y-3">
-                <div className="flex justify-center">
-                  <div className="flex h-14 w-14 items-center justify-center rounded-full bg-primary/10 text-primary">
-                    <BookOpen className="h-7 w-7" />
-                  </div>
-                </div>
-                <h3 className="text-lg font-semibold">Tailored Solutions</h3>
-                <p className="text-sm text-muted-foreground leading-relaxed">
-                  Custom software designed for your specific requirements
-                </p>
-              </div>
-
-              <div className="text-center space-y-3">
-                <div className="flex justify-center">
-                  <div className="flex h-14 w-14 items-center justify-center rounded-full bg-primary/10 text-primary">
-                    <Star className="h-7 w-7" />
-                  </div>
-                </div>
-                <h3 className="text-lg font-semibold">Ongoing Support</h3>
-                <p className="text-sm text-muted-foreground leading-relaxed">
-                  Dedicated support and maintenance for all solutions
-                </p>
-              </div>
-            </div>
-          </div>
-        </section>
 
         {secondaryHomeSections.map((section) => {
           const content = homeSectionBlocks[section.id]

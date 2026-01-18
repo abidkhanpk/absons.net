@@ -40,6 +40,11 @@ export async function PUT(request: Request) {
       showTestimonials,
       homeSections,
       editorApprovalRequired,
+      whyChooseTitle,
+      whyChooseSubtitle,
+      whyChooseItems,
+      whyChooseLayout,
+      whyChooseScrollSpeed,
     } = body
 
     const session = await getSession()
@@ -94,6 +99,11 @@ export async function PUT(request: Request) {
         showTestimonials,
         homeSections: Array.isArray(homeSections) ? homeSections : undefined,
         editorApprovalRequired,
+        whyChooseTitle,
+        whyChooseSubtitle,
+        whyChooseItems: Array.isArray(whyChooseItems) ? whyChooseItems : undefined,
+        whyChooseLayout,
+        whyChooseScrollSpeed,
       },
     })
 

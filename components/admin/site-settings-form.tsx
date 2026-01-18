@@ -42,6 +42,11 @@ type SiteSettings = {
   logo_radius?: number | null
   show_login_link?: boolean | null
   editor_approval_required?: boolean | null
+  why_choose_title?: string | null
+  why_choose_subtitle?: string | null
+  why_choose_items?: string | null
+  why_choose_layout?: string | null
+  why_choose_scroll_speed?: number | null
   nav_items?: string | null
   home_sections?: string | null
 }
@@ -63,6 +68,12 @@ type BusinessHourEntry = {
   closed?: boolean
 }
 
+type WhyChooseItem = {
+  title: string
+  description: string
+  icon: "check" | "award" | "book" | "star" | "shield" | "bolt" | "heart" | "users" | "globe" | "sparkles"
+}
+
 type PageSummary = {
   id: string
   title: string
@@ -78,7 +89,7 @@ type NavItem = {
 }
 
 type HomeSection = {
-  id: "services" | "training" | "testimonials"
+  id: "services" | "training" | "testimonials" | "why-choose"
   enabled: boolean
 }
 
@@ -170,13 +181,14 @@ function safeParseNavItemsGroup(raw: string | null | undefined, fallback: NavIte
 
 function safeParseHomeSections(
   raw: string | null | undefined,
-  fallback: { services: boolean; training: boolean; testimonials: boolean },
+  fallback: { services: boolean; training: boolean; testimonials: boolean; whyChoose: boolean },
 ): HomeSection[] {
   if (!raw) {
     return [
       { id: "services", enabled: fallback.services },
       { id: "training", enabled: fallback.training },
       { id: "testimonials", enabled: fallback.testimonials },
+      { id: "why-choose", enabled: fallback.whyChoose },
     ]
   }
   try {
@@ -186,9 +198,10 @@ function safeParseHomeSections(
         { id: "services", enabled: fallback.services },
         { id: "training", enabled: fallback.training },
         { id: "testimonials", enabled: fallback.testimonials },
+        { id: "why-choose", enabled: fallback.whyChoose },
       ]
     }
-    const allowed: HomeSection["id"][] = ["services", "training", "testimonials"]
+    const allowed: HomeSection["id"][] = ["services", "training", "testimonials", "why-choose"]
     const normalized: HomeSection[] = []
     const seen = new Set<string>()
     parsed.forEach((entry) => {
@@ -197,12 +210,19 @@ function safeParseHomeSections(
       if (!allowed.includes(id) || seen.has(id)) return
       normalized.push({
         id,
-        enabled: typeof entry.enabled === "boolean" ? entry.enabled : fallback[id],
+        enabled:
+          typeof entry.enabled === "boolean"
+            ? entry.enabled
+            : id === "why-choose"
+              ? fallback.whyChoose
+              : fallback[id],
       })
       seen.add(id)
     })
     allowed.forEach((id) => {
-      if (!seen.has(id)) normalized.push({ id, enabled: fallback[id] })
+      if (!seen.has(id)) {
+        normalized.push({ id, enabled: id === "why-choose" ? fallback.whyChoose : fallback[id] })
+      }
     })
     return normalized
   } catch {
@@ -210,7 +230,38 @@ function safeParseHomeSections(
       { id: "services", enabled: fallback.services },
       { id: "training", enabled: fallback.training },
       { id: "testimonials", enabled: fallback.testimonials },
+      { id: "why-choose", enabled: fallback.whyChoose },
     ]
+  }
+}
+
+function safeParseWhyChooseItems(raw: string | null | undefined, fallback: WhyChooseItem[]): WhyChooseItem[] {
+  if (!raw) return fallback
+  try {
+    const parsed = JSON.parse(raw)
+    if (!Array.isArray(parsed)) return fallback
+    const allowedIcons: WhyChooseItem["icon"][] = [
+      "check",
+      "award",
+      "book",
+      "star",
+      "shield",
+      "bolt",
+      "heart",
+      "users",
+      "globe",
+      "sparkles",
+    ]
+    const normalized = parsed
+      .map((entry) => ({
+        title: typeof entry?.title === "string" ? entry.title.trim() : "",
+        description: typeof entry?.description === "string" ? entry.description.trim() : "",
+        icon: allowedIcons.includes(entry?.icon) ? entry.icon : "check",
+      }))
+      .filter((entry) => entry.title && entry.description)
+    return normalized.length > 0 ? normalized : fallback
+  } catch {
+    return fallback
   }
 }
 
@@ -237,12 +288,20 @@ export function SiteSettingsForm({ initial, pages }: { initial: SiteSettings; pa
     services: initial.show_services ?? true,
     training: initial.show_training ?? true,
     testimonials: initial.show_testimonials ?? true,
+    whyChoose: true,
   }
+  const defaultWhyChooseItems: WhyChooseItem[] = [
+    { title: "Proven Expertise", description: "Years of experience delivering quality solutions", icon: "check" },
+    { title: "Certified Training", description: "Mobius Institute certified vibration analysis programs", icon: "award" },
+    { title: "Tailored Solutions", description: "Custom software designed for your specific requirements", icon: "book" },
+    { title: "Ongoing Support", description: "Dedicated support and maintenance for all solutions", icon: "star" },
+  ]
   const initialHomeSections = safeParseHomeSections(initial.home_sections, defaultHomeFallback)
   const { main: initialNavItems, footer: initialFooterNavItems } = safeParseNavItemsGroup(
     initial.nav_items,
     defaultNavItems,
   )
+  const initialWhyChooseItems = safeParseWhyChooseItems(initial.why_choose_items, defaultWhyChooseItems)
 
   const [formData, setFormData] = useState({
     siteTitle: initial.site_title || "",
@@ -279,6 +338,11 @@ export function SiteSettingsForm({ initial, pages }: { initial: SiteSettings; pa
     logoRadius: initial.logo_radius ?? 8,
     showLoginLink: initial.show_login_link ?? true,
     editorApprovalRequired: initial.editor_approval_required ?? true,
+    whyChooseTitle: initial.why_choose_title || "Why Choose ABSON Solutions",
+    whyChooseSubtitle: initial.why_choose_subtitle || "Trusted by educational institutions and organizations across Pakistan",
+    whyChooseItems: initialWhyChooseItems,
+    whyChooseLayout: (initial.why_choose_layout as "grid" | "scroll") || "grid",
+    whyChooseScrollSpeed: initial.why_choose_scroll_speed ?? 30,
     navItems: initialNavItems,
     footerNavItems: initialFooterNavItems,
     homeSections: initialHomeSections,
@@ -378,6 +442,21 @@ export function SiteSettingsForm({ initial, pages }: { initial: SiteSettings; pa
     }))
   }
 
+  const updateWhyChooseItem = (index: number, updates: Partial<WhyChooseItem>) => {
+    setFormData((prev) => {
+      const next = [...prev.whyChooseItems]
+      next[index] = { ...next[index], ...updates }
+      return { ...prev, whyChooseItems: next }
+    })
+  }
+
+  const moveWhyChooseItem = (index: number, direction: -1 | 1) => {
+    setFormData((prev) => ({
+      ...prev,
+      whyChooseItems: moveItem(prev.whyChooseItems, index, index + direction),
+    }))
+  }
+
   const createCustomNavItem = (label: string, href: string) => ({
     id: `custom-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
     label,
@@ -442,6 +521,11 @@ export function SiteSettingsForm({ initial, pages }: { initial: SiteSettings; pa
           footerNavItems: formData.footerNavItems,
           homeSections: formData.homeSections,
           editorApprovalRequired: formData.editorApprovalRequired,
+          whyChooseTitle: formData.whyChooseTitle,
+          whyChooseSubtitle: formData.whyChooseSubtitle,
+          whyChooseItems: formData.whyChooseItems,
+          whyChooseLayout: formData.whyChooseLayout,
+          whyChooseScrollSpeed: formData.whyChooseScrollSpeed,
           heroSlides: formData.heroSlides,
           businessHoursSchedule: formData.businessHoursSchedule,
           businessHoursMode: formData.businessHoursMode,
@@ -609,7 +693,9 @@ export function SiteSettingsForm({ initial, pages }: { initial: SiteSettings; pa
                       ? "Services"
                       : section.id === "training"
                         ? "Training"
-                        : "Testimonials"
+                        : section.id === "testimonials"
+                          ? "Testimonials"
+                          : "Why Choose Us"
                   return (
                     <div
                       key={section.id}
@@ -670,6 +756,168 @@ export function SiteSettingsForm({ initial, pages }: { initial: SiteSettings; pa
               />
             </div>
           </div>
+
+          <Accordion type="single" collapsible className="space-y-3">
+            <AccordionItem value="why-choose" className="border border-border rounded-lg">
+              <AccordionTrigger className="px-4 py-3 text-sm font-semibold">Why Choose Us</AccordionTrigger>
+              <AccordionContent className="px-4 pb-4">
+                <div className="space-y-4">
+                  <div className="grid gap-4 md:grid-cols-2">
+                    <div className="space-y-2">
+                      <Label htmlFor="whyChooseTitle">Section Title</Label>
+                      <Input
+                        id="whyChooseTitle"
+                        value={formData.whyChooseTitle}
+                        onChange={(e) => setFormData({ ...formData, whyChooseTitle: e.target.value })}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="whyChooseSubtitle">Section Subtitle</Label>
+                      <Input
+                        id="whyChooseSubtitle"
+                        value={formData.whyChooseSubtitle}
+                        onChange={(e) => setFormData({ ...formData, whyChooseSubtitle: e.target.value })}
+                      />
+                    </div>
+                  </div>
+                  <div className="grid gap-4 md:grid-cols-2">
+                    <div className="space-y-2">
+                      <Label htmlFor="whyChooseLayout">Layout</Label>
+                      <Select
+                        value={formData.whyChooseLayout}
+                        onValueChange={(value: "grid" | "scroll") =>
+                          setFormData({ ...formData, whyChooseLayout: value })
+                        }
+                      >
+                        <SelectTrigger id="whyChooseLayout">
+                          <SelectValue placeholder="Select layout" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="grid">Multi-line grid</SelectItem>
+                          <SelectItem value="scroll">Scrolling loop</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    {formData.whyChooseLayout === "scroll" && (
+                      <div className="space-y-2">
+                        <Label htmlFor="whyChooseScrollSpeed">Scroll Speed (seconds)</Label>
+                        <Input
+                          id="whyChooseScrollSpeed"
+                          type="number"
+                          min={5}
+                          max={120}
+                          value={formData.whyChooseScrollSpeed}
+                          onChange={(e) =>
+                            setFormData({ ...formData, whyChooseScrollSpeed: Number(e.target.value) })
+                          }
+                        />
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="flex items-center justify-between">
+                    <Label className="text-sm font-medium">Tiles</Label>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() =>
+                        setFormData((prev) => ({
+                          ...prev,
+                          whyChooseItems: [
+                            ...prev.whyChooseItems,
+                            { title: "New Item", description: "Description", icon: "check" },
+                          ],
+                        }))
+                      }
+                    >
+                      Add Tile
+                    </Button>
+                  </div>
+
+                  <div className="space-y-2">
+                    {formData.whyChooseItems.map((item, index) => (
+                      <div
+                        key={`${item.title}-${index}`}
+                        className="flex flex-col gap-3 rounded-md border border-border/60 bg-muted/40 px-3 py-3 md:flex-row md:items-center md:justify-between"
+                      >
+                        <div className="flex flex-1 flex-col gap-2 md:flex-row md:items-center">
+                          <div className="md:w-44">
+                            <Label htmlFor={`why-choose-icon-${index}`} className="sr-only">
+                              Icon
+                            </Label>
+                            <Select
+                              value={item.icon}
+                              onValueChange={(value: WhyChooseItem["icon"]) => updateWhyChooseItem(index, { icon: value })}
+                            >
+                              <SelectTrigger id={`why-choose-icon-${index}`}>
+                                <SelectValue placeholder="Icon" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="check">Check</SelectItem>
+                                <SelectItem value="award">Award</SelectItem>
+                                <SelectItem value="book">Book</SelectItem>
+                                <SelectItem value="star">Star</SelectItem>
+                                <SelectItem value="shield">Shield</SelectItem>
+                                <SelectItem value="bolt">Bolt</SelectItem>
+                                <SelectItem value="heart">Heart</SelectItem>
+                                <SelectItem value="users">Users</SelectItem>
+                                <SelectItem value="globe">Globe</SelectItem>
+                                <SelectItem value="sparkles">Sparkles</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </div>
+                          <div className="flex-1">
+                            <Label htmlFor={`why-choose-title-${index}`} className="sr-only">
+                              Why choose title
+                            </Label>
+                            <Input
+                              id={`why-choose-title-${index}`}
+                              value={item.title}
+                              onChange={(e) => updateWhyChooseItem(index, { title: e.target.value })}
+                              placeholder="Title"
+                            />
+                          </div>
+                          <div className="flex-1">
+                            <Label htmlFor={`why-choose-desc-${index}`} className="sr-only">
+                              Why choose description
+                            </Label>
+                            <Input
+                              id={`why-choose-desc-${index}`}
+                              value={item.description}
+                              onChange={(e) => updateWhyChooseItem(index, { description: e.target.value })}
+                              placeholder="Description"
+                            />
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-1 self-end md:self-auto">
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => moveWhyChooseItem(index, -1)}
+                            disabled={index === 0}
+                            aria-label={`Move ${item.title} up`}
+                          >
+                            <ArrowUp className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => moveWhyChooseItem(index, 1)}
+                            disabled={index === formData.whyChooseItems.length - 1}
+                            aria-label={`Move ${item.title} down`}
+                          >
+                            <ArrowDown className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </AccordionContent>
+            </AccordionItem>
+          </Accordion>
         </TabsContent>
 
         <TabsContent value="contact" className="space-y-6">

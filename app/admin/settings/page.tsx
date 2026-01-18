@@ -76,6 +76,18 @@ export default async function SettingsPage() {
               logo_radius: settings?.logoRadius ?? 8,
               show_login_link: settings?.showLoginLink ?? true,
               editor_approval_required: settings?.editorApprovalRequired ?? resolved.editorApprovalRequired ?? true,
+              why_choose_title: settings?.whyChooseTitle ?? resolved.whyChooseTitle ?? "Why Choose ABSON Solutions",
+              why_choose_subtitle:
+                settings?.whyChooseSubtitle ??
+                resolved.whyChooseSubtitle ??
+                "Trusted by educational institutions and organizations across Pakistan",
+              why_choose_items: settings?.whyChooseItems
+                ? JSON.stringify(settings.whyChooseItems)
+                : resolved.whyChooseItems
+                  ? JSON.stringify(resolved.whyChooseItems)
+                  : undefined,
+              why_choose_layout: settings?.whyChooseLayout ?? resolved.whyChooseLayout ?? "grid",
+              why_choose_scroll_speed: settings?.whyChooseScrollSpeed ?? resolved.whyChooseScrollSpeed ?? 30,
               nav_items: JSON.stringify({
                 main: resolved.navItems,
                 footer: resolved.footerNavItems,

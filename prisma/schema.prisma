@@ -146,6 +146,11 @@ model SiteSettings {
   logoRadius     Int?     @default(8) @map("logo_radius")
   showLoginLink  Boolean  @default(true) @map("show_login_link")
   editorApprovalRequired Boolean @default(true) @map("editor_approval_required")
+  whyChooseTitle String?  @map("why_choose_title")
+  whyChooseSubtitle String? @map("why_choose_subtitle")
+  whyChooseItems Json?    @map("why_choose_items")
+  whyChooseLayout String? @map("why_choose_layout")
+  whyChooseScrollSpeed Int? @map("why_choose_scroll_speed")
   createdAt      DateTime @default(dbgenerated("now()")) @db.Timestamptz(6) @map("created_at")
   updatedAt      DateTime @default(dbgenerated("now()")) @db.Timestamptz(6) @map("updated_at")
 

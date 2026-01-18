@@ -61,6 +61,16 @@ async function main() {
       showServices: true,
       showTraining: true,
       showTestimonials: true,
+      whyChooseTitle: "Why Choose Us",
+      whyChooseSubtitle: "Trusted by educational institutions and organizations across Pakistan",
+      whyChooseLayout: "grid",
+      whyChooseScrollSpeed: 30,
+      whyChooseItems: [
+        { title: "Proven Expertise", description: "Years of experience delivering quality solutions", icon: "check" },
+        { title: "Certified Training", description: "Mobius Institute certified vibration analysis programs", icon: "award" },
+        { title: "Tailored Solutions", description: "Custom software designed for your specific requirements", icon: "book" },
+        { title: "Ongoing Support", description: "Dedicated support and maintenance for all solutions", icon: "star" },
+      ],
       heroSlides: JSON.stringify([
         {
           title: "Empowering Organizations with Innovative Solutions",
@@ -163,6 +173,29 @@ async function main() {
             bgColor: "#0f172a",
           },
         ]),
+      },
+    })
+  }
+
+  if (
+    !existingSettings ||
+    !existingSettings.whyChooseTitle ||
+    !existingSettings.whyChooseSubtitle ||
+    !existingSettings.whyChooseItems
+  ) {
+    await prisma.siteSettings.update({
+      where: { id: "site" },
+      data: {
+        whyChooseTitle: "Why Choose Us",
+        whyChooseSubtitle: "Trusted by educational institutions and organizations across Pakistan",
+        whyChooseLayout: "grid",
+        whyChooseScrollSpeed: 30,
+        whyChooseItems: [
+          { title: "Proven Expertise", description: "Years of experience delivering quality solutions", icon: "check" },
+          { title: "Certified Training", description: "Mobius Institute certified vibration analysis programs", icon: "award" },
+          { title: "Tailored Solutions", description: "Custom software designed for your specific requirements", icon: "book" },
+          { title: "Ongoing Support", description: "Dedicated support and maintenance for all solutions", icon: "star" },
+        ],
       },
     })
   }

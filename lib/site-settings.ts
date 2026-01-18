@@ -32,6 +32,11 @@ export type SiteSettings = {
   logoRadius: number
   showLoginLink: boolean
   editorApprovalRequired: boolean
+  whyChooseTitle: string
+  whyChooseSubtitle: string
+  whyChooseItems: WhyChooseItem[]
+  whyChooseLayout: "grid" | "scroll"
+  whyChooseScrollSpeed: number
   contactEmail: string | null
   contactPhone: string | null
   contactAddress: string | null
@@ -45,7 +50,7 @@ export type NavItem = {
 }
 
 export type HomeSection = {
-  id: "services" | "training" | "testimonials"
+  id: "services" | "training" | "testimonials" | "why-choose"
   enabled: boolean
 }
 
@@ -64,6 +69,12 @@ export type BusinessHourEntry = {
   open: string
   close: string
   closed?: boolean
+}
+
+export type WhyChooseItem = {
+  title: string
+  description: string
+  icon: "check" | "award" | "book" | "star" | "shield" | "bolt" | "heart" | "users" | "globe" | "sparkles"
 }
 
 const defaultSettings: SiteSettings = {
@@ -140,6 +151,7 @@ const defaultSettings: SiteSettings = {
     { id: "services", enabled: true },
     { id: "training", enabled: true },
     { id: "testimonials", enabled: true },
+    { id: "why-choose", enabled: true },
   ],
   businessHoursSchedule: [
     { day: "Monday", open: "09:00", close: "18:00" },
@@ -161,6 +173,16 @@ const defaultSettings: SiteSettings = {
   logoRadius: 0,
   showLoginLink: false,
   editorApprovalRequired: true,
+  whyChooseTitle: "Why Choose ABSON Solutions",
+  whyChooseSubtitle: "Trusted by educational institutions and organizations across Pakistan",
+  whyChooseLayout: "grid",
+  whyChooseScrollSpeed: 30,
+  whyChooseItems: [
+    { title: "Proven Expertise", description: "Years of experience delivering quality solutions", icon: "check" },
+    { title: "Certified Training", description: "Mobius Institute certified vibration analysis programs", icon: "award" },
+    { title: "Tailored Solutions", description: "Custom software designed for your specific requirements", icon: "book" },
+    { title: "Ongoing Support", description: "Dedicated support and maintenance for all solutions", icon: "star" },
+  ],
   contactEmail: "info@absons.net",
   contactPhone: "+92 XXX XXXXXXX",
   contactAddress: "Pakistan",
@@ -283,7 +305,7 @@ function parseNavItemsGroup(raw: unknown) {
 
 function parseHomeSections(
   raw: unknown,
-  fallback: { services: boolean; training: boolean; testimonials: boolean },
+  fallback: { services: boolean; training: boolean; testimonials: boolean; whyChoose: boolean },
 ): HomeSection[] {
   try {
     const parsed = Array.isArray(raw) ? raw : raw ? JSON.parse(String(raw)) : []
@@ -292,9 +314,10 @@ function parseHomeSections(
         { id: "services", enabled: fallback.services },
         { id: "training", enabled: fallback.training },
         { id: "testimonials", enabled: fallback.testimonials },
+        { id: "why-choose", enabled: fallback.whyChoose },
       ]
     }
-    const allowed: HomeSection["id"][] = ["services", "training", "testimonials"]
+    const allowed: HomeSection["id"][] = ["services", "training", "testimonials", "why-choose"]
     const normalized: HomeSection[] = []
     const seen = new Set<string>()
     parsed.forEach((entry) => {
@@ -317,6 +340,7 @@ function parseHomeSections(
       { id: "services", enabled: fallback.services },
       { id: "training", enabled: fallback.training },
       { id: "testimonials", enabled: fallback.testimonials },
+      { id: "why-choose", enabled: fallback.whyChoose },
     ]
   }
 }
@@ -339,6 +363,35 @@ function parseBusinessHoursSchedule(raw: unknown): BusinessHourEntry[] {
   }
 }
 
+function parseWhyChooseItems(raw: unknown): WhyChooseItem[] {
+  try {
+    const parsed = Array.isArray(raw) ? raw : raw ? JSON.parse(String(raw)) : []
+    if (!Array.isArray(parsed)) return defaultSettings.whyChooseItems
+    const allowedIcons: WhyChooseItem["icon"][] = [
+      "check",
+      "award",
+      "book",
+      "star",
+      "shield",
+      "bolt",
+      "heart",
+      "users",
+      "globe",
+      "sparkles",
+    ]
+    const normalized = parsed
+      .map((entry) => ({
+        title: typeof entry?.title === "string" ? entry.title.trim() : "",
+        description: typeof entry?.description === "string" ? entry.description.trim() : "",
+        icon: allowedIcons.includes(entry?.icon) ? entry.icon : "check",
+      }))
+      .filter((entry) => entry.title && entry.description)
+    return normalized.length > 0 ? normalized : defaultSettings.whyChooseItems
+  } catch {
+    return defaultSettings.whyChooseItems
+  }
+}
+
 export async function getSiteSettings(): Promise<SiteSettings> {
   try {
     const settings = await prisma.siteSettings.findUnique({ where: { id: "site" } })
@@ -348,6 +401,7 @@ export async function getSiteSettings(): Promise<SiteSettings> {
       services: settings.showServices ?? defaultSettings.showServices,
       training: settings.showTraining ?? defaultSettings.showTraining,
       testimonials: settings.showTestimonials ?? defaultSettings.showTestimonials,
+      whyChoose: true,
     }
     const homeSections = parseHomeSections(settings.homeSections, fallbackHomeVisibility)
     const resolvedVisibility = homeSections.reduce(
@@ -359,6 +413,7 @@ export async function getSiteSettings(): Promise<SiteSettings> {
         services: fallbackHomeVisibility.services,
         training: fallbackHomeVisibility.training,
         testimonials: fallbackHomeVisibility.testimonials,
+        "why-choose": fallbackHomeVisibility.whyChoose,
       },
     )
 
@@ -396,6 +451,11 @@ export async function getSiteSettings(): Promise<SiteSettings> {
       logoRadius: settings.logoRadius ?? defaultSettings.logoRadius,
       showLoginLink: settings.showLoginLink ?? defaultSettings.showLoginLink,
       editorApprovalRequired: settings.editorApprovalRequired ?? defaultSettings.editorApprovalRequired,
+      whyChooseTitle: settings.whyChooseTitle ?? defaultSettings.whyChooseTitle,
+      whyChooseSubtitle: settings.whyChooseSubtitle ?? defaultSettings.whyChooseSubtitle,
+      whyChooseItems: parseWhyChooseItems(settings.whyChooseItems),
+      whyChooseLayout: (settings.whyChooseLayout as "grid" | "scroll") ?? defaultSettings.whyChooseLayout,
+      whyChooseScrollSpeed: settings.whyChooseScrollSpeed ?? defaultSettings.whyChooseScrollSpeed,
       contactEmail: settings.contactEmail ?? defaultSettings.contactEmail,
       contactPhone: settings.contactPhone ?? defaultSettings.contactPhone,
       contactAddress: settings.contactAddress ?? defaultSettings.contactAddress,
