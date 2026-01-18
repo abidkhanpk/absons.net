@@ -18,7 +18,7 @@ import {
   UserCircle,
   Settings,
 } from "lucide-react"
-import { useEffect, useState } from "react"
+import { useState } from "react"
 
 const navItems = [
   { href: "/admin", label: "Dashboard", icon: LayoutDashboard, roles: ["admin", "super_admin"] },
@@ -32,24 +32,11 @@ const navItems = [
   { href: "/admin/users", label: "Users", icon: Users, roles: ["admin", "super_admin"] },
 ]
 
-export function AdminSidebar({ user }: { user: { id: string; email: string } }) {
+export function AdminSidebar({ user }: { user: { id: string; email: string; role: string } }) {
   const pathname = usePathname()
   const router = useRouter()
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
-  const [role, setRole] = useState<string | null>(null)
-
-  useEffect(() => {
-    const loadRole = async () => {
-      try {
-        const res = await fetch("/api/auth/me")
-        const json = await res.json()
-        setRole(json?.user?.role ?? null)
-      } catch {
-        setRole(null)
-      }
-    }
-    loadRole()
-  }, [user.id])
+  const role = user.role
 
   const handleLogout = async () => {
     await fetch("/api/auth/logout", { method: "POST" })

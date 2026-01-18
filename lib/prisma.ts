@@ -12,10 +12,16 @@ if (process.env.NODE_ENV !== "production") globalForPrisma.prisma = prisma
 
 export async function withRls<T>(userId: string | null, fn: (tx: PrismaClient) => Promise<T>) {
   const run = () =>
-    prisma.$transaction(async (tx) => {
-      await tx.$executeRaw`SELECT set_config('request.jwt.claim.sub', ${userId ?? ""}, true)`
-      return fn(tx)
-    })
+    prisma.$transaction(
+      async (tx) => {
+        await tx.$executeRaw`SELECT set_config('request.jwt.claim.sub', ${userId ?? ""}, true)`
+        return fn(tx)
+      },
+      {
+        timeout: 10000,
+        maxWait: 5000,
+      },
+    )
 
   try {
     return await run()
