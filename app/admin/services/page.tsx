@@ -6,11 +6,18 @@ import { Plus, Edit } from "lucide-react"
 import { DeleteServiceButton } from "@/components/admin/delete-service-button"
 import { getSession } from "@/lib/auth"
 import { withRls } from "@/lib/prisma"
+import { redirect } from "next/navigation"
 
 export default async function ServicesManagementPage() {
   const session = await getSession()
   if (!session) {
     return null
+  }
+  const adminUser = await withRls(session.userId, (tx) =>
+    tx.user.findUnique({ where: { id: session.userId }, select: { role: true } }),
+  )
+  if (!adminUser || (adminUser.role !== "admin" && adminUser.role !== "super_admin")) {
+    redirect("/admin/blog")
   }
   const services = await withRls(session.userId, (tx) =>
     tx.service.findMany({ orderBy: { displayOrder: "asc" } }),

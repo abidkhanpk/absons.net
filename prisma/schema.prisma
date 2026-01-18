@@ -41,6 +41,8 @@ model BlogPost {
   featuredImage String? @map("featured_image")
   authorId    String?  @db.Uuid @map("author_id")
   published   Boolean  @default(false)
+  approved    Boolean  @default(false)
+  approvedAt  DateTime? @db.Timestamptz(6) @map("approved_at")
   publishedAt DateTime? @db.Timestamptz(6) @map("published_at")
   createdAt   DateTime @default(dbgenerated("now()")) @db.Timestamptz(6) @map("created_at")
   updatedAt   DateTime @default(dbgenerated("now()")) @db.Timestamptz(6) @map("updated_at")
@@ -53,7 +55,10 @@ model Page {
   title       String
   slug        String   @unique
   content     String
+  authorId    String?  @db.Uuid @map("author_id")
   published   Boolean  @default(false)
+  approved    Boolean  @default(false)
+  approvedAt  DateTime? @db.Timestamptz(6) @map("approved_at")
   publishedAt DateTime? @db.Timestamptz(6) @map("published_at")
   createdAt   DateTime @default(dbgenerated("now()")) @db.Timestamptz(6) @map("created_at")
   updatedAt   DateTime @default(dbgenerated("now()")) @db.Timestamptz(6) @map("updated_at")
@@ -140,6 +145,7 @@ model SiteSettings {
   logoHeight     Int?     @default(40) @map("logo_height")
   logoRadius     Int?     @default(8) @map("logo_radius")
   showLoginLink  Boolean  @default(true) @map("show_login_link")
+  editorApprovalRequired Boolean @default(true) @map("editor_approval_required")
   createdAt      DateTime @default(dbgenerated("now()")) @db.Timestamptz(6) @map("created_at")
   updatedAt      DateTime @default(dbgenerated("now()")) @db.Timestamptz(6) @map("updated_at")
 

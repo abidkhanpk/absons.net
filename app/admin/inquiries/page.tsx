@@ -4,10 +4,18 @@ import { Mail, Phone, Building2, Calendar } from "lucide-react"
 import { DeleteInquiryButton } from "@/components/admin/delete-inquiry-button"
 import { getSession } from "@/lib/auth"
 import { withRls } from "@/lib/prisma"
+import { redirect } from "next/navigation"
 
 export default async function InquiriesPage() {
   const session = await getSession()
   if (!session) return null
+
+  const adminUser = await withRls(session.userId, (tx) =>
+    tx.user.findUnique({ where: { id: session.userId }, select: { role: true } }),
+  )
+  if (!adminUser || (adminUser.role !== "admin" && adminUser.role !== "super_admin")) {
+    redirect("/admin/blog")
+  }
 
   const inquiries = await withRls(session.userId, (tx) =>
     tx.contactInquiry.findMany({ orderBy: { createdAt: "desc" } }),

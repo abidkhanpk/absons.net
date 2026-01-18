@@ -1,5 +1,5 @@
 import { TestimonialForm } from "@/components/admin/testimonial-form"
-import { notFound } from "next/navigation"
+import { notFound, redirect } from "next/navigation"
 import { getSession } from "@/lib/auth"
 import { withRls } from "@/lib/prisma"
 
@@ -7,6 +7,13 @@ export default async function EditTestimonialPage({ params }: { params: Promise<
   const { id } = await params
   const session = await getSession()
   if (!session) notFound()
+
+  const adminUser = await withRls(session.userId, (tx) =>
+    tx.user.findUnique({ where: { id: session.userId }, select: { role: true } }),
+  )
+  if (!adminUser || (adminUser.role !== "admin" && adminUser.role !== "super_admin")) {
+    redirect("/admin/blog")
+  }
 
   const testimonial = await withRls(session.userId, (tx) => tx.testimonial.findUnique({ where: { id } }))
 

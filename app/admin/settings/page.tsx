@@ -2,23 +2,29 @@ import { redirect } from "next/navigation"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { SiteSettingsForm } from "@/components/admin/site-settings-form"
 import { getSession } from "@/lib/auth"
-import { prisma } from "@/lib/prisma"
+import { prisma, withRls } from "@/lib/prisma"
 import { getSiteSettings } from "@/lib/site-settings"
 
 export default async function SettingsPage() {
   const session = await getSession()
   if (!session) redirect("/auth/login")
 
-  const currentUser = await prisma.user.findUnique({ where: { id: session.userId } })
+  const currentUser = await withRls(session.userId, (tx) =>
+    tx.user.findUnique({ where: { id: session.userId }, select: { role: true } }),
+  )
   if (!currentUser) redirect("/auth/login")
   if (currentUser.role !== "super_admin") redirect("/admin")
 
-  const settings = await prisma.siteSettings.findUnique({ where: { id: "site" } })
-  const resolved = await getSiteSettings()
-  const pages = await prisma.page.findMany({
-    select: { id: true, title: true, slug: true, published: true },
-    orderBy: { createdAt: "desc" },
-  })
+  const [settings, resolved, pages] = await Promise.all([
+    withRls(session.userId, (tx) => tx.siteSettings.findUnique({ where: { id: "site" } })),
+    getSiteSettings(),
+    withRls(session.userId, (tx) =>
+      tx.page.findMany({
+        select: { id: true, title: true, slug: true, published: true },
+        orderBy: { createdAt: "desc" },
+      }),
+    ),
+  ])
 
   return (
     <div className="p-6 lg:p-8 space-y-6">
@@ -69,6 +75,7 @@ export default async function SettingsPage() {
               logo_height: settings?.logoHeight || 40,
               logo_radius: settings?.logoRadius ?? 8,
               show_login_link: settings?.showLoginLink ?? true,
+              editor_approval_required: settings?.editorApprovalRequired ?? resolved.editorApprovalRequired ?? true,
               nav_items: JSON.stringify({
                 main: resolved.navItems,
                 footer: resolved.footerNavItems,

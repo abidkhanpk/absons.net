@@ -19,12 +19,21 @@ type BlogPost = {
   excerpt: string
   content: string
   published: boolean
+  approved?: boolean
   featured_image?: string
   featuredImage?: string
   publishedAt?: string | null
 }
 
-export function BlogForm({ post }: { post?: BlogPost }) {
+export function BlogForm({
+  post,
+  currentUserRole,
+  editorApprovalRequired,
+}: {
+  post?: BlogPost
+  currentUserRole: string
+  editorApprovalRequired: boolean
+}) {
   const router = useRouter()
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [formData, setFormData] = useState({
@@ -33,6 +42,7 @@ export function BlogForm({ post }: { post?: BlogPost }) {
     excerpt: post?.excerpt || "",
     content: post?.content || "",
     published: post?.published || false,
+    approved: post?.approved ?? true,
     featured_image: post?.featured_image || post?.featuredImage || "",
   })
 
@@ -148,6 +158,21 @@ export function BlogForm({ post }: { post?: BlogPost }) {
             />
             <Label htmlFor="published">Publish this post</Label>
           </div>
+          {(currentUserRole === "admin" || currentUserRole === "super_admin") && (
+            <div className="flex items-center space-x-2">
+              <Switch
+                id="approved"
+                checked={formData.approved}
+                onCheckedChange={(checked) => setFormData({ ...formData, approved: checked })}
+              />
+              <Label htmlFor="approved">Approved for publishing</Label>
+            </div>
+          )}
+          {currentUserRole === "editor" && editorApprovalRequired && (
+            <p className="text-xs text-muted-foreground">
+              Editor submissions require admin approval before they appear on the site.
+            </p>
+          )}
 
           <div className="flex gap-3 pt-4">
             <Button type="submit" disabled={isSubmitting}>

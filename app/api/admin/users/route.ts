@@ -44,6 +44,9 @@ export async function POST(request: Request) {
     if (!isBootstrap && requestedRole === "super_admin" && requesterRole !== "super_admin") {
       return NextResponse.json({ error: "Only super admins can create another super admin" }, { status: 403 })
     }
+    if (!isBootstrap && requesterRole === "admin" && requestedRole !== "editor") {
+      return NextResponse.json({ error: "Admins can only create editors" }, { status: 403 })
+    }
 
     const resolvedRole: AllowedRole = isBootstrap ? "super_admin" : requestedRole
     const actingUserId = isBootstrap ? newUserId : session!.userId
@@ -109,6 +112,9 @@ export async function DELETE(request: Request) {
     if (target.role === "super_admin" && requesterRole !== "super_admin") {
       return NextResponse.json({ error: "Only super admins can remove another super admin" }, { status: 403 })
     }
+    if (requesterRole === "admin" && target.role !== "editor") {
+      return NextResponse.json({ error: "Admins can only remove editors" }, { status: 403 })
+    }
 
     await withRls(session.userId, (tx) => tx.user.delete({ where: { id: userId } }))
 
@@ -164,9 +170,15 @@ export async function PUT(request: Request) {
     if (!isSelf && target.role === "super_admin" && requesterRole !== "super_admin") {
       return NextResponse.json({ error: "Only super admins can modify another super admin" }, { status: 403 })
     }
+    if (!isSelf && requesterRole === "admin" && target.role !== "editor") {
+      return NextResponse.json({ error: "Admins can only modify editors" }, { status: 403 })
+    }
 
     const requestedRole: AllowedRole | undefined = ALLOWED_ROLES.find((r) => r === role)
     const canChangeRole = !isSelf && requesterRole && (requesterRole === "admin" || requesterRole === "super_admin")
+    if (!isSelf && requesterRole === "admin" && requestedRole && requestedRole !== "editor") {
+      return NextResponse.json({ error: "Admins can only assign editor role" }, { status: 403 })
+    }
     const nextRole: AllowedRole = canChangeRole && requestedRole ? requestedRole : (target.role as AllowedRole)
 
     if (nextRole === "super_admin" && requesterRole !== "super_admin" && !isSelf) {

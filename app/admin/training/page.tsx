@@ -6,10 +6,18 @@ import { Plus, Edit, Clock, TrendingUp } from "lucide-react"
 import { DeleteTrainingButton } from "@/components/admin/delete-training-button"
 import { getSession } from "@/lib/auth"
 import { withRls } from "@/lib/prisma"
+import { redirect } from "next/navigation"
 
 export default async function TrainingManagementPage() {
   const session = await getSession()
   if (!session) return null
+
+  const adminUser = await withRls(session.userId, (tx) =>
+    tx.user.findUnique({ where: { id: session.userId }, select: { role: true } }),
+  )
+  if (!adminUser || (adminUser.role !== "admin" && adminUser.role !== "super_admin")) {
+    redirect("/admin/blog")
+  }
 
   const courses = await withRls(session.userId, (tx) =>
     tx.trainingCourse.findMany({ orderBy: { displayOrder: "asc" } }),

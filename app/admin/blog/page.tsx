@@ -11,8 +11,16 @@ export default async function BlogManagementPage() {
   const session = await getSession()
   if (!session) return null
 
+  const user = await withRls(session.userId, (tx) =>
+    tx.user.findUnique({ where: { id: session.userId }, select: { role: true } }),
+  )
+  const isEditor = user?.role === "editor"
+
   const posts = await withRls(session.userId, (tx) =>
-    tx.blogPost.findMany({ orderBy: { createdAt: "desc" } }),
+    tx.blogPost.findMany({
+      where: isEditor ? { authorId: session.userId } : undefined,
+      orderBy: { createdAt: "desc" },
+    }),
   )
 
   return (
@@ -44,6 +52,7 @@ export default async function BlogManagementPage() {
                       <Badge variant={post.published ? "default" : "secondary"}>
                         {post.published ? "Published" : "Draft"}
                       </Badge>
+                      {!post.approved && <Badge variant="outline">Pending Approval</Badge>}
                     </div>
                     <p className="text-muted-foreground line-clamp-2">{post.excerpt}</p>
                     <div className="flex items-center gap-2 text-sm text-muted-foreground">

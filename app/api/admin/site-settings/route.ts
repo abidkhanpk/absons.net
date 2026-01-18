@@ -39,6 +39,7 @@ export async function PUT(request: Request) {
       showTraining,
       showTestimonials,
       homeSections,
+      editorApprovalRequired,
     } = body
 
     const session = await getSession()
@@ -92,6 +93,7 @@ export async function PUT(request: Request) {
         showTraining,
         showTestimonials,
         homeSections: Array.isArray(homeSections) ? homeSections : undefined,
+        editorApprovalRequired,
       },
     })
 

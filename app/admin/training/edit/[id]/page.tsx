@@ -1,5 +1,5 @@
 import { TrainingForm } from "@/components/admin/training-form"
-import { notFound } from "next/navigation"
+import { notFound, redirect } from "next/navigation"
 import { getSession } from "@/lib/auth"
 import { withRls } from "@/lib/prisma"
 
@@ -8,6 +8,13 @@ export default async function EditTrainingPage({ params }: { params: Promise<{ i
 
   const session = await getSession()
   if (!session) notFound()
+
+  const adminUser = await withRls(session.userId, (tx) =>
+    tx.user.findUnique({ where: { id: session.userId }, select: { role: true } }),
+  )
+  if (!adminUser || (adminUser.role !== "admin" && adminUser.role !== "super_admin")) {
+    redirect("/admin/blog")
+  }
 
   const course = await withRls(session.userId, (tx) => tx.trainingCourse.findUnique({ where: { id } }))
 

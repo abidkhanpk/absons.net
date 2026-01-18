@@ -2,26 +2,36 @@ import { NextResponse } from "next/server"
 import { getSession } from "@/lib/auth"
 import { withRls, prisma } from "@/lib/prisma"
 
-async function requireAdmin() {
+async function requireEditorAccess() {
   const session = await getSession()
-  if (!session) return { session: null, error: NextResponse.json({ error: "Unauthorized" }, { status: 401 }) }
+  if (!session) return { session: null, user: null, error: NextResponse.json({ error: "Unauthorized" }, { status: 401 }) }
   const user = await prisma.user.findUnique({ where: { id: session.userId } })
-  if (!user || (user.role !== "admin" && user.role !== "super_admin")) {
-    return { session, error: NextResponse.json({ error: "Forbidden" }, { status: 403 }) }
+  if (!user || (user.role !== "admin" && user.role !== "super_admin" && user.role !== "editor")) {
+    return { session, user: null, error: NextResponse.json({ error: "Forbidden" }, { status: 403 }) }
   }
-  return { session, error: null }
+  return { session, user, error: null }
+}
+
+async function isEditorApprovalRequired() {
+  const settings = await prisma.siteSettings.findUnique({ where: { id: "site" }, select: { editorApprovalRequired: true } })
+  return settings?.editorApprovalRequired ?? true
 }
 
 export async function POST(request: Request) {
-  const { session, error } = await requireAdmin()
+  const { session, user, error } = await requireEditorAccess()
   if (error) return error
 
   try {
     const body = await request.json()
-    const { title, slug, content, published } = body
+    const { title, slug, content, published, approved } = body
     if (!title || !slug || !content) {
       return NextResponse.json({ error: "Missing required fields" }, { status: 400 })
     }
+
+    const approvalRequired = await isEditorApprovalRequired()
+    const isEditor = user?.role === "editor"
+    const resolvedApproved = isEditor ? !approvalRequired : typeof approved === "boolean" ? approved : true
+    const resolvedApprovedAt = resolvedApproved ? new Date() : null
 
     await withRls(session!.userId, (tx) =>
       tx.page.create({
@@ -31,6 +41,9 @@ export async function POST(request: Request) {
           content,
           published: Boolean(published),
           publishedAt: published ? new Date() : null,
+          approved: resolvedApproved,
+          approvedAt: resolvedApprovedAt,
+          authorId: session!.userId,
         },
       }),
     )
@@ -43,13 +56,38 @@ export async function POST(request: Request) {
 }
 
 export async function PUT(request: Request) {
-  const { session, error } = await requireAdmin()
+  const { session, user, error } = await requireEditorAccess()
   if (error) return error
 
   try {
     const body = await request.json()
-    const { id, title, slug, content, published } = body
+    const { id, title, slug, content, published, approved } = body
     if (!id) return NextResponse.json({ error: "Page id is required" }, { status: 400 })
+
+    const approvalRequired = await isEditorApprovalRequired()
+    const isEditor = user?.role === "editor"
+
+    if (isEditor) {
+      const existing = await withRls(session!.userId, (tx) =>
+        tx.page.findUnique({ where: { id }, select: { authorId: true } }),
+      )
+      if (!existing || existing.authorId !== session!.userId) {
+        return NextResponse.json({ error: "Forbidden" }, { status: 403 })
+      }
+    }
+
+    const approvalUpdate = isEditor
+      ? {
+          approved: !approvalRequired,
+          approvedAt: !approvalRequired ? new Date() : null,
+        }
+      : typeof approved === "boolean"
+        ? {
+            approved,
+            approvedAt: approved ? new Date() : null,
+          }
+        : {}
+    const resolvedPublishedAt = published ? new Date() : null
 
     await withRls(session!.userId, (tx) =>
       tx.page.update({
@@ -59,7 +97,8 @@ export async function PUT(request: Request) {
           slug,
           content,
           published: Boolean(published),
-          publishedAt: published ? new Date() : null,
+          publishedAt: resolvedPublishedAt,
+          ...approvalUpdate,
         },
       }),
     )
@@ -72,13 +111,23 @@ export async function PUT(request: Request) {
 }
 
 export async function DELETE(request: Request) {
-  const { session, error } = await requireAdmin()
+  const { session, user, error } = await requireEditorAccess()
   if (error) return error
 
   try {
     const { searchParams } = new URL(request.url)
     const id = searchParams.get("id")
     if (!id) return NextResponse.json({ error: "Page id is required" }, { status: 400 })
+
+    const isEditor = user?.role === "editor"
+    if (isEditor) {
+      const existing = await withRls(session!.userId, (tx) =>
+        tx.page.findUnique({ where: { id }, select: { authorId: true } }),
+      )
+      if (!existing || existing.authorId !== session!.userId) {
+        return NextResponse.json({ error: "Forbidden" }, { status: 403 })
+      }
+    }
 
     await withRls(session!.userId, (tx) => tx.page.delete({ where: { id } }))
     return NextResponse.json({ success: true })

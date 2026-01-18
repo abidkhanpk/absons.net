@@ -9,7 +9,11 @@ import { getSiteSettings } from "@/lib/site-settings"
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params
-  const post = await prisma.blogPost.findUnique({ where: { slug } })
+  const settings = await getSiteSettings()
+  const approvalRequired = settings.editorApprovalRequired ?? true
+  const post = await prisma.blogPost.findFirst({
+    where: approvalRequired ? { slug, published: true, approved: true } : { slug, published: true },
+  })
 
   if (!post) {
     return {
@@ -25,10 +29,11 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
 
 export default async function BlogPostPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params
-  const post = await prisma.blogPost.findFirst({
-    where: { slug, published: true },
-  })
   const siteSettings = await getSiteSettings()
+  const approvalRequired = siteSettings.editorApprovalRequired ?? true
+  const post = await prisma.blogPost.findFirst({
+    where: approvalRequired ? { slug, published: true, approved: true } : { slug, published: true },
+  })
 
   if (!post) {
     notFound()

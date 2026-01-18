@@ -17,9 +17,18 @@ type PageRecord = {
   slug: string
   content: string
   published: boolean
+  approved?: boolean
 }
 
-export function PageForm({ page }: { page?: PageRecord }) {
+export function PageForm({
+  page,
+  currentUserRole,
+  editorApprovalRequired,
+}: {
+  page?: PageRecord
+  currentUserRole: string
+  editorApprovalRequired: boolean
+}) {
   const router = useRouter()
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [formData, setFormData] = useState({
@@ -27,6 +36,7 @@ export function PageForm({ page }: { page?: PageRecord }) {
     slug: page?.slug || "",
     content: page?.content || "",
     published: page?.published || false,
+    approved: page?.approved ?? true,
   })
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -111,6 +121,21 @@ export function PageForm({ page }: { page?: PageRecord }) {
             />
             <Label htmlFor="published">Publish this page</Label>
           </div>
+          {(currentUserRole === "admin" || currentUserRole === "super_admin") && (
+            <div className="flex items-center space-x-2">
+              <Switch
+                id="approved"
+                checked={formData.approved}
+                onCheckedChange={(checked) => setFormData({ ...formData, approved: checked })}
+              />
+              <Label htmlFor="approved">Approved for publishing</Label>
+            </div>
+          )}
+          {currentUserRole === "editor" && editorApprovalRequired && (
+            <p className="text-xs text-muted-foreground">
+              Editor submissions require admin approval before they appear on the site.
+            </p>
+          )}
 
           <div className="flex gap-3 pt-4">
             <Button type="submit" disabled={isSubmitting}>

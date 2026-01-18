@@ -9,12 +9,12 @@ export const revalidate = 0
 
 export default async function ContentPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params
+  const siteSettings = await getSiteSettings()
+  const approvalRequired = siteSettings.editorApprovalRequired ?? true
   const page = await prisma.page.findFirst({
-    where: { slug, published: true },
+    where: approvalRequired ? { slug, published: true, approved: true } : { slug, published: true },
   })
   if (!page) return notFound()
-
-  const siteSettings = await getSiteSettings()
 
   return (
     <div className="flex flex-col min-h-screen">

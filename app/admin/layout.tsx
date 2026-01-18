@@ -14,7 +14,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
   if (!session) redirect("/auth/login")
 
   const adminUser = await withRls(session.userId, (db) =>
-    db.user.findFirst({ where: { id: session.userId, role: { in: ["admin", "super_admin"] } } }),
+    db.user.findFirst({ where: { id: session.userId, role: { in: ["admin", "super_admin", "editor"] } } }),
   )
   if (!adminUser) redirect("/auth/login")
 

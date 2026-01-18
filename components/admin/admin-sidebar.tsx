@@ -21,15 +21,15 @@ import {
 import { useEffect, useState } from "react"
 
 const navItems = [
-  { href: "/admin", label: "Dashboard", icon: LayoutDashboard },
-  { href: "/admin/pages", label: "Pages", icon: FileStack },
-  { href: "/admin/blog", label: "Blog Posts", icon: FileText },
-  { href: "/admin/services", label: "Services", icon: Briefcase },
-  { href: "/admin/training", label: "Training", icon: GraduationCap },
-  { href: "/admin/testimonials", label: "Testimonials", icon: MessageSquare },
-  { href: "/admin/inquiries", label: "Inquiries", icon: Mail },
-  { href: "/admin/settings", label: "Settings", icon: Settings, requiresAdmin: true },
-  { href: "/admin/users", label: "Users", icon: Users, requiresAdmin: true },
+  { href: "/admin", label: "Dashboard", icon: LayoutDashboard, roles: ["admin", "super_admin"] },
+  { href: "/admin/pages", label: "Pages", icon: FileStack, roles: ["editor", "admin", "super_admin"] },
+  { href: "/admin/blog", label: "Blog Posts", icon: FileText, roles: ["editor", "admin", "super_admin"] },
+  { href: "/admin/services", label: "Services", icon: Briefcase, roles: ["admin", "super_admin"] },
+  { href: "/admin/training", label: "Training", icon: GraduationCap, roles: ["admin", "super_admin"] },
+  { href: "/admin/testimonials", label: "Testimonials", icon: MessageSquare, roles: ["admin", "super_admin"] },
+  { href: "/admin/inquiries", label: "Inquiries", icon: Mail, roles: ["admin", "super_admin"] },
+  { href: "/admin/settings", label: "Settings", icon: Settings, roles: ["super_admin"] },
+  { href: "/admin/users", label: "Users", icon: Users, roles: ["admin", "super_admin"] },
 ]
 
 export function AdminSidebar({ user }: { user: { id: string; email: string } }) {
@@ -91,7 +91,7 @@ export function AdminSidebar({ user }: { user: { id: string; email: string } }) 
             {navItems.map((item) => {
               const Icon = item.icon
               const isActive = pathname === item.href
-              if (item.requiresAdmin && role === "editor") return null
+              if (role && !item.roles.includes(role)) return null
               return (
                 <Link
                   key={item.href}

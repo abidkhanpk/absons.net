@@ -41,6 +41,7 @@ type SiteSettings = {
   logo_height?: number | null
   logo_radius?: number | null
   show_login_link?: boolean | null
+  editor_approval_required?: boolean | null
   nav_items?: string | null
   home_sections?: string | null
 }
@@ -277,6 +278,7 @@ export function SiteSettingsForm({ initial, pages }: { initial: SiteSettings; pa
     logoHeight: initial.logo_height || 40,
     logoRadius: initial.logo_radius ?? 8,
     showLoginLink: initial.show_login_link ?? true,
+    editorApprovalRequired: initial.editor_approval_required ?? true,
     navItems: initialNavItems,
     footerNavItems: initialFooterNavItems,
     homeSections: initialHomeSections,
@@ -439,6 +441,7 @@ export function SiteSettingsForm({ initial, pages }: { initial: SiteSettings; pa
           navItems: formData.navItems,
           footerNavItems: formData.footerNavItems,
           homeSections: formData.homeSections,
+          editorApprovalRequired: formData.editorApprovalRequired,
           heroSlides: formData.heroSlides,
           businessHoursSchedule: formData.businessHoursSchedule,
           businessHoursMode: formData.businessHoursMode,
@@ -648,6 +651,23 @@ export function SiteSettingsForm({ initial, pages }: { initial: SiteSettings; pa
                   )
                 })}
               </div>
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <Label className="font-semibold">Editorial Approval</Label>
+            <div className="flex items-center justify-between rounded-md border border-border/60 bg-muted/40 px-3 py-2">
+              <div className="space-y-1">
+                <p className="text-sm font-medium">Require admin approval for editor content</p>
+                <p className="text-xs text-muted-foreground">
+                  When enabled, editor-created posts and pages stay hidden until an admin approves them.
+                </p>
+              </div>
+              <Switch
+                id="editorApprovalRequired"
+                checked={formData.editorApprovalRequired}
+                onCheckedChange={(checked) => setFormData({ ...formData, editorApprovalRequired: checked })}
+              />
             </div>
           </div>
         </TabsContent>

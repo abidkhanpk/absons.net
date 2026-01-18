@@ -34,6 +34,10 @@ export function UserForm({ user, currentUserRole, currentUserId }: UserFormProps
   const isEditing = !!user
   const isSelf = isEditing && currentUserId === user?.id
   const canEditRole = !isSelf && (currentUserRole === "super_admin" || currentUserRole === "admin")
+  const baseRoleOptions =
+    currentUserRole === "super_admin" ? ["super_admin", "admin", "editor"] : currentUserRole === "admin" ? ["editor"] : ["editor"]
+  const roleOptions =
+    isSelf && user?.role && !baseRoleOptions.includes(user.role) ? [user.role, ...baseRoleOptions] : baseRoleOptions
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -87,8 +91,8 @@ export function UserForm({ user, currentUserRole, currentUserId }: UserFormProps
   // Role descriptions
   const roleDescriptions = {
     super_admin: "Full system access, can manage all users and settings",
-    admin: "Can manage content and users (except Super Admins)",
-    editor: "Can manage content only (blog, services, etc.)",
+    admin: "Can manage content and users (cannot create admins)",
+    editor: "Can create and manage their own blog posts and pages only",
   }
 
   return (
@@ -142,23 +146,27 @@ export function UserForm({ user, currentUserRole, currentUserId }: UserFormProps
             <SelectValue placeholder="Select a role" />
           </SelectTrigger>
           <SelectContent>
-            {currentUserRole === "super_admin" && (
+            {roleOptions.includes("super_admin") && (
               <SelectItem value="super_admin">
                 <div className="flex flex-col items-start">
                   <span className="font-medium">Super Admin</span>
                 </div>
               </SelectItem>
             )}
-            <SelectItem value="admin">
-              <div className="flex flex-col items-start">
-                <span className="font-medium">Admin</span>
-              </div>
-            </SelectItem>
-            <SelectItem value="editor">
-              <div className="flex flex-col items-start">
-                <span className="font-medium">Editor</span>
-              </div>
-            </SelectItem>
+            {roleOptions.includes("admin") && (
+              <SelectItem value="admin">
+                <div className="flex flex-col items-start">
+                  <span className="font-medium">Admin</span>
+                </div>
+              </SelectItem>
+            )}
+            {roleOptions.includes("editor") && (
+              <SelectItem value="editor">
+                <div className="flex flex-col items-start">
+                  <span className="font-medium">Editor</span>
+                </div>
+              </SelectItem>
+            )}
           </SelectContent>
         </Select>
         <p className="text-sm text-muted-foreground">

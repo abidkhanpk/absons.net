@@ -2,6 +2,7 @@ import { BlogForm } from "@/components/admin/blog-form"
 import { notFound } from "next/navigation"
 import { withRls } from "@/lib/prisma"
 import { getSession } from "@/lib/auth"
+import { getSiteSettings } from "@/lib/site-settings"
 
 export default async function EditBlogPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
@@ -9,7 +10,11 @@ export default async function EditBlogPage({ params }: { params: Promise<{ id: s
   const session = await getSession()
   if (!session) notFound()
 
-  const post = await withRls(session.userId, (tx) => tx.blogPost.findUnique({ where: { id } }))
+  const [post, user, settings] = await Promise.all([
+    withRls(session.userId, (tx) => tx.blogPost.findUnique({ where: { id } })),
+    withRls(session.userId, (tx) => tx.user.findUnique({ where: { id: session.userId }, select: { role: true } })),
+    getSiteSettings(),
+  ])
 
   if (!post) {
     notFound()
@@ -22,7 +27,11 @@ export default async function EditBlogPage({ params }: { params: Promise<{ id: s
         <p className="text-muted-foreground mt-1">Update your blog post content</p>
       </div>
 
-      <BlogForm post={post} />
+      <BlogForm
+        post={post}
+        currentUserRole={user?.role || "editor"}
+        editorApprovalRequired={settings.editorApprovalRequired ?? true}
+      />
     </div>
   )
 }

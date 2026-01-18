@@ -31,6 +31,7 @@ export type SiteSettings = {
   logoHeight: number
   logoRadius: number
   showLoginLink: boolean
+  editorApprovalRequired: boolean
   contactEmail: string | null
   contactPhone: string | null
   contactAddress: string | null
@@ -159,6 +160,7 @@ const defaultSettings: SiteSettings = {
   logoHeight: 40,
   logoRadius: 0,
   showLoginLink: false,
+  editorApprovalRequired: true,
   contactEmail: "info@absons.net",
   contactPhone: "+92 XXX XXXXXXX",
   contactAddress: "Pakistan",
@@ -393,6 +395,7 @@ export async function getSiteSettings(): Promise<SiteSettings> {
       logoHeight: settings.logoHeight ?? defaultSettings.logoHeight,
       logoRadius: settings.logoRadius ?? defaultSettings.logoRadius,
       showLoginLink: settings.showLoginLink ?? defaultSettings.showLoginLink,
+      editorApprovalRequired: settings.editorApprovalRequired ?? defaultSettings.editorApprovalRequired,
       contactEmail: settings.contactEmail ?? defaultSettings.contactEmail,
       contactPhone: settings.contactPhone ?? defaultSettings.contactPhone,
       contactAddress: settings.contactAddress ?? defaultSettings.contactAddress,

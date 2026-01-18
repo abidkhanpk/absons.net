@@ -13,11 +13,12 @@ export const metadata = {
 }
 
 export default async function BlogPage() {
+  const siteSettings = await getSiteSettings()
+  const approvalRequired = siteSettings.editorApprovalRequired ?? true
   const posts = await prisma.blogPost.findMany({
-    where: { published: true },
+    where: approvalRequired ? { published: true, approved: true } : { published: true },
     orderBy: { publishedAt: "desc" },
   })
-  const siteSettings = await getSiteSettings()
 
   return (
     <div className="flex flex-col min-h-screen">

@@ -2,10 +2,18 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { FileText, Briefcase, GraduationCap, MessageSquare, Mail, TrendingUp } from "lucide-react"
 import { getSession } from "@/lib/auth"
 import { withRls } from "@/lib/prisma"
+import { redirect } from "next/navigation"
 
 export default async function AdminDashboard() {
   const session = await getSession()
   if (!session) return null
+
+  const adminUser = await withRls(session.userId, (tx) =>
+    tx.user.findUnique({ where: { id: session.userId }, select: { role: true } }),
+  )
+  if (!adminUser || (adminUser.role !== "admin" && adminUser.role !== "super_admin")) {
+    redirect("/admin/blog")
+  }
 
   const [blogCount, servicesCount, trainingCount, testimonialsCount, inquiriesCount, newInquiriesCount, recentInquiries] =
     await withRls(session.userId, async (tx) => {

@@ -1,6 +1,18 @@
 import { BlogForm } from "@/components/admin/blog-form"
+import { getSession } from "@/lib/auth"
+import { withRls } from "@/lib/prisma"
+import { getSiteSettings } from "@/lib/site-settings"
+import { redirect } from "next/navigation"
 
-export default function NewBlogPage() {
+export default async function NewBlogPage() {
+  const session = await getSession()
+  if (!session) redirect("/auth/login")
+
+  const [user, settings] = await Promise.all([
+    withRls(session.userId, (tx) => tx.user.findUnique({ where: { id: session.userId }, select: { role: true } })),
+    getSiteSettings(),
+  ])
+
   return (
     <div className="p-6 lg:p-8 space-y-6">
       <div>
@@ -8,7 +20,10 @@ export default function NewBlogPage() {
         <p className="text-muted-foreground mt-1">Write and publish a new blog post</p>
       </div>
 
-      <BlogForm />
+      <BlogForm
+        currentUserRole={user?.role || "editor"}
+        editorApprovalRequired={settings.editorApprovalRequired ?? true}
+      />
     </div>
   )
 }

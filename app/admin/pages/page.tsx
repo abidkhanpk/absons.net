@@ -11,7 +11,14 @@ export default async function PagesManagementPage() {
   const session = await getSession()
   if (!session) return null
 
-  const pages = await withRls(session.userId, (tx) => tx.page.findMany({ orderBy: { createdAt: "desc" } }))
+  const user = await withRls(session.userId, (tx) =>
+    tx.user.findUnique({ where: { id: session.userId }, select: { role: true } }),
+  )
+  const isEditor = user?.role === "editor"
+
+  const pages = await withRls(session.userId, (tx) =>
+    tx.page.findMany({ where: isEditor ? { authorId: session.userId } : undefined, orderBy: { createdAt: "desc" } }),
+  )
 
   return (
     <div className="p-6 lg:p-8 space-y-6">
@@ -40,6 +47,7 @@ export default async function PagesManagementPage() {
                       <Badge variant={page.published ? "default" : "secondary"}>
                         {page.published ? "Published" : "Draft"}
                       </Badge>
+                      {!page.approved && <Badge variant="outline">Pending Approval</Badge>}
                     </div>
                     <p className="text-sm text-muted-foreground">/{page.slug}</p>
                     <div className="flex items-center gap-2 text-sm text-muted-foreground">

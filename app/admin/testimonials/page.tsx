@@ -6,10 +6,18 @@ import { Plus, Edit, Star } from "lucide-react"
 import { DeleteTestimonialButton } from "@/components/admin/delete-testimonial-button"
 import { getSession } from "@/lib/auth"
 import { withRls } from "@/lib/prisma"
+import { redirect } from "next/navigation"
 
 export default async function TestimonialsManagementPage() {
   const session = await getSession()
   if (!session) return null
+
+  const adminUser = await withRls(session.userId, (tx) =>
+    tx.user.findUnique({ where: { id: session.userId }, select: { role: true } }),
+  )
+  if (!adminUser || (adminUser.role !== "admin" && adminUser.role !== "super_admin")) {
+    redirect("/admin/blog")
+  }
 
   const testimonials = await withRls(session.userId, (tx) =>
     tx.testimonial.findMany({ orderBy: { displayOrder: "asc" } }),
