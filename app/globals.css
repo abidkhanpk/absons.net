@@ -136,7 +136,8 @@
 }
 
 .why-choose-tile {
-  min-width: 220px;
+  max-width: 260px;
+  flex: 0 0 260px;
 }
 
 .why-choose-tile p {
