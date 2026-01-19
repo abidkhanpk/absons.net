@@ -5,10 +5,11 @@ import { Card, CardContent } from "@/components/ui/card"
 import { Carousel, CarouselContent, CarouselItem } from "@/components/ui/carousel"
 import Link from "next/link"
 import { Fragment } from "react"
-import { GraduationCap, BookOpen, School, Award, Activity, Package, ArrowRight, CheckCircle2, Star } from "lucide-react"
+import { GraduationCap, BookOpen, School, Award, Activity, Package, ArrowRight, Star } from "lucide-react"
 import { prisma } from "@/lib/prisma"
 import { getSiteSettings } from "@/lib/site-settings"
 import { HeroSlider } from "@/components/hero-slider"
+import { WhyChooseSection } from "@/components/home/why-choose-section"
 
 // Ensure the homepage is served dynamically so it can gracefully handle missing data in production
 export const dynamic = "force-dynamic"
@@ -21,13 +22,6 @@ const iconMap = {
   Award,
   Activity,
   Package,
-}
-
-const whyChooseIconMap = {
-  check: CheckCircle2,
-  award: Award,
-  book: BookOpen,
-  star: Star,
 }
 
 export default async function HomePage() {
@@ -63,49 +57,6 @@ export default async function HomePage() {
     })
 
   const siteSettings = await getSiteSettings()
-  const mobileWhyChooseLayout =
-    siteSettings.whyChooseMobileLayout === "match" ? siteSettings.whyChooseLayout : siteSettings.whyChooseMobileLayout
-  const renderWhyChooseLayout = (layout: "grid" | "scroll") =>
-    layout === "scroll" ? (
-      <div className="why-choose-scroll">
-        <div
-          className="why-choose-track"
-          style={{ ["--why-choose-duration" as string]: `${siteSettings.whyChooseScrollSpeed || 30}s` }}
-        >
-          {[...siteSettings.whyChooseItems, ...siteSettings.whyChooseItems].map((item, index) => {
-            const Icon = whyChooseIconMap[item.icon] || CheckCircle2
-            return (
-              <div key={`${item.title}-${index}`} className="why-choose-tile text-center space-y-3">
-                <div className="flex justify-center">
-                  <div className="flex h-14 w-14 items-center justify-center rounded-full bg-primary/10 text-primary">
-                    <Icon className="h-7 w-7" />
-                  </div>
-                </div>
-                <h3 className="text-lg font-semibold">{item.title}</h3>
-                <p className="text-sm text-muted-foreground leading-relaxed">{item.description}</p>
-              </div>
-            )
-          })}
-        </div>
-      </div>
-    ) : (
-      <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
-        {siteSettings.whyChooseItems.map((item, index) => {
-          const Icon = whyChooseIconMap[item.icon] || CheckCircle2
-          return (
-            <div key={`${item.title}-${index}`} className="text-center space-y-3">
-              <div className="flex justify-center">
-                <div className="flex h-14 w-14 items-center justify-center rounded-full bg-primary/10 text-primary">
-                  <Icon className="h-7 w-7" />
-                </div>
-              </div>
-              <h3 className="text-lg font-semibold">{item.title}</h3>
-              <p className="text-sm text-muted-foreground leading-relaxed">{item.description}</p>
-            </div>
-          )
-        })}
-      </div>
-    )
 
   const homeSectionBlocks = {
     services: (
@@ -221,27 +172,14 @@ export default async function HomePage() {
         </section>
       ) : null,
     "why-choose": (
-      <section className="py-20 bg-muted/30">
-        <div className="container mx-auto px-4 lg:px-8">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl md:text-4xl font-bold mb-4">
-              {siteSettings.whyChooseTitle || "Why Choose ABSON Solutions"}
-            </h2>
-            <p className="text-lg text-muted-foreground max-w-2xl mx-auto text-pretty leading-relaxed">
-              {siteSettings.whyChooseSubtitle || "Trusted by educational institutions and organizations across Pakistan"}
-            </p>
-          </div>
-
-          {mobileWhyChooseLayout === siteSettings.whyChooseLayout ? (
-            renderWhyChooseLayout(siteSettings.whyChooseLayout)
-          ) : (
-            <>
-              <div className="block md:hidden">{renderWhyChooseLayout(mobileWhyChooseLayout)}</div>
-              <div className="hidden md:block">{renderWhyChooseLayout(siteSettings.whyChooseLayout)}</div>
-            </>
-          )}
-        </div>
-      </section>
+      <WhyChooseSection
+        title={siteSettings.whyChooseTitle || "Why Choose ABSON Solutions"}
+        subtitle={siteSettings.whyChooseSubtitle || "Trusted by educational institutions and organizations across Pakistan"}
+        items={siteSettings.whyChooseItems}
+        layout={siteSettings.whyChooseLayout}
+        mobileLayout={siteSettings.whyChooseMobileLayout}
+        scrollSpeed={siteSettings.whyChooseScrollSpeed}
+      />
     ),
   }
   const orderedHomeSections = siteSettings.homeSections || []

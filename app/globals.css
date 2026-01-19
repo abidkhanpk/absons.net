@@ -124,20 +124,25 @@
   }
 }
 
+.why-choose-section {
+  --why-choose-tile-width: 260px;
+  --why-choose-tile-gap: 1.5rem;
+}
+
 .why-choose-scroll {
   overflow: hidden;
 }
 
 .why-choose-track {
   display: flex;
-  gap: 1.5rem;
+  gap: var(--why-choose-tile-gap);
   width: max-content;
   animation: why-choose-scroll var(--why-choose-duration, 30s) linear infinite;
 }
 
 .why-choose-tile {
-  max-width: 260px;
-  flex: 0 0 260px;
+  max-width: var(--why-choose-tile-width);
+  flex: 0 0 var(--why-choose-tile-width);
 }
 
 .why-choose-tile p {
