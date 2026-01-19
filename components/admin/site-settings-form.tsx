@@ -4,6 +4,7 @@ import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Switch } from "@/components/ui/switch"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
@@ -48,6 +49,9 @@ type SiteSettings = {
   why_choose_layout?: string | null
   why_choose_mobile_layout?: string | null
   why_choose_scroll_speed?: number | null
+  analytics_script?: string | null
+  header_code?: string | null
+  footer_code?: string | null
   nav_items?: string | null
   home_sections?: string | null
 }
@@ -345,6 +349,9 @@ export function SiteSettingsForm({ initial, pages }: { initial: SiteSettings; pa
     whyChooseLayout: (initial.why_choose_layout as "grid" | "scroll") || "grid",
     whyChooseMobileLayout: (initial.why_choose_mobile_layout as "match" | "grid" | "scroll") || "match",
     whyChooseScrollSpeed: initial.why_choose_scroll_speed ?? 30,
+    analyticsScript: initial.analytics_script || "",
+    headerCode: initial.header_code || "",
+    footerCode: initial.footer_code || "",
     navItems: initialNavItems,
     footerNavItems: initialFooterNavItems,
     homeSections: initialHomeSections,
@@ -529,6 +536,9 @@ export function SiteSettingsForm({ initial, pages }: { initial: SiteSettings; pa
           whyChooseLayout: formData.whyChooseLayout,
           whyChooseMobileLayout: formData.whyChooseMobileLayout,
           whyChooseScrollSpeed: formData.whyChooseScrollSpeed,
+          analyticsScript: formData.analyticsScript,
+          headerCode: formData.headerCode,
+          footerCode: formData.footerCode,
           heroSlides: formData.heroSlides,
           businessHoursSchedule: formData.businessHoursSchedule,
           businessHoursMode: formData.businessHoursMode,
@@ -756,6 +766,45 @@ export function SiteSettingsForm({ initial, pages }: { initial: SiteSettings; pa
                 id="editorApprovalRequired"
                 checked={formData.editorApprovalRequired}
                 onCheckedChange={(checked) => setFormData({ ...formData, editorApprovalRequired: checked })}
+              />
+            </div>
+          </div>
+
+          <div className="space-y-4">
+            <div>
+              <Label className="font-semibold">Code Injections</Label>
+              <p className="text-xs text-muted-foreground">
+                Add snippets to be included on every page. Use trusted code only.
+              </p>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="analyticsScript">Analytics Code</Label>
+              <Textarea
+                id="analyticsScript"
+                value={formData.analyticsScript}
+                onChange={(e) => setFormData({ ...formData, analyticsScript: e.target.value })}
+                placeholder="<script>/* analytics */</script>"
+                rows={4}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="headerCode">Header Code</Label>
+              <Textarea
+                id="headerCode"
+                value={formData.headerCode}
+                onChange={(e) => setFormData({ ...formData, headerCode: e.target.value })}
+                placeholder="<!-- header snippets -->"
+                rows={4}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="footerCode">Footer Code</Label>
+              <Textarea
+                id="footerCode"
+                value={formData.footerCode}
+                onChange={(e) => setFormData({ ...formData, footerCode: e.target.value })}
+                placeholder="<!-- footer snippets -->"
+                rows={4}
               />
             </div>
           </div>

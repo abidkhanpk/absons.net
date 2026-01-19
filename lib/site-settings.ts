@@ -38,6 +38,9 @@ export type SiteSettings = {
   whyChooseLayout: "grid" | "scroll"
   whyChooseMobileLayout: "match" | "grid" | "scroll"
   whyChooseScrollSpeed: number
+  analyticsScript: string
+  headerCode: string
+  footerCode: string
   contactEmail: string | null
   contactPhone: string | null
   contactAddress: string | null
@@ -179,6 +182,9 @@ const defaultSettings: SiteSettings = {
   whyChooseLayout: "grid",
   whyChooseMobileLayout: "match",
   whyChooseScrollSpeed: 30,
+  analyticsScript: "",
+  headerCode: "",
+  footerCode: "",
   whyChooseItems: [
     { title: "Proven Expertise", description: "Years of experience delivering quality solutions", icon: "check" },
     { title: "Certified Training", description: "Mobius Institute certified vibration analysis programs", icon: "award" },
@@ -460,6 +466,9 @@ export async function getSiteSettings(): Promise<SiteSettings> {
       whyChooseMobileLayout:
         (settings.whyChooseMobileLayout as "match" | "grid" | "scroll") ?? defaultSettings.whyChooseMobileLayout,
       whyChooseScrollSpeed: settings.whyChooseScrollSpeed ?? defaultSettings.whyChooseScrollSpeed,
+      analyticsScript: settings.analyticsScript ?? defaultSettings.analyticsScript,
+      headerCode: settings.headerCode ?? defaultSettings.headerCode,
+      footerCode: settings.footerCode ?? defaultSettings.footerCode,
       contactEmail: settings.contactEmail ?? defaultSettings.contactEmail,
       contactPhone: settings.contactPhone ?? defaultSettings.contactPhone,
       contactAddress: settings.contactAddress ?? defaultSettings.contactAddress,

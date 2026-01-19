@@ -84,11 +84,17 @@ async function LayoutWithSettings({ children }: { children: React.ReactNode }) {
   const settings = await getSiteSettings()
   const layoutMode = settings.layoutMode || "container"
   const widthValue = layoutMode === "full" ? "100%" : `${Math.min(Math.max(settings.layoutWidth || 90, 60), 100)}%`
+  const analyticsSnippet = settings.analyticsScript?.trim()
+  const headerSnippet = settings.headerCode?.trim()
+  const footerSnippet = settings.footerCode?.trim()
 
   return (
     <div style={{ ["--page-container-max" as string]: widthValue }}>
       <ServiceWorkerReset />
+      {analyticsSnippet ? <div dangerouslySetInnerHTML={{ __html: analyticsSnippet }} /> : null}
+      {headerSnippet ? <div dangerouslySetInnerHTML={{ __html: headerSnippet }} /> : null}
       {children}
+      {footerSnippet ? <div dangerouslySetInnerHTML={{ __html: footerSnippet }} /> : null}
     </div>
   )
 }

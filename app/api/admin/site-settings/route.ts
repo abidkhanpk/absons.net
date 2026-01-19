@@ -46,6 +46,9 @@ export async function PUT(request: Request) {
       whyChooseLayout,
       whyChooseMobileLayout,
       whyChooseScrollSpeed,
+      analyticsScript,
+      headerCode,
+      footerCode,
     } = body
 
     const session = await getSession()
@@ -106,6 +109,9 @@ export async function PUT(request: Request) {
         whyChooseLayout,
         whyChooseMobileLayout,
         whyChooseScrollSpeed,
+        analyticsScript,
+        headerCode,
+        footerCode,
       },
     })
 

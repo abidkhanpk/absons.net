@@ -152,6 +152,9 @@ model SiteSettings {
   whyChooseLayout String? @map("why_choose_layout")
   whyChooseMobileLayout String? @map("why_choose_mobile_layout")
   whyChooseScrollSpeed Int? @map("why_choose_scroll_speed")
+  analyticsScript String? @map("analytics_script")
+  headerCode   String? @map("header_code")
+  footerCode   String? @map("footer_code")
   createdAt      DateTime @default(dbgenerated("now()")) @db.Timestamptz(6) @map("created_at")
   updatedAt      DateTime @default(dbgenerated("now()")) @db.Timestamptz(6) @map("updated_at")
 
