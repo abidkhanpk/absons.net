@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { ArrowDown, ArrowUp } from "lucide-react"
+import { ArrowDown, ArrowUp, Trash2 } from "lucide-react"
 
 type WhyChooseItem = {
   title: string
@@ -54,6 +54,13 @@ export function WhyChooseForm({ initial }: { initial: WhyChooseFormValues }) {
         ...prev.whyChooseItems,
         { title: "New Item", description: "Description", icon: "check" },
       ],
+    }))
+  }
+
+  const removeItem = (index: number) => {
+    setFormData((prev) => ({
+      ...prev,
+      whyChooseItems: prev.whyChooseItems.filter((_, itemIndex) => itemIndex !== index),
     }))
   }
 
@@ -225,6 +232,15 @@ export function WhyChooseForm({ initial }: { initial: WhyChooseFormValues }) {
               </div>
             </div>
             <div className="flex items-center gap-1 self-end md:self-auto">
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                onClick={() => removeItem(index)}
+                aria-label={`Delete ${item.title}`}
+              >
+                <Trash2 className="h-4 w-4" />
+              </Button>
               <Button
                 type="button"
                 variant="ghost"
