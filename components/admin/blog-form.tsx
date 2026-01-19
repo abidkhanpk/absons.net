@@ -23,6 +23,13 @@ type BlogPost = {
   featured_image?: string
   featuredImage?: string
   publishedAt?: string | null
+  seoTitle?: string | null
+  seoDescription?: string | null
+  seoKeywords?: string | null
+  seoOgImage?: string | null
+  seoCanonicalUrl?: string | null
+  seoNoIndex?: boolean
+  seoNoFollow?: boolean
 }
 
 export function BlogForm({
@@ -44,6 +51,13 @@ export function BlogForm({
     published: post?.published || false,
     approved: post?.approved ?? true,
     featured_image: post?.featured_image || post?.featuredImage || "",
+    seoTitle: post?.seoTitle || "",
+    seoDescription: post?.seoDescription || "",
+    seoKeywords: post?.seoKeywords || "",
+    seoOgImage: post?.seoOgImage || "",
+    seoCanonicalUrl: post?.seoCanonicalUrl || "",
+    seoNoIndex: post?.seoNoIndex ?? false,
+    seoNoFollow: post?.seoNoFollow ?? false,
   })
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -148,6 +162,79 @@ export function BlogForm({
               onChange={(e) => setFormData({ ...formData, featured_image: e.target.value })}
               placeholder="https://example.com/image.jpg"
             />
+          </div>
+
+          <div className="space-y-4">
+            <div>
+              <Label className="font-semibold">SEO</Label>
+              <p className="text-xs text-muted-foreground">Optional overrides for search engines and social sharing.</p>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="seoTitle">SEO Title</Label>
+              <Input
+                id="seoTitle"
+                value={formData.seoTitle}
+                onChange={(e) => setFormData({ ...formData, seoTitle: e.target.value })}
+                placeholder="Custom title for search engines"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="seoDescription">SEO Description</Label>
+              <Textarea
+                id="seoDescription"
+                value={formData.seoDescription}
+                onChange={(e) => setFormData({ ...formData, seoDescription: e.target.value })}
+                rows={3}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="seoKeywords">SEO Keywords</Label>
+              <Textarea
+                id="seoKeywords"
+                value={formData.seoKeywords}
+                onChange={(e) => setFormData({ ...formData, seoKeywords: e.target.value })}
+                rows={2}
+                placeholder="keyword1, keyword2"
+              />
+            </div>
+            <div className="grid gap-4 md:grid-cols-2">
+              <div className="space-y-2">
+                <Label htmlFor="seoOgImage">SEO OG Image URL</Label>
+                <Input
+                  id="seoOgImage"
+                  value={formData.seoOgImage}
+                  onChange={(e) => setFormData({ ...formData, seoOgImage: e.target.value })}
+                  placeholder="https://example.com/og-image.jpg"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="seoCanonicalUrl">Canonical URL</Label>
+                <Input
+                  id="seoCanonicalUrl"
+                  value={formData.seoCanonicalUrl}
+                  onChange={(e) => setFormData({ ...formData, seoCanonicalUrl: e.target.value })}
+                  placeholder="https://example.com/blog/post"
+                />
+              </div>
+            </div>
+            <div className="flex flex-wrap gap-4">
+              <div className="flex items-center space-x-2">
+                <Switch
+                  id="seoNoIndex"
+                  checked={formData.seoNoIndex}
+                  onCheckedChange={(checked) => setFormData({ ...formData, seoNoIndex: checked })}
+                />
+                <Label htmlFor="seoNoIndex">No index</Label>
+              </div>
+              <div className="flex items-center space-x-2">
+                <Switch
+                  id="seoNoFollow"
+                  checked={formData.seoNoFollow}
+                  onCheckedChange={(checked) => setFormData({ ...formData, seoNoFollow: checked })}
+                />
+                <Label htmlFor="seoNoFollow">No follow</Label>
+              </div>
+            </div>
           </div>
 
           <div className="flex items-center space-x-2">

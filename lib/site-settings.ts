@@ -42,6 +42,13 @@ export type SiteSettings = {
   headerCode: string
   footerCode: string
   allowIndexing: boolean
+  seoTitleTemplate: string
+  seoDefaultTitle: string
+  seoDefaultDescription: string
+  seoDefaultKeywords: string
+  seoDefaultOgImage: string
+  seoDefaultCanonicalBase: string
+  staticSeo: StaticSeoSettings
   contactEmail: string | null
   contactPhone: string | null
   contactAddress: string | null
@@ -81,6 +88,21 @@ export type WhyChooseItem = {
   description: string
   icon: "check" | "award" | "book" | "star" | "shield" | "bolt" | "heart" | "users" | "globe" | "sparkles"
 }
+
+export type StaticSeoEntry = {
+  title: string
+  description: string
+  keywords: string
+  ogImage: string
+  canonical: string
+  noIndex: boolean
+  noFollow: boolean
+}
+
+export type StaticSeoSettings = Record<
+  "home" | "about" | "services" | "training" | "contact" | "blog",
+  StaticSeoEntry
+>
 
 const defaultSettings: SiteSettings = {
   siteTitle: "ABSON Innovations",
@@ -187,6 +209,69 @@ const defaultSettings: SiteSettings = {
   headerCode: "",
   footerCode: "",
   allowIndexing: true,
+  seoTitleTemplate: "{title} - ABSON Solutions",
+  seoDefaultTitle: "ABSON Solutions",
+  seoDefaultDescription:
+    "Professional software solutions for schools, Quran academies, madaris, and vibration analysis training certification from Mobius Institute of Australia",
+  seoDefaultKeywords: "",
+  seoDefaultOgImage: "",
+  seoDefaultCanonicalBase: "",
+  staticSeo: {
+    home: {
+      title: "",
+      description: "",
+      keywords: "",
+      ogImage: "",
+      canonical: "",
+      noIndex: false,
+      noFollow: false,
+    },
+    about: {
+      title: "",
+      description: "",
+      keywords: "",
+      ogImage: "",
+      canonical: "",
+      noIndex: false,
+      noFollow: false,
+    },
+    services: {
+      title: "",
+      description: "",
+      keywords: "",
+      ogImage: "",
+      canonical: "",
+      noIndex: false,
+      noFollow: false,
+    },
+    training: {
+      title: "",
+      description: "",
+      keywords: "",
+      ogImage: "",
+      canonical: "",
+      noIndex: false,
+      noFollow: false,
+    },
+    contact: {
+      title: "",
+      description: "",
+      keywords: "",
+      ogImage: "",
+      canonical: "",
+      noIndex: false,
+      noFollow: false,
+    },
+    blog: {
+      title: "",
+      description: "",
+      keywords: "",
+      ogImage: "",
+      canonical: "",
+      noIndex: false,
+      noFollow: false,
+    },
+  },
   whyChooseItems: [
     { title: "Proven Expertise", description: "Years of experience delivering quality solutions", icon: "check" },
     { title: "Certified Training", description: "Mobius Institute certified vibration analysis programs", icon: "award" },
@@ -402,6 +487,33 @@ function parseWhyChooseItems(raw: unknown): WhyChooseItem[] {
   }
 }
 
+function parseStaticSeo(raw: unknown): StaticSeoSettings {
+  const defaultEntry = defaultSettings.staticSeo.home
+  const normalizeEntry = (entry: any): StaticSeoEntry => ({
+    title: typeof entry?.title === "string" ? entry.title : "",
+    description: typeof entry?.description === "string" ? entry.description : "",
+    keywords: typeof entry?.keywords === "string" ? entry.keywords : "",
+    ogImage: typeof entry?.ogImage === "string" ? entry.ogImage : "",
+    canonical: typeof entry?.canonical === "string" ? entry.canonical : "",
+    noIndex: Boolean(entry?.noIndex),
+    noFollow: Boolean(entry?.noFollow),
+  })
+  try {
+    const parsed = typeof raw === "string" ? JSON.parse(raw) : raw
+    if (!parsed || typeof parsed !== "object") return defaultSettings.staticSeo
+    return {
+      home: normalizeEntry(parsed.home ?? defaultEntry),
+      about: normalizeEntry(parsed.about ?? defaultEntry),
+      services: normalizeEntry(parsed.services ?? defaultEntry),
+      training: normalizeEntry(parsed.training ?? defaultEntry),
+      contact: normalizeEntry(parsed.contact ?? defaultEntry),
+      blog: normalizeEntry(parsed.blog ?? defaultEntry),
+    }
+  } catch {
+    return defaultSettings.staticSeo
+  }
+}
+
 export async function getSiteSettings(): Promise<SiteSettings> {
   try {
     const settings = await prisma.siteSettings.findUnique({ where: { id: "site" } })
@@ -472,6 +584,13 @@ export async function getSiteSettings(): Promise<SiteSettings> {
       headerCode: settings.headerCode ?? defaultSettings.headerCode,
       footerCode: settings.footerCode ?? defaultSettings.footerCode,
       allowIndexing: settings.allowIndexing ?? defaultSettings.allowIndexing,
+      seoTitleTemplate: settings.seoTitleTemplate ?? defaultSettings.seoTitleTemplate,
+      seoDefaultTitle: settings.seoDefaultTitle ?? defaultSettings.seoDefaultTitle,
+      seoDefaultDescription: settings.seoDefaultDescription ?? defaultSettings.seoDefaultDescription,
+      seoDefaultKeywords: settings.seoDefaultKeywords ?? defaultSettings.seoDefaultKeywords,
+      seoDefaultOgImage: settings.seoDefaultOgImage ?? defaultSettings.seoDefaultOgImage,
+      seoDefaultCanonicalBase: settings.seoDefaultCanonicalBase ?? defaultSettings.seoDefaultCanonicalBase,
+      staticSeo: parseStaticSeo(settings.staticSeo),
       contactEmail: settings.contactEmail ?? defaultSettings.contactEmail,
       contactPhone: settings.contactPhone ?? defaultSettings.contactPhone,
       contactAddress: settings.contactAddress ?? defaultSettings.contactAddress,

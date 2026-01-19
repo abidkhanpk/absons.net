@@ -39,6 +39,13 @@ model BlogPost {
   excerpt     String
   content     String
   featuredImage String? @map("featured_image")
+  seoTitle    String?  @map("seo_title")
+  seoDescription String? @map("seo_description")
+  seoKeywords String?  @map("seo_keywords")
+  seoOgImage  String?  @map("seo_og_image")
+  seoCanonicalUrl String? @map("seo_canonical_url")
+  seoNoIndex  Boolean  @default(false) @map("seo_no_index")
+  seoNoFollow Boolean  @default(false) @map("seo_no_follow")
   authorId    String?  @db.Uuid @map("author_id")
   published   Boolean  @default(false)
   approved    Boolean  @default(false)
@@ -55,6 +62,13 @@ model Page {
   title       String
   slug        String   @unique
   content     String
+  seoTitle    String?  @map("seo_title")
+  seoDescription String? @map("seo_description")
+  seoKeywords String?  @map("seo_keywords")
+  seoOgImage  String?  @map("seo_og_image")
+  seoCanonicalUrl String? @map("seo_canonical_url")
+  seoNoIndex  Boolean  @default(false) @map("seo_no_index")
+  seoNoFollow Boolean  @default(false) @map("seo_no_follow")
   authorId    String?  @db.Uuid @map("author_id")
   published   Boolean  @default(false)
   approved    Boolean  @default(false)
@@ -156,6 +170,13 @@ model SiteSettings {
   headerCode   String? @map("header_code")
   footerCode   String? @map("footer_code")
   allowIndexing Boolean @default(true) @map("allow_indexing")
+  seoTitleTemplate String? @map("seo_title_template")
+  seoDefaultTitle String? @map("seo_default_title")
+  seoDefaultDescription String? @map("seo_default_description")
+  seoDefaultKeywords String? @map("seo_default_keywords")
+  seoDefaultOgImage String? @map("seo_default_og_image")
+  seoDefaultCanonicalBase String? @map("seo_default_canonical_base")
+  staticSeo     Json?    @map("static_seo")
   createdAt      DateTime @default(dbgenerated("now()")) @db.Timestamptz(6) @map("created_at")
   updatedAt      DateTime @default(dbgenerated("now()")) @db.Timestamptz(6) @map("updated_at")
 

@@ -53,6 +53,13 @@ type SiteSettings = {
   header_code?: string | null
   footer_code?: string | null
   allow_indexing?: boolean | null
+  seo_title_template?: string | null
+  seo_default_title?: string | null
+  seo_default_description?: string | null
+  seo_default_keywords?: string | null
+  seo_default_og_image?: string | null
+  seo_default_canonical_base?: string | null
+  static_seo?: string | null
   nav_items?: string | null
   home_sections?: string | null
 }
@@ -80,6 +87,21 @@ type WhyChooseItem = {
   icon: "check" | "award" | "book" | "star" | "shield" | "bolt" | "heart" | "users" | "globe" | "sparkles"
 }
 
+type StaticSeoEntry = {
+  title: string
+  description: string
+  keywords: string
+  ogImage: string
+  canonical: string
+  noIndex: boolean
+  noFollow: boolean
+}
+
+type StaticSeoSettings = Record<
+  "home" | "about" | "services" | "training" | "contact" | "blog",
+  StaticSeoEntry
+>
+
 type PageSummary = {
   id: string
   title: string
@@ -99,6 +121,54 @@ type HomeSection = {
   enabled: boolean
 }
 
+function parseStaticSeo(raw: string | null | undefined): StaticSeoSettings {
+  const blankEntry = {
+    title: "",
+    description: "",
+    keywords: "",
+    ogImage: "",
+    canonical: "",
+    noIndex: false,
+    noFollow: false,
+  }
+  try {
+    const parsed = raw ? JSON.parse(raw) : {}
+    if (!parsed || typeof parsed !== "object") return {
+      home: blankEntry,
+      about: blankEntry,
+      services: blankEntry,
+      training: blankEntry,
+      contact: blankEntry,
+      blog: blankEntry,
+    }
+    const toEntry = (entry: any) => ({
+      title: typeof entry?.title === "string" ? entry.title : "",
+      description: typeof entry?.description === "string" ? entry.description : "",
+      keywords: typeof entry?.keywords === "string" ? entry.keywords : "",
+      ogImage: typeof entry?.ogImage === "string" ? entry.ogImage : "",
+      canonical: typeof entry?.canonical === "string" ? entry.canonical : "",
+      noIndex: Boolean(entry?.noIndex),
+      noFollow: Boolean(entry?.noFollow),
+    })
+    return {
+      home: toEntry(parsed.home ?? blankEntry),
+      about: toEntry(parsed.about ?? blankEntry),
+      services: toEntry(parsed.services ?? blankEntry),
+      training: toEntry(parsed.training ?? blankEntry),
+      contact: toEntry(parsed.contact ?? blankEntry),
+      blog: toEntry(parsed.blog ?? blankEntry),
+    }
+  } catch {
+    return {
+      home: blankEntry,
+      about: blankEntry,
+      services: blankEntry,
+      training: blankEntry,
+      contact: blankEntry,
+      blog: blankEntry,
+    }
+  }
+}
 function safeParseSlides(raw: string | null | undefined): HeroSlide[] {
   if (!raw) return []
   try {
@@ -309,6 +379,7 @@ export function SiteSettingsForm({ initial, pages }: { initial: SiteSettings; pa
   )
   const initialWhyChooseItems = safeParseWhyChooseItems(initial.why_choose_items, defaultWhyChooseItems)
 
+  const initialStaticSeo = parseStaticSeo(initial.static_seo)
   const [formData, setFormData] = useState({
     siteTitle: initial.site_title || "",
     logoUrl: initial.logo_url || "",
@@ -354,6 +425,15 @@ export function SiteSettingsForm({ initial, pages }: { initial: SiteSettings; pa
     headerCode: initial.header_code || "",
     footerCode: initial.footer_code || "",
     allowIndexing: initial.allow_indexing ?? true,
+    seoTitleTemplate: initial.seo_title_template || "{title} - ABSON Solutions",
+    seoDefaultTitle: initial.seo_default_title || "ABSON Solutions",
+    seoDefaultDescription:
+      initial.seo_default_description ||
+      "Professional software solutions for schools, Quran academies, madaris, and vibration analysis training certification from Mobius Institute of Australia",
+    seoDefaultKeywords: initial.seo_default_keywords || "",
+    seoDefaultOgImage: initial.seo_default_og_image || "",
+    seoDefaultCanonicalBase: initial.seo_default_canonical_base || "",
+    staticSeo: initialStaticSeo,
     navItems: initialNavItems,
     footerNavItems: initialFooterNavItems,
     homeSections: initialHomeSections,
@@ -362,7 +442,7 @@ export function SiteSettingsForm({ initial, pages }: { initial: SiteSettings; pa
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState(false)
   const [uploading, setUploading] = useState(false)
-  const [activeTab, setActiveTab] = useState<"general" | "navigation" | "hero" | "contact">("general")
+  const [activeTab, setActiveTab] = useState<"general" | "navigation" | "hero" | "contact" | "seo">("general")
   const [selectedHeaderPage, setSelectedHeaderPage] = useState("")
   const [selectedFooterPage, setSelectedFooterPage] = useState("")
 
@@ -461,6 +541,16 @@ export function SiteSettingsForm({ initial, pages }: { initial: SiteSettings; pa
     })
   }
 
+  const updateStaticSeo = (key: keyof StaticSeoSettings, updates: Partial<StaticSeoEntry>) => {
+    setFormData((prev) => ({
+      ...prev,
+      staticSeo: {
+        ...prev.staticSeo,
+        [key]: { ...prev.staticSeo[key], ...updates },
+      },
+    }))
+  }
+
   const moveWhyChooseItem = (index: number, direction: -1 | 1) => {
     setFormData((prev) => ({
       ...prev,
@@ -542,6 +632,13 @@ export function SiteSettingsForm({ initial, pages }: { initial: SiteSettings; pa
           headerCode: formData.headerCode,
           footerCode: formData.footerCode,
           allowIndexing: formData.allowIndexing,
+          seoTitleTemplate: formData.seoTitleTemplate,
+          seoDefaultTitle: formData.seoDefaultTitle,
+          seoDefaultDescription: formData.seoDefaultDescription,
+          seoDefaultKeywords: formData.seoDefaultKeywords,
+          seoDefaultOgImage: formData.seoDefaultOgImage,
+          seoDefaultCanonicalBase: formData.seoDefaultCanonicalBase,
+          staticSeo: formData.staticSeo,
           heroSlides: formData.heroSlides,
           businessHoursSchedule: formData.businessHoursSchedule,
           businessHoursMode: formData.businessHoursMode,
@@ -595,6 +692,7 @@ export function SiteSettingsForm({ initial, pages }: { initial: SiteSettings; pa
           <TabsTrigger value="navigation">Navigation & Layout</TabsTrigger>
           <TabsTrigger value="hero">Hero Slides</TabsTrigger>
           <TabsTrigger value="contact">Contact</TabsTrigger>
+          <TabsTrigger value="seo">SEO</TabsTrigger>
         </TabsList>
 
         <TabsContent value="general" className="space-y-6">
@@ -769,23 +867,6 @@ export function SiteSettingsForm({ initial, pages }: { initial: SiteSettings; pa
                 id="editorApprovalRequired"
                 checked={formData.editorApprovalRequired}
                 onCheckedChange={(checked) => setFormData({ ...formData, editorApprovalRequired: checked })}
-              />
-            </div>
-          </div>
-
-          <div className="space-y-2">
-            <Label className="font-semibold">Search Engine Indexing</Label>
-            <div className="flex items-center justify-between rounded-md border border-border/60 bg-muted/40 px-3 py-2">
-              <div className="space-y-1">
-                <p className="text-sm font-medium">Allow search engines to index the site</p>
-                <p className="text-xs text-muted-foreground">
-                  Turn off while the site is in development to prevent indexing.
-                </p>
-              </div>
-              <Switch
-                id="allowIndexing"
-                checked={formData.allowIndexing}
-                onCheckedChange={(checked) => setFormData({ ...formData, allowIndexing: checked })}
               />
             </div>
           </div>
@@ -983,6 +1064,183 @@ export function SiteSettingsForm({ initial, pages }: { initial: SiteSettings; pa
                 </div>
               </div>
             )}
+          </div>
+        </TabsContent>
+
+        <TabsContent value="seo" className="space-y-6">
+          <div className="space-y-2">
+            <Label className="font-semibold">Search Engine Indexing</Label>
+            <div className="flex items-center justify-between rounded-md border border-border/60 bg-muted/40 px-3 py-2">
+              <div className="space-y-1">
+                <p className="text-sm font-medium">Allow search engines to index the site</p>
+                <p className="text-xs text-muted-foreground">
+                  Turn off while the site is in development to prevent indexing.
+                </p>
+              </div>
+              <Switch
+                id="allowIndexing"
+                checked={formData.allowIndexing}
+                onCheckedChange={(checked) => setFormData({ ...formData, allowIndexing: checked })}
+              />
+            </div>
+          </div>
+
+          <div className="grid gap-4 md:grid-cols-2">
+            <div className="space-y-2">
+              <Label htmlFor="seoDefaultTitle">Default Title</Label>
+              <Input
+                id="seoDefaultTitle"
+                value={formData.seoDefaultTitle}
+                onChange={(e) => setFormData({ ...formData, seoDefaultTitle: e.target.value })}
+                placeholder="ABSON Solutions"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="seoTitleTemplate">Title Template</Label>
+              <Input
+                id="seoTitleTemplate"
+                value={formData.seoTitleTemplate}
+                onChange={(e) => setFormData({ ...formData, seoTitleTemplate: e.target.value })}
+                placeholder="{title} - ABSON Solutions"
+              />
+              <p className="text-xs text-muted-foreground">Use {`{title}`} to insert the page title.</p>
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="seoDefaultDescription">Default Description</Label>
+            <Textarea
+              id="seoDefaultDescription"
+              value={formData.seoDefaultDescription}
+              onChange={(e) => setFormData({ ...formData, seoDefaultDescription: e.target.value })}
+              rows={3}
+            />
+          </div>
+
+          <div className="grid gap-4 md:grid-cols-2">
+            <div className="space-y-2">
+              <Label htmlFor="seoDefaultKeywords">Default Keywords</Label>
+              <Textarea
+                id="seoDefaultKeywords"
+                value={formData.seoDefaultKeywords}
+                onChange={(e) => setFormData({ ...formData, seoDefaultKeywords: e.target.value })}
+                placeholder="software solutions, training, education"
+                rows={2}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="seoDefaultOgImage">Default OG Image URL</Label>
+              <Input
+                id="seoDefaultOgImage"
+                value={formData.seoDefaultOgImage}
+                onChange={(e) => setFormData({ ...formData, seoDefaultOgImage: e.target.value })}
+                placeholder="https://example.com/og-image.jpg"
+              />
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="seoDefaultCanonicalBase">Canonical Base URL</Label>
+            <Input
+              id="seoDefaultCanonicalBase"
+              value={formData.seoDefaultCanonicalBase}
+              onChange={(e) => setFormData({ ...formData, seoDefaultCanonicalBase: e.target.value })}
+              placeholder="https://absons.net"
+            />
+          </div>
+
+          <div className="space-y-3">
+            <div>
+              <Label className="font-semibold">Static Page Overrides</Label>
+              <p className="text-xs text-muted-foreground">
+                Optional overrides for static routes. Leave blank to use global defaults.
+              </p>
+            </div>
+            <Accordion type="multiple" className="space-y-3">
+              {([
+                { key: "home", label: "Home" },
+                { key: "about", label: "About" },
+                { key: "services", label: "Services" },
+                { key: "training", label: "Training" },
+                { key: "contact", label: "Contact" },
+                { key: "blog", label: "Blog List" },
+              ] as const).map(({ key, label }) => (
+                <AccordionItem key={key} value={`seo-${key}`} className="border border-border rounded-lg">
+                  <AccordionTrigger className="px-4 py-3 text-sm font-semibold">{label}</AccordionTrigger>
+                  <AccordionContent className="px-4 pb-4">
+                    <div className="space-y-4">
+                      <div className="grid gap-4 md:grid-cols-2">
+                        <div className="space-y-2">
+                          <Label htmlFor={`seo-${key}-title`}>SEO Title</Label>
+                          <Input
+                            id={`seo-${key}-title`}
+                            value={formData.staticSeo[key].title}
+                            onChange={(e) => updateStaticSeo(key, { title: e.target.value })}
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor={`seo-${key}-canonical`}>Canonical URL</Label>
+                          <Input
+                            id={`seo-${key}-canonical`}
+                            value={formData.staticSeo[key].canonical}
+                            onChange={(e) => updateStaticSeo(key, { canonical: e.target.value })}
+                            placeholder="https://example.com/page"
+                          />
+                        </div>
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor={`seo-${key}-description`}>SEO Description</Label>
+                        <Textarea
+                          id={`seo-${key}-description`}
+                          value={formData.staticSeo[key].description}
+                          onChange={(e) => updateStaticSeo(key, { description: e.target.value })}
+                          rows={3}
+                        />
+                      </div>
+                      <div className="grid gap-4 md:grid-cols-2">
+                        <div className="space-y-2">
+                          <Label htmlFor={`seo-${key}-keywords`}>SEO Keywords</Label>
+                          <Textarea
+                            id={`seo-${key}-keywords`}
+                            value={formData.staticSeo[key].keywords}
+                            onChange={(e) => updateStaticSeo(key, { keywords: e.target.value })}
+                            rows={2}
+                            placeholder="keyword1, keyword2"
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor={`seo-${key}-og`}>SEO OG Image URL</Label>
+                          <Input
+                            id={`seo-${key}-og`}
+                            value={formData.staticSeo[key].ogImage}
+                            onChange={(e) => updateStaticSeo(key, { ogImage: e.target.value })}
+                            placeholder="https://example.com/og-image.jpg"
+                          />
+                        </div>
+                      </div>
+                      <div className="flex flex-wrap gap-4">
+                        <div className="flex items-center space-x-2">
+                          <Switch
+                            id={`seo-${key}-noindex`}
+                            checked={formData.staticSeo[key].noIndex}
+                            onCheckedChange={(checked) => updateStaticSeo(key, { noIndex: checked })}
+                          />
+                          <Label htmlFor={`seo-${key}-noindex`}>No index</Label>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <Switch
+                            id={`seo-${key}-nofollow`}
+                            checked={formData.staticSeo[key].noFollow}
+                            onCheckedChange={(checked) => updateStaticSeo(key, { noFollow: checked })}
+                          />
+                          <Label htmlFor={`seo-${key}-nofollow`}>No follow</Label>
+                        </div>
+                      </div>
+                    </div>
+                  </AccordionContent>
+                </AccordionItem>
+              ))}
+            </Accordion>
           </div>
         </TabsContent>
 

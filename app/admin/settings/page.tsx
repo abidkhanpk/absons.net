@@ -93,6 +93,20 @@ export default async function SettingsPage() {
               header_code: settings?.headerCode ?? resolved.headerCode ?? "",
               footer_code: settings?.footerCode ?? resolved.footerCode ?? "",
               allow_indexing: settings?.allowIndexing ?? resolved.allowIndexing ?? true,
+              seo_title_template: settings?.seoTitleTemplate ?? resolved.seoTitleTemplate ?? "{title} - ABSON Solutions",
+              seo_default_title: settings?.seoDefaultTitle ?? resolved.seoDefaultTitle ?? "ABSON Solutions",
+              seo_default_description:
+                settings?.seoDefaultDescription ??
+                resolved.seoDefaultDescription ??
+                "Professional software solutions for schools, Quran academies, madaris, and vibration analysis training certification from Mobius Institute of Australia",
+              seo_default_keywords: settings?.seoDefaultKeywords ?? resolved.seoDefaultKeywords ?? "",
+              seo_default_og_image: settings?.seoDefaultOgImage ?? resolved.seoDefaultOgImage ?? "",
+              seo_default_canonical_base: settings?.seoDefaultCanonicalBase ?? resolved.seoDefaultCanonicalBase ?? "",
+              static_seo: settings?.staticSeo
+                ? JSON.stringify(settings.staticSeo)
+                : resolved.staticSeo
+                  ? JSON.stringify(resolved.staticSeo)
+                  : undefined,
               nav_items: JSON.stringify({
                 main: resolved.navItems,
                 footer: resolved.footerNavItems,

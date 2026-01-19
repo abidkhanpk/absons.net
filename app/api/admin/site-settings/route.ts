@@ -50,6 +50,13 @@ export async function PUT(request: Request) {
       headerCode,
       footerCode,
       allowIndexing,
+      seoTitleTemplate,
+      seoDefaultTitle,
+      seoDefaultDescription,
+      seoDefaultKeywords,
+      seoDefaultOgImage,
+      seoDefaultCanonicalBase,
+      staticSeo,
     } = body
 
     const session = await getSession()
@@ -114,6 +121,13 @@ export async function PUT(request: Request) {
         headerCode,
         footerCode,
         allowIndexing,
+        seoTitleTemplate,
+        seoDefaultTitle,
+        seoDefaultDescription,
+        seoDefaultKeywords,
+        seoDefaultOgImage,
+        seoDefaultCanonicalBase,
+        staticSeo: staticSeo ? staticSeo : undefined,
       },
     })
 

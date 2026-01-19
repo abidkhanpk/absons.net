@@ -6,6 +6,7 @@ import Link from "next/link"
 import { GraduationCap, BookOpen, School, Award, Activity, Package, ArrowRight, CheckCircle2 } from "lucide-react"
 import { prisma } from "@/lib/prisma"
 import { getSiteSettings } from "@/lib/site-settings"
+import { buildSeoMetadata } from "@/lib/seo"
 
 const iconMap = {
   GraduationCap,
@@ -16,10 +17,19 @@ const iconMap = {
   Package,
 }
 
-export const metadata = {
-  title: "Services - ABSON Solutions",
-  description:
-    "Explore our comprehensive software solutions and services for educational institutions and organizations.",
+export async function generateMetadata() {
+  const settings = await getSiteSettings()
+  const override = settings.staticSeo.services
+  return buildSeoMetadata(settings, {
+    title: override.title || "Services",
+    description:
+      override.description || "Explore our comprehensive software solutions and services for educational institutions and organizations.",
+    keywords: override.keywords || undefined,
+    ogImage: override.ogImage || undefined,
+    canonical: override.canonical || undefined,
+    noIndex: override.noIndex,
+    noFollow: override.noFollow,
+  })
 }
 
 export default async function ServicesPage() {

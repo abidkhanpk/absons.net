@@ -10,6 +10,7 @@ import { Label } from "@/components/ui/label"
 import { Card, CardContent } from "@/components/ui/card"
 import { Switch } from "@/components/ui/switch"
 import { RichTextEditor } from "@/components/admin/rich-text-editor"
+import { Textarea } from "@/components/ui/textarea"
 
 type PageRecord = {
   id: string
@@ -18,6 +19,13 @@ type PageRecord = {
   content: string
   published: boolean
   approved?: boolean
+  seoTitle?: string | null
+  seoDescription?: string | null
+  seoKeywords?: string | null
+  seoOgImage?: string | null
+  seoCanonicalUrl?: string | null
+  seoNoIndex?: boolean
+  seoNoFollow?: boolean
 }
 
 export function PageForm({
@@ -37,6 +45,13 @@ export function PageForm({
     content: page?.content || "",
     published: page?.published || false,
     approved: page?.approved ?? true,
+    seoTitle: page?.seoTitle || "",
+    seoDescription: page?.seoDescription || "",
+    seoKeywords: page?.seoKeywords || "",
+    seoOgImage: page?.seoOgImage || "",
+    seoCanonicalUrl: page?.seoCanonicalUrl || "",
+    seoNoIndex: page?.seoNoIndex ?? false,
+    seoNoFollow: page?.seoNoFollow ?? false,
   })
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -111,6 +126,79 @@ export function PageForm({
               Content <span className="text-destructive">*</span>
             </Label>
             <RichTextEditor content={formData.content} onChange={(content) => setFormData({ ...formData, content })} />
+          </div>
+
+          <div className="space-y-4">
+            <div>
+              <Label className="font-semibold">SEO</Label>
+              <p className="text-xs text-muted-foreground">Optional overrides for search engines and social sharing.</p>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="seoTitle">SEO Title</Label>
+              <Input
+                id="seoTitle"
+                value={formData.seoTitle}
+                onChange={(e) => setFormData({ ...formData, seoTitle: e.target.value })}
+                placeholder="Custom title for search engines"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="seoDescription">SEO Description</Label>
+              <Textarea
+                id="seoDescription"
+                value={formData.seoDescription}
+                onChange={(e) => setFormData({ ...formData, seoDescription: e.target.value })}
+                rows={3}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="seoKeywords">SEO Keywords</Label>
+              <Textarea
+                id="seoKeywords"
+                value={formData.seoKeywords}
+                onChange={(e) => setFormData({ ...formData, seoKeywords: e.target.value })}
+                rows={2}
+                placeholder="keyword1, keyword2"
+              />
+            </div>
+            <div className="grid gap-4 md:grid-cols-2">
+              <div className="space-y-2">
+                <Label htmlFor="seoOgImage">SEO OG Image URL</Label>
+                <Input
+                  id="seoOgImage"
+                  value={formData.seoOgImage}
+                  onChange={(e) => setFormData({ ...formData, seoOgImage: e.target.value })}
+                  placeholder="https://example.com/og-image.jpg"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="seoCanonicalUrl">Canonical URL</Label>
+                <Input
+                  id="seoCanonicalUrl"
+                  value={formData.seoCanonicalUrl}
+                  onChange={(e) => setFormData({ ...formData, seoCanonicalUrl: e.target.value })}
+                  placeholder="https://example.com/page"
+                />
+              </div>
+            </div>
+            <div className="flex flex-wrap gap-4">
+              <div className="flex items-center space-x-2">
+                <Switch
+                  id="seoNoIndex"
+                  checked={formData.seoNoIndex}
+                  onCheckedChange={(checked) => setFormData({ ...formData, seoNoIndex: checked })}
+                />
+                <Label htmlFor="seoNoIndex">No index</Label>
+              </div>
+              <div className="flex items-center space-x-2">
+                <Switch
+                  id="seoNoFollow"
+                  checked={formData.seoNoFollow}
+                  onCheckedChange={(checked) => setFormData({ ...formData, seoNoFollow: checked })}
+                />
+                <Label htmlFor="seoNoFollow">No follow</Label>
+              </div>
+            </div>
           </div>
 
           <div className="flex items-center space-x-2">

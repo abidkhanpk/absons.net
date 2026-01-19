@@ -7,10 +7,21 @@ import Link from "next/link"
 import { Award, Clock, TrendingUp, CheckCircle2 } from "lucide-react"
 import { prisma } from "@/lib/prisma"
 import { getSiteSettings } from "@/lib/site-settings"
+import { buildSeoMetadata } from "@/lib/seo"
 
-export const metadata = {
-  title: "Training Programs - ABSON Solutions",
-  description: "Professional vibration analysis training and certification from Mobius Institute of Australia",
+export async function generateMetadata() {
+  const settings = await getSiteSettings()
+  const override = settings.staticSeo.training
+  return buildSeoMetadata(settings, {
+    title: override.title || "Training Programs",
+    description:
+      override.description || "Professional vibration analysis training and certification from Mobius Institute of Australia",
+    keywords: override.keywords || undefined,
+    ogImage: override.ogImage || undefined,
+    canonical: override.canonical || undefined,
+    noIndex: override.noIndex,
+    noFollow: override.noFollow,
+  })
 }
 
 export default async function TrainingPage() {

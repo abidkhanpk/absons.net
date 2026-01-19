@@ -6,10 +6,20 @@ import Link from "next/link"
 import { Calendar, Clock, ArrowRight } from "lucide-react"
 import { prisma } from "@/lib/prisma"
 import { getSiteSettings } from "@/lib/site-settings"
+import { buildSeoMetadata } from "@/lib/seo"
 
-export const metadata = {
-  title: "Blog - ABSON Solutions",
-  description: "Latest news, insights, and updates from ABSON Solutions",
+export async function generateMetadata() {
+  const settings = await getSiteSettings()
+  const override = settings.staticSeo.blog
+  return buildSeoMetadata(settings, {
+    title: override.title || "Blog",
+    description: override.description || "Latest news, insights, and updates from ABSON Solutions",
+    keywords: override.keywords || undefined,
+    ogImage: override.ogImage || undefined,
+    canonical: override.canonical || undefined,
+    noIndex: override.noIndex,
+    noFollow: override.noFollow,
+  })
 }
 
 export default async function BlogPage() {

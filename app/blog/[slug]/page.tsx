@@ -6,6 +6,7 @@ import { Calendar, ArrowLeft } from "lucide-react"
 import { notFound } from "next/navigation"
 import { prisma } from "@/lib/prisma"
 import { getSiteSettings } from "@/lib/site-settings"
+import { buildSeoMetadata } from "@/lib/seo"
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params
@@ -16,15 +17,21 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   })
 
   if (!post) {
-    return {
-      title: "Post Not Found - ABSON Solutions",
-    }
+    return buildSeoMetadata(settings, { title: "Post Not Found", noIndex: true, noFollow: true })
   }
 
-  return {
-    title: `${post.title} - ABSON Solutions Blog`,
-    description: post.excerpt,
-  }
+  const canonicalBase = settings.seoDefaultCanonicalBase?.replace(/\/$/, "")
+  const canonical = post.seoCanonicalUrl || (canonicalBase ? `${canonicalBase}/blog/${post.slug}` : undefined)
+
+  return buildSeoMetadata(settings, {
+    title: post.seoTitle || post.title,
+    description: post.seoDescription || post.excerpt,
+    keywords: post.seoKeywords || undefined,
+    ogImage: post.seoOgImage || post.featuredImage || undefined,
+    canonical,
+    noIndex: post.seoNoIndex,
+    noFollow: post.seoNoFollow,
+  })
 }
 
 export default async function BlogPostPage({ params }: { params: Promise<{ slug: string }> }) {

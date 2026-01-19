@@ -3,10 +3,21 @@ import { Footer } from "@/components/footer"
 import { Card, CardContent } from "@/components/ui/card"
 import { Target, Eye, Heart } from "lucide-react"
 import { getSiteSettings } from "@/lib/site-settings"
+import { buildSeoMetadata } from "@/lib/seo"
 
-export const metadata = {
-  title: "About Us - ABSON Solutions",
-  description: "Learn about ABSON Solutions and our mission to empower organizations with innovative software.",
+export async function generateMetadata() {
+  const settings = await getSiteSettings()
+  const override = settings.staticSeo.about
+  return buildSeoMetadata(settings, {
+    title: override.title || "About Us",
+    description:
+      override.description || "Learn about ABSON Solutions and our mission to empower organizations with innovative software.",
+    keywords: override.keywords || undefined,
+    ogImage: override.ogImage || undefined,
+    canonical: override.canonical || undefined,
+    noIndex: override.noIndex,
+    noFollow: override.noFollow,
+  })
 }
 
 export default async function AboutPage() {

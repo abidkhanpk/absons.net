@@ -3,6 +3,7 @@ import { Geist, Geist_Mono } from "next/font/google"
 import { Analytics } from "@vercel/analytics/next"
 import { ServiceWorkerReset } from "@/components/service-worker-reset"
 import { getSiteSettings } from "@/lib/site-settings"
+import { buildSeoMetadata } from "@/lib/seo"
 import "./globals.css"
 
 const DEFAULT_FAVICON = "/uploads/default-icon-light-32x32.png"
@@ -52,12 +53,10 @@ export async function generateMetadata() {
         },
       ]
 
+  const baseMetadata = buildSeoMetadata(settings, {})
   return {
-    title: "ABSON Solutions - Software & Training Services",
-    description:
-      "Professional software solutions for schools, Quran academies, madaris, and vibration analysis training certification from Mobius Institute of Australia",
+    ...baseMetadata,
     generator: "v0.app",
-    robots: settings.allowIndexing ? undefined : { index: false, follow: false },
     icons: {
       icon: iconList,
       shortcut: iconEntry,

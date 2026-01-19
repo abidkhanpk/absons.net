@@ -10,10 +10,25 @@ import { prisma } from "@/lib/prisma"
 import { getSiteSettings } from "@/lib/site-settings"
 import { HeroSlider } from "@/components/hero-slider"
 import { WhyChooseSectionClient } from "@/components/home/why-choose-section-client"
+import { buildSeoMetadata } from "@/lib/seo"
 
 // Ensure the homepage is served dynamically so it can gracefully handle missing data in production
 export const dynamic = "force-dynamic"
 export const revalidate = 0
+
+export async function generateMetadata() {
+  const settings = await getSiteSettings()
+  const override = settings.staticSeo.home
+  return buildSeoMetadata(settings, {
+    title: override.title || settings.seoDefaultTitle || settings.siteTitle,
+    description: override.description || settings.seoDefaultDescription || undefined,
+    keywords: override.keywords || undefined,
+    ogImage: override.ogImage || undefined,
+    canonical: override.canonical || undefined,
+    noIndex: override.noIndex,
+    noFollow: override.noFollow,
+  })
+}
 
 const iconMap = {
   GraduationCap,

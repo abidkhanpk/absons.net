@@ -23,7 +23,20 @@ export async function POST(request: Request) {
 
   try {
     const body = await request.json()
-    const { title, slug, content, published, approved } = body
+    const {
+      title,
+      slug,
+      content,
+      published,
+      approved,
+      seoTitle,
+      seoDescription,
+      seoKeywords,
+      seoOgImage,
+      seoCanonicalUrl,
+      seoNoIndex,
+      seoNoFollow,
+    } = body
     if (!title || !slug || !content) {
       return NextResponse.json({ error: "Missing required fields" }, { status: 400 })
     }
@@ -39,6 +52,13 @@ export async function POST(request: Request) {
           title,
           slug,
           content,
+          seoTitle,
+          seoDescription,
+          seoKeywords,
+          seoOgImage,
+          seoCanonicalUrl,
+          seoNoIndex: Boolean(seoNoIndex),
+          seoNoFollow: Boolean(seoNoFollow),
           published: Boolean(published),
           publishedAt: published ? new Date() : null,
           approved: resolvedApproved,
@@ -61,7 +81,21 @@ export async function PUT(request: Request) {
 
   try {
     const body = await request.json()
-    const { id, title, slug, content, published, approved } = body
+    const {
+      id,
+      title,
+      slug,
+      content,
+      published,
+      approved,
+      seoTitle,
+      seoDescription,
+      seoKeywords,
+      seoOgImage,
+      seoCanonicalUrl,
+      seoNoIndex,
+      seoNoFollow,
+    } = body
     if (!id) return NextResponse.json({ error: "Page id is required" }, { status: 400 })
 
     const approvalRequired = await isEditorApprovalRequired()
@@ -96,6 +130,13 @@ export async function PUT(request: Request) {
           title,
           slug,
           content,
+          seoTitle,
+          seoDescription,
+          seoKeywords,
+          seoOgImage,
+          seoCanonicalUrl,
+          seoNoIndex: Boolean(seoNoIndex),
+          seoNoFollow: Boolean(seoNoFollow),
           published: Boolean(published),
           publishedAt: resolvedPublishedAt,
           ...approvalUpdate,
