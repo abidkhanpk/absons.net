@@ -69,6 +69,7 @@ async function main() {
       analyticsScript: "",
       headerCode: "",
       footerCode: "",
+      allowIndexing: true,
       whyChooseItems: [
         { title: "Proven Expertise", description: "Years of experience delivering quality solutions", icon: "check" },
         { title: "Certified Training", description: "Mobius Institute certified vibration analysis programs", icon: "award" },
@@ -198,6 +199,7 @@ async function main() {
         analyticsScript: existingSettings?.analyticsScript ?? "",
         headerCode: existingSettings?.headerCode ?? "",
         footerCode: existingSettings?.footerCode ?? "",
+        allowIndexing: existingSettings?.allowIndexing ?? true,
         whyChooseItems: [
           { title: "Proven Expertise", description: "Years of experience delivering quality solutions", icon: "check" },
           { title: "Experienced Trainer", description: "Mobius Institute certified vibration analyst to get you prepared for your test.", icon: "book" },

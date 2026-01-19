@@ -49,6 +49,7 @@ export async function PUT(request: Request) {
       analyticsScript,
       headerCode,
       footerCode,
+      allowIndexing,
     } = body
 
     const session = await getSession()
@@ -112,6 +113,7 @@ export async function PUT(request: Request) {
         analyticsScript,
         headerCode,
         footerCode,
+        allowIndexing,
       },
     })
 

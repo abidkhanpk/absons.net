@@ -92,6 +92,7 @@ export default async function SettingsPage() {
               analytics_script: settings?.analyticsScript ?? resolved.analyticsScript ?? "",
               header_code: settings?.headerCode ?? resolved.headerCode ?? "",
               footer_code: settings?.footerCode ?? resolved.footerCode ?? "",
+              allow_indexing: settings?.allowIndexing ?? resolved.allowIndexing ?? true,
               nav_items: JSON.stringify({
                 main: resolved.navItems,
                 footer: resolved.footerNavItems,

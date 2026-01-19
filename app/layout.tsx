@@ -57,6 +57,7 @@ export async function generateMetadata() {
     description:
       "Professional software solutions for schools, Quran academies, madaris, and vibration analysis training certification from Mobius Institute of Australia",
     generator: "v0.app",
+    robots: settings.allowIndexing ? undefined : { index: false, follow: false },
     icons: {
       icon: iconList,
       shortcut: iconEntry,

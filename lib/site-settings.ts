@@ -41,6 +41,7 @@ export type SiteSettings = {
   analyticsScript: string
   headerCode: string
   footerCode: string
+  allowIndexing: boolean
   contactEmail: string | null
   contactPhone: string | null
   contactAddress: string | null
@@ -185,6 +186,7 @@ const defaultSettings: SiteSettings = {
   analyticsScript: "",
   headerCode: "",
   footerCode: "",
+  allowIndexing: true,
   whyChooseItems: [
     { title: "Proven Expertise", description: "Years of experience delivering quality solutions", icon: "check" },
     { title: "Certified Training", description: "Mobius Institute certified vibration analysis programs", icon: "award" },
@@ -469,6 +471,7 @@ export async function getSiteSettings(): Promise<SiteSettings> {
       analyticsScript: settings.analyticsScript ?? defaultSettings.analyticsScript,
       headerCode: settings.headerCode ?? defaultSettings.headerCode,
       footerCode: settings.footerCode ?? defaultSettings.footerCode,
+      allowIndexing: settings.allowIndexing ?? defaultSettings.allowIndexing,
       contactEmail: settings.contactEmail ?? defaultSettings.contactEmail,
       contactPhone: settings.contactPhone ?? defaultSettings.contactPhone,
       contactAddress: settings.contactAddress ?? defaultSettings.contactAddress,

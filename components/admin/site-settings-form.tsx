@@ -52,6 +52,7 @@ type SiteSettings = {
   analytics_script?: string | null
   header_code?: string | null
   footer_code?: string | null
+  allow_indexing?: boolean | null
   nav_items?: string | null
   home_sections?: string | null
 }
@@ -352,6 +353,7 @@ export function SiteSettingsForm({ initial, pages }: { initial: SiteSettings; pa
     analyticsScript: initial.analytics_script || "",
     headerCode: initial.header_code || "",
     footerCode: initial.footer_code || "",
+    allowIndexing: initial.allow_indexing ?? true,
     navItems: initialNavItems,
     footerNavItems: initialFooterNavItems,
     homeSections: initialHomeSections,
@@ -539,6 +541,7 @@ export function SiteSettingsForm({ initial, pages }: { initial: SiteSettings; pa
           analyticsScript: formData.analyticsScript,
           headerCode: formData.headerCode,
           footerCode: formData.footerCode,
+          allowIndexing: formData.allowIndexing,
           heroSlides: formData.heroSlides,
           businessHoursSchedule: formData.businessHoursSchedule,
           businessHoursMode: formData.businessHoursMode,
@@ -766,6 +769,23 @@ export function SiteSettingsForm({ initial, pages }: { initial: SiteSettings; pa
                 id="editorApprovalRequired"
                 checked={formData.editorApprovalRequired}
                 onCheckedChange={(checked) => setFormData({ ...formData, editorApprovalRequired: checked })}
+              />
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <Label className="font-semibold">Search Engine Indexing</Label>
+            <div className="flex items-center justify-between rounded-md border border-border/60 bg-muted/40 px-3 py-2">
+              <div className="space-y-1">
+                <p className="text-sm font-medium">Allow search engines to index the site</p>
+                <p className="text-xs text-muted-foreground">
+                  Turn off while the site is in development to prevent indexing.
+                </p>
+              </div>
+              <Switch
+                id="allowIndexing"
+                checked={formData.allowIndexing}
+                onCheckedChange={(checked) => setFormData({ ...formData, allowIndexing: checked })}
               />
             </div>
           </div>
