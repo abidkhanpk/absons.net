@@ -129,6 +129,17 @@
   --why-choose-tile-gap: 1.5rem;
 }
 
+.why-choose-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 1.5rem;
+  justify-items: center;
+}
+
+.why-choose-grid-tile {
+  max-width: 260px;
+}
+
 .why-choose-scroll {
   overflow: hidden;
 }

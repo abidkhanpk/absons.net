@@ -9,7 +9,7 @@ import { GraduationCap, BookOpen, School, Award, Activity, Package, ArrowRight, 
 import { prisma } from "@/lib/prisma"
 import { getSiteSettings } from "@/lib/site-settings"
 import { HeroSlider } from "@/components/hero-slider"
-import { WhyChooseSection } from "@/components/home/why-choose-section"
+import { WhyChooseSectionClient } from "@/components/home/why-choose-section-client"
 
 // Ensure the homepage is served dynamically so it can gracefully handle missing data in production
 export const dynamic = "force-dynamic"
@@ -172,7 +172,7 @@ export default async function HomePage() {
         </section>
       ) : null,
     "why-choose": (
-      <WhyChooseSection
+      <WhyChooseSectionClient
         title={siteSettings.whyChooseTitle || "Why Choose ABSON Solutions"}
         subtitle={siteSettings.whyChooseSubtitle || "Trusted by educational institutions and organizations across Pakistan"}
         items={siteSettings.whyChooseItems}

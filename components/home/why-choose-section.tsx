@@ -79,11 +79,11 @@ export function WhyChooseSection({
   const layoutToRender: "grid" | "scroll" = shouldScroll ? "scroll" : "grid"
 
   const renderGrid = () => (
-    <div className="flex flex-wrap justify-center gap-6">
+    <div className="why-choose-grid">
       {items.map((item, index) => {
         const Icon = iconMap[item.icon] || CheckCircle2
         return (
-          <div key={`${item.title}-${index}`} className="why-choose-tile text-center space-y-3">
+          <div key={`${item.title}-${index}`} className="why-choose-grid-tile text-center space-y-3">
             <div className="flex justify-center">
               <div className="flex h-14 w-14 items-center justify-center rounded-full bg-primary/10 text-primary">
                 <Icon className="h-7 w-7" />
