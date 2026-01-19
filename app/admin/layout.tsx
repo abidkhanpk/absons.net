@@ -18,9 +18,20 @@ export default async function AdminLayout({ children }: { children: React.ReactN
   )
   if (!adminUser) redirect("/auth/login")
 
+  const approvalCount =
+    adminUser.role === "admin" || adminUser.role === "super_admin"
+      ? await withRls(session.userId, async (db) => {
+          const [posts, pages] = await Promise.all([
+            db.blogPost.count({ where: { published: true, approved: false } }),
+            db.page.count({ where: { published: true, approved: false } }),
+          ])
+          return posts + pages
+        })
+      : 0
+
   return (
     <div className="flex min-h-screen">
-      <AdminSidebar user={{ id: adminUser.id, email: adminUser.email, role: adminUser.role }} />
+      <AdminSidebar user={{ id: adminUser.id, email: adminUser.email, role: adminUser.role }} pendingApprovals={approvalCount} />
       <main className="flex-1 bg-muted/30">{children}</main>
     </div>
   )

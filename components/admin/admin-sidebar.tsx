@@ -18,6 +18,7 @@ import {
   Users,
   UserCircle,
   Settings,
+  BadgeCheck,
 } from "lucide-react"
 import { useState } from "react"
 
@@ -30,11 +31,18 @@ const navItems = [
   { href: "/admin/testimonials", label: "Testimonials", icon: MessageSquare, roles: ["admin", "super_admin"] },
   { href: "/admin/why-choose", label: "Why Choose Us", icon: Star, roles: ["super_admin"] },
   { href: "/admin/inquiries", label: "Inquiries", icon: Mail, roles: ["admin", "super_admin"] },
+  { href: "/admin/approvals", label: "Approvals", icon: BadgeCheck, roles: ["admin", "super_admin"] },
   { href: "/admin/settings", label: "Settings", icon: Settings, roles: ["super_admin"] },
   { href: "/admin/users", label: "Users", icon: Users, roles: ["admin", "super_admin"] },
 ]
 
-export function AdminSidebar({ user }: { user: { id: string; email: string; role: string } }) {
+export function AdminSidebar({
+  user,
+  pendingApprovals = 0,
+}: {
+  user: { id: string; email: string; role: string }
+  pendingApprovals?: number
+}) {
   const pathname = usePathname()
   const router = useRouter()
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
@@ -81,6 +89,7 @@ export function AdminSidebar({ user }: { user: { id: string; email: string; role
               const Icon = item.icon
               const isActive = pathname === item.href
               if (role && !item.roles.includes(role)) return null
+              const showBadge = item.href === "/admin/approvals" && pendingApprovals > 0
               return (
                 <Link
                   key={item.href}
@@ -94,6 +103,11 @@ export function AdminSidebar({ user }: { user: { id: string; email: string; role
                 >
                   <Icon className="h-5 w-5" />
                   <span className="font-medium">{item.label}</span>
+                  {showBadge && (
+                    <span className="ml-auto rounded-full bg-destructive px-2 py-0.5 text-xs font-semibold text-destructive-foreground">
+                      {pendingApprovals}
+                    </span>
+                  )}
                 </Link>
               )
             })}

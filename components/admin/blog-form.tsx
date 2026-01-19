@@ -245,16 +245,6 @@ export function BlogForm({
             />
             <Label htmlFor="published">Publish this post</Label>
           </div>
-          {(currentUserRole === "admin" || currentUserRole === "super_admin") && (
-            <div className="flex items-center space-x-2">
-              <Switch
-                id="approved"
-                checked={formData.approved}
-                onCheckedChange={(checked) => setFormData({ ...formData, approved: checked })}
-              />
-              <Label htmlFor="approved">Approved for publishing</Label>
-            </div>
-          )}
           {currentUserRole === "editor" && editorApprovalRequired && (
             <p className="text-xs text-muted-foreground">
               Editor submissions require admin approval before they appear on the site.
