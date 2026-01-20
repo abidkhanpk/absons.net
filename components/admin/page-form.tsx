@@ -19,6 +19,9 @@ type PageRecord = {
   content: string
   published: boolean
   approved?: boolean
+  rejectedAt?: string | null
+  rejectedReason?: string | null
+  rejectionNotifiedAt?: string | null
   seoTitle?: string | null
   seoDescription?: string | null
   seoKeywords?: string | null
@@ -53,6 +56,10 @@ export function PageForm({
     seoNoIndex: page?.seoNoIndex ?? false,
     seoNoFollow: page?.seoNoFollow ?? false,
   })
+  const showRejectionNotice = Boolean(page?.rejectedAt)
+  const showRejectionReason =
+    showRejectionNotice && (currentUserRole !== "editor" || Boolean(page?.rejectionNotifiedAt))
+  const rejectionReason = showRejectionReason ? page?.rejectedReason : null
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -90,6 +97,15 @@ export function PageForm({
     <form onSubmit={handleSubmit}>
       <Card className="border-border">
         <CardContent className="p-6 space-y-6">
+          {showRejectionNotice && (
+            <div className="rounded-md border border-destructive/40 bg-destructive/10 p-4 text-sm">
+              <p className="font-semibold text-destructive">Rejected</p>
+              <p className="text-muted-foreground">
+                This page was rejected. Update the content to reapply for approval.
+              </p>
+              {rejectionReason && <p className="mt-2">{rejectionReason}</p>}
+            </div>
+          )}
           <div className="space-y-2">
             <Label htmlFor="title">
               Title <span className="text-destructive">*</span>

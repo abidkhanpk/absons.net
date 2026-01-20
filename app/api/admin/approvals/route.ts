@@ -13,26 +13,36 @@ export async function POST(request: Request) {
 
   try {
     const body = await request.json()
-    const { id, type } = body
+    const { id, type, action, reason, notifyAuthor } = body
     if (!id || (type !== "blog" && type !== "page")) {
       return NextResponse.json({ error: "Invalid approval request" }, { status: 400 })
     }
 
     const now = new Date()
+    const resolvedAction = action === "reject" ? "reject" : "approve"
+    const trimmedReason = typeof reason === "string" ? reason.trim() : ""
+    const shouldNotify = notifyAuthor === true
+    const rejectionData =
+      resolvedAction === "reject"
+        ? {
+            approved: false,
+            approvedAt: null,
+            rejectedAt: now,
+            rejectedReason: trimmedReason.length > 0 ? trimmedReason : null,
+            rejectionNotifiedAt: shouldNotify ? now : null,
+          }
+        : {
+            approved: true,
+            approvedAt: now,
+            rejectedAt: null,
+            rejectedReason: null,
+            rejectionNotifiedAt: null,
+          }
+
     if (type === "blog") {
-      await withRls(session.userId, (tx) =>
-        tx.blogPost.update({
-          where: { id },
-          data: { approved: true, approvedAt: now },
-        }),
-      )
+      await withRls(session.userId, (tx) => tx.blogPost.update({ where: { id }, data: rejectionData }))
     } else {
-      await withRls(session.userId, (tx) =>
-        tx.page.update({
-          where: { id },
-          data: { approved: true, approvedAt: now },
-        }),
-      )
+      await withRls(session.userId, (tx) => tx.page.update({ where: { id }, data: rejectionData }))
     }
 
     return NextResponse.json({ success: true })

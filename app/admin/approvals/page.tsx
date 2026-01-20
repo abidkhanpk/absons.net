@@ -25,12 +25,12 @@ export default async function ApprovalsPage() {
   const [pendingPosts, pendingPages] = await withRls(session.userId, (tx) =>
     Promise.all([
       tx.blogPost.findMany({
-        where: { published: true, approved: false },
+        where: { published: true, approved: false, rejectedAt: null },
         select: { id: true, title: true, authorId: true, createdAt: true, publishedAt: true },
         orderBy: { createdAt: "desc" },
       }),
       tx.page.findMany({
-        where: { published: true, approved: false },
+        where: { published: true, approved: false, rejectedAt: null },
         select: { id: true, title: true, authorId: true, createdAt: true, publishedAt: true },
         orderBy: { createdAt: "desc" },
       }),

@@ -120,11 +120,17 @@ export async function PUT(request: Request) {
       ? {
           approved: !approvalRequired,
           approvedAt: !approvalRequired ? new Date() : null,
+          rejectedAt: null,
+          rejectedReason: null,
+          rejectionNotifiedAt: null,
         }
       : typeof approved === "boolean"
         ? {
             approved,
             approvedAt: approved ? new Date() : null,
+            rejectedAt: approved ? null : undefined,
+            rejectedReason: approved ? null : undefined,
+            rejectionNotifiedAt: approved ? null : undefined,
           }
         : {}
     const resolvedPublishedAt = published ? new Date() : null

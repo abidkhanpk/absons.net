@@ -28,8 +28,8 @@ export default async function AdminLayout({ children }: { children: React.ReactN
     adminUser.role === "admin" || adminUser.role === "super_admin"
       ? withRls(session.userId, async (db) => {
           const [posts, pages] = await Promise.all([
-            db.blogPost.count({ where: { published: true, approved: false } }),
-            db.page.count({ where: { published: true, approved: false } }),
+            db.blogPost.count({ where: { published: true, approved: false, rejectedAt: null } }),
+            db.page.count({ where: { published: true, approved: false, rejectedAt: null } }),
           ])
           return posts + pages
         })

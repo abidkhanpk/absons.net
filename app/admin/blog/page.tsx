@@ -52,7 +52,11 @@ export default async function BlogManagementPage() {
                       <Badge variant={post.published ? "default" : "secondary"}>
                         {post.published ? "Published" : "Draft"}
                       </Badge>
-                      {!post.approved && <Badge variant="outline">Pending Approval</Badge>}
+                      {post.rejectedAt ? (
+                        <Badge variant="destructive">Rejected</Badge>
+                      ) : (
+                        !post.approved && <Badge variant="outline">Pending Approval</Badge>
+                      )}
                     </div>
                     <p className="text-muted-foreground line-clamp-2">{post.excerpt}</p>
                     <div className="flex items-center gap-2 text-sm text-muted-foreground">
@@ -70,7 +74,7 @@ export default async function BlogManagementPage() {
                         <Edit className="h-4 w-4" />
                       </Link>
                     </Button>
-                    <DeleteBlogButton postId={post.id} />
+                    {(!post.published || post.approved || post.rejectedAt) && <DeleteBlogButton postId={post.id} />}
                   </div>
                 </div>
               </CardContent>

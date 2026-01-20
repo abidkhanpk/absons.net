@@ -23,6 +23,9 @@ type BlogPost = {
   featured_image?: string
   featuredImage?: string
   publishedAt?: string | null
+  rejectedAt?: string | null
+  rejectedReason?: string | null
+  rejectionNotifiedAt?: string | null
   seoTitle?: string | null
   seoDescription?: string | null
   seoKeywords?: string | null
@@ -59,6 +62,10 @@ export function BlogForm({
     seoNoIndex: post?.seoNoIndex ?? false,
     seoNoFollow: post?.seoNoFollow ?? false,
   })
+  const showRejectionNotice = Boolean(post?.rejectedAt)
+  const showRejectionReason =
+    showRejectionNotice && (currentUserRole !== "editor" || Boolean(post?.rejectionNotifiedAt))
+  const rejectionReason = showRejectionReason ? post?.rejectedReason : null
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -102,6 +109,15 @@ export function BlogForm({
     <form onSubmit={handleSubmit}>
       <Card className="border-border">
         <CardContent className="p-6 space-y-6">
+          {showRejectionNotice && (
+            <div className="rounded-md border border-destructive/40 bg-destructive/10 p-4 text-sm">
+              <p className="font-semibold text-destructive">Rejected</p>
+              <p className="text-muted-foreground">
+                This post was rejected. Update the content to reapply for approval.
+              </p>
+              {rejectionReason && <p className="mt-2">{rejectionReason}</p>}
+            </div>
+          )}
           <div className="space-y-2">
             <Label htmlFor="title">
               Title <span className="text-destructive">*</span>

@@ -47,7 +47,11 @@ export default async function PagesManagementPage() {
                       <Badge variant={page.published ? "default" : "secondary"}>
                         {page.published ? "Published" : "Draft"}
                       </Badge>
-                      {!page.approved && <Badge variant="outline">Pending Approval</Badge>}
+                      {page.rejectedAt ? (
+                        <Badge variant="destructive">Rejected</Badge>
+                      ) : (
+                        !page.approved && <Badge variant="outline">Pending Approval</Badge>
+                      )}
                     </div>
                     <p className="text-sm text-muted-foreground">/{page.slug}</p>
                     <div className="flex items-center gap-2 text-sm text-muted-foreground">
@@ -65,7 +69,7 @@ export default async function PagesManagementPage() {
                         <Edit className="h-4 w-4" />
                       </Link>
                     </Button>
-                    <DeletePageButton pageId={page.id} />
+                    {(!page.published || page.approved || page.rejectedAt) && <DeletePageButton pageId={page.id} />}
                   </div>
                 </div>
               </CardContent>
