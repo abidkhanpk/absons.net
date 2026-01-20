@@ -26,6 +26,7 @@ type BlogPost = {
   rejectedAt?: string | null
   rejectedReason?: string | null
   rejectionNotifiedAt?: string | null
+  resubmissionNote?: string | null
   seoTitle?: string | null
   seoDescription?: string | null
   seoKeywords?: string | null
@@ -61,6 +62,7 @@ export function BlogForm({
     seoCanonicalUrl: post?.seoCanonicalUrl || "",
     seoNoIndex: post?.seoNoIndex ?? false,
     seoNoFollow: post?.seoNoFollow ?? false,
+    resubmissionNote: post?.resubmissionNote || "",
   })
   const showRejectionNotice = Boolean(post?.rejectedAt)
   const showRejectionReason =
@@ -116,6 +118,18 @@ export function BlogForm({
                 This post was rejected. Update the content to reapply for approval.
               </p>
               {rejectionReason && <p className="mt-2">{rejectionReason}</p>}
+            </div>
+          )}
+          {currentUserRole === "editor" && showRejectionNotice && (
+            <div className="space-y-2">
+              <Label htmlFor="resubmissionNote">Note for admin (optional)</Label>
+              <Textarea
+                id="resubmissionNote"
+                value={formData.resubmissionNote}
+                onChange={(e) => setFormData({ ...formData, resubmissionNote: e.target.value })}
+                rows={3}
+                placeholder="Describe what you changed after the rejection."
+              />
             </div>
           )}
           <div className="space-y-2">

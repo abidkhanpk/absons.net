@@ -22,6 +22,7 @@ type PageRecord = {
   rejectedAt?: string | null
   rejectedReason?: string | null
   rejectionNotifiedAt?: string | null
+  resubmissionNote?: string | null
   seoTitle?: string | null
   seoDescription?: string | null
   seoKeywords?: string | null
@@ -55,6 +56,7 @@ export function PageForm({
     seoCanonicalUrl: page?.seoCanonicalUrl || "",
     seoNoIndex: page?.seoNoIndex ?? false,
     seoNoFollow: page?.seoNoFollow ?? false,
+    resubmissionNote: page?.resubmissionNote || "",
   })
   const showRejectionNotice = Boolean(page?.rejectedAt)
   const showRejectionReason =
@@ -104,6 +106,18 @@ export function PageForm({
                 This page was rejected. Update the content to reapply for approval.
               </p>
               {rejectionReason && <p className="mt-2">{rejectionReason}</p>}
+            </div>
+          )}
+          {currentUserRole === "editor" && showRejectionNotice && (
+            <div className="space-y-2">
+              <Label htmlFor="resubmissionNote">Note for admin (optional)</Label>
+              <Textarea
+                id="resubmissionNote"
+                value={formData.resubmissionNote}
+                onChange={(e) => setFormData({ ...formData, resubmissionNote: e.target.value })}
+                rows={3}
+                placeholder="Describe what you changed after the rejection."
+              />
             </div>
           )}
           <div className="space-y-2">

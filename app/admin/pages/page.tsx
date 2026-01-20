@@ -49,6 +49,8 @@ export default async function PagesManagementPage() {
                       </Badge>
                       {page.rejectedAt ? (
                         <Badge variant="destructive">Rejected</Badge>
+                      ) : page.resubmittedAt && !page.approved ? (
+                        <Badge variant="outline">Resubmitted</Badge>
                       ) : (
                         !page.approved && <Badge variant="outline">Pending Approval</Badge>
                       )}

@@ -54,6 +54,8 @@ export default async function BlogManagementPage() {
                       </Badge>
                       {post.rejectedAt ? (
                         <Badge variant="destructive">Rejected</Badge>
+                      ) : post.resubmittedAt && !post.approved ? (
+                        <Badge variant="outline">Resubmitted</Badge>
                       ) : (
                         !post.approved && <Badge variant="outline">Pending Approval</Badge>
                       )}

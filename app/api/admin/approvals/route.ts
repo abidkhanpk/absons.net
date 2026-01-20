@@ -19,7 +19,7 @@ export async function POST(request: Request) {
     }
 
     const now = new Date()
-    const resolvedAction = action === "reject" ? "reject" : "approve"
+    const resolvedAction = action === "reject" ? "reject" : action === "undo" ? "undo" : "approve"
     const trimmedReason = typeof reason === "string" ? reason.trim() : ""
     const shouldNotify = notifyAuthor === true
     const rejectionData =
@@ -30,14 +30,28 @@ export async function POST(request: Request) {
             rejectedAt: now,
             rejectedReason: trimmedReason.length > 0 ? trimmedReason : null,
             rejectionNotifiedAt: shouldNotify ? now : null,
+            resubmittedAt: null,
+            resubmissionNote: null,
           }
-        : {
-            approved: true,
-            approvedAt: now,
-            rejectedAt: null,
-            rejectedReason: null,
-            rejectionNotifiedAt: null,
-          }
+        : resolvedAction === "undo"
+          ? {
+              approved: false,
+              approvedAt: null,
+              rejectedAt: null,
+              rejectedReason: null,
+              rejectionNotifiedAt: null,
+              resubmittedAt: null,
+              resubmissionNote: null,
+            }
+          : {
+              approved: true,
+              approvedAt: now,
+              rejectedAt: null,
+              rejectedReason: null,
+              rejectionNotifiedAt: null,
+              resubmittedAt: null,
+              resubmissionNote: null,
+            }
 
     if (type === "blog") {
       await withRls(session.userId, (tx) => tx.blogPost.update({ where: { id }, data: rejectionData }))

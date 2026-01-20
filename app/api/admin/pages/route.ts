@@ -88,6 +88,7 @@ export async function PUT(request: Request) {
       content,
       published,
       approved,
+      resubmissionNote,
       seoTitle,
       seoDescription,
       seoKeywords,
@@ -101,13 +102,15 @@ export async function PUT(request: Request) {
     const approvalRequired = await isEditorApprovalRequired()
     const isEditor = user?.role === "editor"
 
+    let wasRejected = false
     if (isEditor) {
       const existing = await withRls(session!.userId, (tx) =>
-        tx.page.findUnique({ where: { id }, select: { authorId: true } }),
+        tx.page.findUnique({ where: { id }, select: { authorId: true, rejectedAt: true } }),
       )
       if (!existing || existing.authorId !== session!.userId) {
         return NextResponse.json({ error: "Forbidden" }, { status: 403 })
       }
+      wasRejected = Boolean(existing.rejectedAt)
     }
 
     const approvalUpdate = isEditor
@@ -117,6 +120,15 @@ export async function PUT(request: Request) {
           rejectedAt: null,
           rejectedReason: null,
           rejectionNotifiedAt: null,
+          resubmittedAt: approvalRequired && wasRejected ? new Date() : !approvalRequired ? null : undefined,
+          resubmissionNote:
+            approvalRequired && wasRejected
+              ? typeof resubmissionNote === "string"
+                ? resubmissionNote.trim() || null
+                : null
+              : !approvalRequired
+                ? null
+                : undefined,
         }
       : typeof approved === "boolean"
         ? {
@@ -125,6 +137,8 @@ export async function PUT(request: Request) {
             rejectedAt: approved ? null : undefined,
             rejectedReason: approved ? null : undefined,
             rejectionNotifiedAt: approved ? null : undefined,
+            resubmittedAt: approved ? null : undefined,
+            resubmissionNote: approved ? null : undefined,
           }
         : {}
     const resolvedPublishedAt = published ? new Date() : null

@@ -1,7 +1,9 @@
 "use client"
 
 import { useState } from "react"
+import Link from "next/link"
 import { Button } from "@/components/ui/button"
+import { Badge } from "@/components/ui/badge"
 import { Label } from "@/components/ui/label"
 import { Switch } from "@/components/ui/switch"
 import { Textarea } from "@/components/ui/textarea"
@@ -11,10 +13,20 @@ type ApprovalItem = {
   title: string
   type: "blog" | "page"
   author: { id: string; fullName: string | null; email: string } | null
+  rejectedAt?: string | Date | null
+  rejectedReason?: string | null
+  resubmittedAt?: string | Date | null
+  resubmissionNote?: string | null
 }
 
-export function ApprovalsList({ items }: { items: ApprovalItem[] }) {
-  const [pendingActionById, setPendingActionById] = useState<Record<string, "approve" | "reject">>({})
+export function ApprovalsList({
+  items,
+  mode = "pending",
+}: {
+  items: ApprovalItem[]
+  mode?: "pending" | "rejected"
+}) {
+  const [pendingActionById, setPendingActionById] = useState<Record<string, "approve" | "reject" | "undo">>({})
   const [rejectingId, setRejectingId] = useState<string | null>(null)
   const [rejectionReasons, setRejectionReasons] = useState<Record<string, string>>({})
   const [notifyAuthorById, setNotifyAuthorById] = useState<Record<string, boolean>>({})
@@ -74,8 +86,36 @@ export function ApprovalsList({ items }: { items: ApprovalItem[] }) {
     }
   }
 
+  const undoRejectItem = async (item: ApprovalItem) => {
+    if (pendingActionById[item.id]) return
+    setPendingActionById((prev) => ({ ...prev, [item.id]: "undo" }))
+    try {
+      const response = await fetch("/api/admin/approvals", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id: item.id, type: item.type, action: "undo" }),
+      })
+      if (!response.ok) {
+        const result = await response.json().catch(() => ({}))
+        throw new Error(result.error || "Failed to undo rejection")
+      }
+      window.location.reload()
+    } catch (error) {
+      alert(error instanceof Error ? error.message : "Failed to undo rejection")
+      setPendingActionById((prev) => {
+        const next = { ...prev }
+        delete next[item.id]
+        return next
+      })
+    }
+  }
+
   if (items.length === 0) {
-    return <p className="text-sm text-muted-foreground">No pending approvals right now.</p>
+    return (
+      <p className="text-sm text-muted-foreground">
+        {mode === "pending" ? "No pending approvals right now." : "No rejected items right now."}
+      </p>
+    )
   }
 
   return (
@@ -84,6 +124,7 @@ export function ApprovalsList({ items }: { items: ApprovalItem[] }) {
         const authorLabel = item.author?.fullName || item.author?.email || "Unknown author"
         const pendingAction = pendingActionById[item.id]
         const isPending = Boolean(pendingAction)
+        const editHref = item.type === "blog" ? `/admin/blog/edit/${item.id}` : `/admin/pages/edit/${item.id}`
         return (
           <div
             key={`${item.type}-${item.id}`}
@@ -96,24 +137,44 @@ export function ApprovalsList({ items }: { items: ApprovalItem[] }) {
                   <span className="ml-2 text-xs text-muted-foreground">
                     {item.type === "blog" ? "Blog post" : "Page"}
                   </span>
+                  {mode === "pending" && item.resubmittedAt && (
+                    <Badge variant="outline" className="ml-2">
+                      Resubmitted
+                    </Badge>
+                  )}
                 </p>
                 <p className="text-xs text-muted-foreground">Published by {authorLabel}</p>
+                {mode === "rejected" && item.rejectedReason && (
+                  <p className="text-xs text-muted-foreground">Reason: {item.rejectedReason}</p>
+                )}
+                {mode === "pending" && item.resubmissionNote && (
+                  <p className="text-xs text-muted-foreground">Editor note: {item.resubmissionNote}</p>
+                )}
               </div>
               <div className="flex flex-wrap items-center gap-2">
                 <Button type="button" onClick={() => approveItem(item)} disabled={isPending}>
                   {pendingAction === "approve" ? "Approving..." : "Approve"}
                 </Button>
-                <Button
-                  type="button"
-                  variant="destructive"
-                  onClick={() => setRejectingId((prev) => (prev === item.id ? null : item.id))}
-                  disabled={isPending}
-                >
-                  Reject
+                {mode === "pending" ? (
+                  <Button
+                    type="button"
+                    variant="destructive"
+                    onClick={() => setRejectingId((prev) => (prev === item.id ? null : item.id))}
+                    disabled={isPending}
+                  >
+                    Reject
+                  </Button>
+                ) : (
+                  <Button type="button" variant="outline" onClick={() => undoRejectItem(item)} disabled={isPending}>
+                    {pendingAction === "undo" ? "Undoing..." : "Undo Rejection"}
+                  </Button>
+                )}
+                <Button type="button" variant="outline" asChild>
+                  <Link href={editHref}>Edit</Link>
                 </Button>
               </div>
             </div>
-            {rejectingId === item.id && (
+            {mode === "pending" && rejectingId === item.id && (
               <div className="border-t border-border/60 pt-3 space-y-3">
                 <div className="space-y-2">
                   <Label htmlFor={`reject-reason-${item.id}`}>Rejection reason (optional)</Label>

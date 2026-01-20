@@ -10,6 +10,10 @@ type PendingItem = {
   type: "blog" | "page"
   authorId: string | null
   createdAt: Date
+  rejectedAt?: Date | null
+  rejectedReason?: string | null
+  resubmittedAt?: Date | null
+  resubmissionNote?: string | null
 }
 
 export default async function ApprovalsPage() {
@@ -22,17 +26,43 @@ export default async function ApprovalsPage() {
   if (!currentUser) redirect("/auth/login")
   if (currentUser.role !== "admin" && currentUser.role !== "super_admin") redirect("/admin")
 
-  const [pendingPosts, pendingPages] = await withRls(session.userId, (tx) =>
+  const [pendingPosts, pendingPages, rejectedPosts, rejectedPages] = await withRls(session.userId, (tx) =>
     Promise.all([
       tx.blogPost.findMany({
         where: { published: true, approved: false, rejectedAt: null },
-        select: { id: true, title: true, authorId: true, createdAt: true, publishedAt: true },
+        select: {
+          id: true,
+          title: true,
+          authorId: true,
+          createdAt: true,
+          publishedAt: true,
+          resubmittedAt: true,
+          resubmissionNote: true,
+        },
         orderBy: { createdAt: "desc" },
       }),
       tx.page.findMany({
         where: { published: true, approved: false, rejectedAt: null },
-        select: { id: true, title: true, authorId: true, createdAt: true, publishedAt: true },
+        select: {
+          id: true,
+          title: true,
+          authorId: true,
+          createdAt: true,
+          publishedAt: true,
+          resubmittedAt: true,
+          resubmissionNote: true,
+        },
         orderBy: { createdAt: "desc" },
+      }),
+      tx.blogPost.findMany({
+        where: { published: true, approved: false, rejectedAt: { not: null } },
+        select: { id: true, title: true, authorId: true, createdAt: true, rejectedAt: true, rejectedReason: true },
+        orderBy: { rejectedAt: "desc" },
+      }),
+      tx.page.findMany({
+        where: { published: true, approved: false, rejectedAt: { not: null } },
+        select: { id: true, title: true, authorId: true, createdAt: true, rejectedAt: true, rejectedReason: true },
+        orderBy: { rejectedAt: "desc" },
       }),
     ]),
   )
@@ -42,7 +72,20 @@ export default async function ApprovalsPage() {
     ...pendingPages.map((page) => ({ ...page, type: "page" as const })),
   ].sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime())
 
-  const authorIds = Array.from(new Set(pendingItems.map((item) => item.authorId).filter(Boolean))) as string[]
+  const rejectedItems: PendingItem[] = [
+    ...rejectedPosts.map((post) => ({ ...post, type: "blog" as const })),
+    ...rejectedPages.map((page) => ({ ...page, type: "page" as const })),
+  ].sort((a, b) => {
+    const aTime = a.rejectedAt ? a.rejectedAt.getTime() : 0
+    const bTime = b.rejectedAt ? b.rejectedAt.getTime() : 0
+    return bTime - aTime
+  })
+
+  const authorIds = Array.from(
+    new Set(
+      [...pendingItems, ...rejectedPosts, ...rejectedPages].map((item) => item.authorId).filter(Boolean),
+    ),
+  ) as string[]
   const authors = authorIds.length
     ? await withRls(session.userId, (tx) =>
         tx.user.findMany({ where: { id: { in: authorIds } }, select: { id: true, fullName: true, email: true } }),
@@ -73,6 +116,34 @@ export default async function ApprovalsPage() {
               title: item.title,
               type: item.type,
               author: item.authorId ? authorMap.get(item.authorId) ?? null : null,
+              resubmittedAt: item.resubmittedAt,
+              resubmissionNote: item.resubmissionNote,
+            }))}
+          />
+        </CardContent>
+      </Card>
+
+      <Card className="w-full">
+        <CardHeader>
+          <CardTitle>Rejected Items</CardTitle>
+          <CardDescription>
+            {rejectedPosts.length + rejectedPages.length > 0
+              ? `${rejectedPosts.length + rejectedPages.length} item${
+                  rejectedPosts.length + rejectedPages.length === 1 ? "" : "s"
+                } rejected`
+              : "No items are currently rejected."}
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <ApprovalsList
+            mode="rejected"
+            items={rejectedItems.map((item) => ({
+              id: item.id,
+              title: item.title,
+              type: item.type,
+              author: item.authorId ? authorMap.get(item.authorId) ?? null : null,
+              rejectedAt: item.rejectedAt,
+              rejectedReason: item.rejectedReason,
             }))}
           />
         </CardContent>
