@@ -30,7 +30,7 @@ async function main() {
     create: {
       id: "site",
       siteTitle: "Site",
-      logo_url: "/uploads/default-logo.png"
+      logo_url: "/uploads/default-logo.png",
       faviconUrl: "/uploads/default-icon-light-32x32.png",
       contactEmail: "info@absons.net",
       contactPhone: "+92 XXX XXXXXXX",
