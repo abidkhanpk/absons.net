@@ -23,7 +23,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
   )
   if (!adminUser) redirect("/auth/login")
 
-  const [settings, approvalCount, rejectedBlogCount] = await Promise.all([
+  const [settings, approvalCount, rejectedBlogCount, rejectedPageCount] = await Promise.all([
     getSiteSettings(),
     adminUser.role === "admin" || adminUser.role === "super_admin"
       ? withRls(session.userId, async (db) => {
@@ -41,6 +41,13 @@ export default async function AdminLayout({ children }: { children: React.ReactN
           }),
         )
       : Promise.resolve(0),
+    adminUser.role === "editor"
+      ? withRls(session.userId, (db) =>
+          db.page.count({
+            where: { authorId: session.userId, approved: false, rejectedAt: { not: null } },
+          }),
+        )
+      : Promise.resolve(0),
   ])
 
   return (
@@ -49,6 +56,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
         user={{ id: adminUser.id, email: adminUser.email, role: adminUser.role }}
         pendingApprovals={approvalCount}
         rejectedBlogCount={rejectedBlogCount}
+        rejectedPageCount={rejectedPageCount}
         siteTitle={settings.siteTitle}
       />
       <main className="flex-1 bg-muted/30">{children}</main>

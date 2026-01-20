@@ -40,11 +40,13 @@ export function AdminSidebar({
   user,
   pendingApprovals = 0,
   rejectedBlogCount = 0,
+  rejectedPageCount = 0,
   siteTitle,
 }: {
   user: { id: string; email: string; role: string }
   pendingApprovals?: number
   rejectedBlogCount?: number
+  rejectedPageCount?: number
   siteTitle?: string | null
 }) {
   const pathname = usePathname()
@@ -94,8 +96,15 @@ export function AdminSidebar({
               const isActive = pathname === item.href
               if (role && !item.roles.includes(role)) return null
               const showApprovalsBadge = item.href === "/admin/approvals" && pendingApprovals > 0
-              const showRejectedBadge = item.href === "/admin/blog" && role === "editor" && rejectedBlogCount > 0
-              const badgeCount = showApprovalsBadge ? pendingApprovals : showRejectedBadge ? rejectedBlogCount : 0
+              const showRejectedBlogBadge = item.href === "/admin/blog" && role === "editor" && rejectedBlogCount > 0
+              const showRejectedPageBadge = item.href === "/admin/pages" && role === "editor" && rejectedPageCount > 0
+              const badgeCount = showApprovalsBadge
+                ? pendingApprovals
+                : showRejectedBlogBadge
+                  ? rejectedBlogCount
+                  : showRejectedPageBadge
+                    ? rejectedPageCount
+                    : 0
               return (
                 <Link
                   key={item.href}
@@ -109,7 +118,7 @@ export function AdminSidebar({
                 >
                   <Icon className="h-5 w-5" />
                   <span className="font-medium">{item.label}</span>
-                  {(showApprovalsBadge || showRejectedBadge) && (
+                  {(showApprovalsBadge || showRejectedBlogBadge || showRejectedPageBadge) && (
                     <span className="ml-auto rounded-full bg-destructive px-2 py-0.5 text-xs font-semibold text-destructive-foreground">
                       {badgeCount}
                     </span>
