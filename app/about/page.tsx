@@ -7,11 +7,12 @@ import { buildSeoMetadata } from "@/lib/seo"
 
 export async function generateMetadata() {
   const settings = await getSiteSettings()
+  const siteTitle = settings.siteTitle || "Our Company"
   const override = settings.staticSeo.about
   return buildSeoMetadata(settings, {
     title: override.title || "About Us",
     description:
-      override.description || "Learn about ABSON Solutions and our mission to empower organizations with innovative software.",
+      override.description || `Learn about ${siteTitle} and our mission to empower organizations with innovative software.`,
     keywords: override.keywords || undefined,
     ogImage: override.ogImage || undefined,
     canonical: override.canonical || undefined,
@@ -22,6 +23,7 @@ export async function generateMetadata() {
 
 export default async function AboutPage() {
   const siteSettings = await getSiteSettings()
+  const siteTitle = siteSettings.siteTitle || "Our Company"
   return (
     <div className="flex flex-col min-h-screen">
       <Header settings={siteSettings} />
@@ -31,7 +33,7 @@ export default async function AboutPage() {
         <section className="bg-gradient-to-br from-primary/10 via-background to-accent/10 border-b border-border">
           <div className="container mx-auto px-4 lg:px-8 py-16">
             <div className="max-w-3xl mx-auto text-center space-y-4">
-              <h1 className="text-4xl md:text-5xl font-bold text-balance">About ABSON Solutions</h1>
+              <h1 className="text-4xl md:text-5xl font-bold text-balance">About {siteTitle}</h1>
               <p className="text-lg text-muted-foreground text-pretty leading-relaxed">
                 Your trusted partner in educational technology and professional training
               </p>
@@ -45,9 +47,9 @@ export default async function AboutPage() {
             <div className="max-w-4xl mx-auto space-y-6">
               <h2 className="text-3xl font-bold">Who We Are</h2>
               <p className="text-lg text-muted-foreground leading-relaxed">
-                ABSON Solutions is a leading provider of specialized software solutions and professional training
-                services. We focus on empowering educational institutions, Quran academies, madaris, and Hifz institutes
-                with cutting-edge technology that streamlines operations and enhances learning experiences.
+                {siteTitle} is a leading provider of specialized software solutions and professional training services.
+                We focus on empowering educational institutions, Quran academies, madaris, and Hifz institutes with
+                cutting-edge technology that streamlines operations and enhances learning experiences.
               </p>
               <p className="text-lg text-muted-foreground leading-relaxed">
                 In addition to our educational software solutions, we are proud partners of the Mobius Institute of

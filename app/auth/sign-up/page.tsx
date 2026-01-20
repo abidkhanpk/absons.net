@@ -7,7 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { useRouter } from "next/navigation"
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import Link from "next/link"
 
 export default function SignUpPage() {
@@ -17,6 +17,7 @@ export default function SignUpPage() {
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
+  const [siteTitle, setSiteTitle] = useState("Site")
   const router = useRouter()
 
   const handleSignUp = async (e: React.FormEvent) => {
@@ -52,12 +53,28 @@ export default function SignUpPage() {
     }
   }
 
+  useEffect(() => {
+    const loadSiteTitle = async () => {
+      try {
+        const response = await fetch("/api/site-settings")
+        const result = await response.json().catch(() => ({}))
+        const title = result?.settings?.siteTitle
+        if (typeof title === "string" && title.trim()) {
+          setSiteTitle(title.trim())
+        }
+      } catch {
+        // Keep default title on failure.
+      }
+    }
+    loadSiteTitle()
+  }, [])
+
   return (
     <div className="flex min-h-svh w-full items-center justify-center p-6 md:p-10 bg-muted/30">
       <div className="w-full max-w-sm">
         <div className="flex flex-col gap-6">
           <div className="text-center mb-4">
-            <h1 className="text-2xl font-bold text-primary">ABSON Solutions</h1>
+            <h1 className="text-2xl font-bold text-primary">{siteTitle}</h1>
             <p className="text-sm text-muted-foreground mt-1">Admin Portal</p>
           </div>
           <Card>

@@ -188,7 +188,7 @@ export default async function HomePage() {
       ) : null,
     "why-choose": (
       <WhyChooseSectionClient
-        title={siteSettings.whyChooseTitle || "Why Choose ABSON Solutions"}
+        title={siteSettings.whyChooseTitle || `Why Choose ${siteSettings.siteTitle || "Our Company"}`}
         subtitle={siteSettings.whyChooseSubtitle || "Trusted by educational institutions and organizations across Pakistan"}
         items={siteSettings.whyChooseItems}
         layout={siteSettings.whyChooseLayout}

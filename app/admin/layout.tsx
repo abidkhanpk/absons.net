@@ -3,10 +3,15 @@ import { redirect } from "next/navigation"
 import { getSession } from "@/lib/auth"
 import { withRls } from "@/lib/prisma"
 import { AdminSidebar } from "@/components/admin/admin-sidebar"
+import { getSiteSettings } from "@/lib/site-settings"
 
-export const metadata = {
-  title: "Admin Dashboard - ABSON Solutions CMS",
-  description: "Content Management System for ABSON Solutions",
+export async function generateMetadata() {
+  const settings = await getSiteSettings()
+  const siteTitle = settings.siteTitle || "Site"
+  return {
+    title: `Admin Dashboard - ${siteTitle} CMS`,
+    description: `Content Management System for ${siteTitle}`,
+  }
 }
 
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
@@ -18,20 +23,26 @@ export default async function AdminLayout({ children }: { children: React.ReactN
   )
   if (!adminUser) redirect("/auth/login")
 
-  const approvalCount =
+  const [settings, approvalCount] = await Promise.all([
+    getSiteSettings(),
     adminUser.role === "admin" || adminUser.role === "super_admin"
-      ? await withRls(session.userId, async (db) => {
+      ? withRls(session.userId, async (db) => {
           const [posts, pages] = await Promise.all([
             db.blogPost.count({ where: { published: true, approved: false } }),
             db.page.count({ where: { published: true, approved: false } }),
           ])
           return posts + pages
         })
-      : 0
+      : Promise.resolve(0),
+  ])
 
   return (
     <div className="flex min-h-screen">
-      <AdminSidebar user={{ id: adminUser.id, email: adminUser.email, role: adminUser.role }} pendingApprovals={approvalCount} />
+      <AdminSidebar
+        user={{ id: adminUser.id, email: adminUser.email, role: adminUser.role }}
+        pendingApprovals={approvalCount}
+        siteTitle={settings.siteTitle}
+      />
       <main className="flex-1 bg-muted/30">{children}</main>
     </div>
   )

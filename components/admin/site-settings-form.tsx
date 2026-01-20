@@ -415,7 +415,7 @@ export function SiteSettingsForm({ initial, pages }: { initial: SiteSettings; pa
     logoRadius: initial.logo_radius ?? 8,
     showLoginLink: initial.show_login_link ?? true,
     editorApprovalRequired: initial.editor_approval_required ?? true,
-    whyChooseTitle: initial.why_choose_title || "Why Choose ABSON Solutions",
+    whyChooseTitle: initial.why_choose_title || `Why Choose ${initial.site_title || "Our Company"}`,
     whyChooseSubtitle: initial.why_choose_subtitle || "Trusted by educational institutions and organizations across Pakistan",
     whyChooseItems: initialWhyChooseItems,
     whyChooseLayout: (initial.why_choose_layout as "grid" | "scroll") || "grid",
@@ -425,8 +425,8 @@ export function SiteSettingsForm({ initial, pages }: { initial: SiteSettings; pa
     headerCode: initial.header_code || "",
     footerCode: initial.footer_code || "",
     allowIndexing: initial.allow_indexing ?? true,
-    seoTitleTemplate: initial.seo_title_template || "{title} - ABSON Solutions",
-    seoDefaultTitle: initial.seo_default_title || "ABSON Solutions",
+    seoTitleTemplate: initial.seo_title_template || "{title} - {siteTitle}",
+    seoDefaultTitle: initial.seo_default_title || initial.site_title || "Site",
     seoDefaultDescription:
       initial.seo_default_description ||
       "Professional software solutions for schools, Quran academies, madaris, and vibration analysis training certification from Mobius Institute of Australia",
@@ -1092,7 +1092,7 @@ export function SiteSettingsForm({ initial, pages }: { initial: SiteSettings; pa
                 id="seoDefaultTitle"
                 value={formData.seoDefaultTitle}
                 onChange={(e) => setFormData({ ...formData, seoDefaultTitle: e.target.value })}
-                placeholder="ABSON Solutions"
+                placeholder={formData.siteTitle || "Site"}
               />
             </div>
             <div className="space-y-2">
@@ -1101,9 +1101,9 @@ export function SiteSettingsForm({ initial, pages }: { initial: SiteSettings; pa
                 id="seoTitleTemplate"
                 value={formData.seoTitleTemplate}
                 onChange={(e) => setFormData({ ...formData, seoTitleTemplate: e.target.value })}
-                placeholder="{title} - ABSON Solutions"
+                placeholder="{title} - {siteTitle}"
               />
-              <p className="text-xs text-muted-foreground">Use {`{title}`} to insert the page title.</p>
+              <p className="text-xs text-muted-foreground">Use {`{title}`} and {`{siteTitle}`} to insert values.</p>
             </div>
           </div>
 

@@ -4,10 +4,11 @@ import { buildSeoMetadata } from "@/lib/seo"
 
 export async function generateMetadata() {
   const settings = await getSiteSettings()
+  const siteTitle = settings.siteTitle || "Our Company"
   const override = settings.staticSeo.contact
   return buildSeoMetadata(settings, {
     title: override.title || "Contact",
-    description: override.description || "Get in touch with ABSON Solutions for software, training, and support.",
+    description: override.description || `Get in touch with ${siteTitle} for software, training, and support.`,
     keywords: override.keywords || undefined,
     ogImage: override.ogImage || undefined,
     canonical: override.canonical || undefined,

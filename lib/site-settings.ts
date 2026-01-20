@@ -105,7 +105,7 @@ export type StaticSeoSettings = Record<
 >
 
 const defaultSettings: SiteSettings = {
-  siteTitle: "ABSON Innovations",
+  siteTitle: "Site",
   logoUrl: "/uploads/default-logo.png",
   faviconUrl: "/uploads/default-icon-light-32x32.png",
   navAlignment: "left",
@@ -142,7 +142,7 @@ const defaultSettings: SiteSettings = {
       bgColor: "#0b132b",
     },
     {
-      title: "Partner With ABSON",
+      title: "Partner With Us",
       subtitle: "From custom software to general order supplies, we deliver reliable outcomes for growing organizations.",
       ctaText: "Talk to Us",
       ctaHref: "/contact",
@@ -200,7 +200,7 @@ const defaultSettings: SiteSettings = {
   logoRadius: 0,
   showLoginLink: false,
   editorApprovalRequired: true,
-  whyChooseTitle: "Why Choose ABSON Solutions",
+  whyChooseTitle: "Why Choose Us",
   whyChooseSubtitle: "Trusted by educational institutions and organizations across Pakistan",
   whyChooseLayout: "grid",
   whyChooseMobileLayout: "match",
@@ -209,10 +209,10 @@ const defaultSettings: SiteSettings = {
   headerCode: "",
   footerCode: "",
   allowIndexing: true,
-  seoTitleTemplate: "{title} - ABSON Solutions",
-  seoDefaultTitle: "ABSON Solutions",
+  seoTitleTemplate: "{title} - {siteTitle}",
+  seoDefaultTitle: "",
   seoDefaultDescription:
-    "Professional software solutions for schools, Quran academies, madaris, and vibration analysis training certification from Mobius Institute of Australia",
+    "Professional software solutions for schools, Quran academies, madaris, and vibration analysis training certification from Mobius Institute of Australia.",
   seoDefaultKeywords: "",
   seoDefaultOgImage: "",
   seoDefaultCanonicalBase: "",

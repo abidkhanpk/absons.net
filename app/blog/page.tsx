@@ -10,10 +10,11 @@ import { buildSeoMetadata } from "@/lib/seo"
 
 export async function generateMetadata() {
   const settings = await getSiteSettings()
+  const siteTitle = settings.siteTitle || "Our Company"
   const override = settings.staticSeo.blog
   return buildSeoMetadata(settings, {
     title: override.title || "Blog",
-    description: override.description || "Latest news, insights, and updates from ABSON Solutions",
+    description: override.description || `Latest news, insights, and updates from ${siteTitle}`,
     keywords: override.keywords || undefined,
     ogImage: override.ogImage || undefined,
     canonical: override.canonical || undefined,
@@ -24,6 +25,7 @@ export async function generateMetadata() {
 
 export default async function BlogPage() {
   const siteSettings = await getSiteSettings()
+  const siteTitle = siteSettings.siteTitle || "Our Company"
   const approvalRequired = siteSettings.editorApprovalRequired ?? true
   const posts = await prisma.blogPost.findMany({
     where: approvalRequired ? { published: true, approved: true } : { published: true },
@@ -41,7 +43,7 @@ export default async function BlogPage() {
             <div className="max-w-3xl mx-auto text-center space-y-4">
               <h1 className="text-4xl md:text-5xl font-bold text-balance">Blog & News</h1>
               <p className="text-lg text-muted-foreground text-pretty leading-relaxed">
-                Stay updated with the latest insights, news, and updates from ABSON Solutions
+                Stay updated with the latest insights, news, and updates from {siteTitle}
               </p>
             </div>
           </div>

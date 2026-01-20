@@ -11,11 +11,12 @@ import { buildSeoMetadata } from "@/lib/seo"
 
 export async function generateMetadata() {
   const settings = await getSiteSettings()
+  const siteTitle = settings.siteTitle || "Our Company"
   const override = settings.staticSeo.training
   return buildSeoMetadata(settings, {
     title: override.title || "Training Programs",
     description:
-      override.description || "Professional vibration analysis training and certification from Mobius Institute of Australia",
+      override.description || `Professional vibration analysis training and certification from ${siteTitle}`,
     keywords: override.keywords || undefined,
     ogImage: override.ogImage || undefined,
     canonical: override.canonical || undefined,
@@ -30,6 +31,7 @@ export default async function TrainingPage() {
     orderBy: { displayOrder: "asc" },
   })
   const siteSettings = await getSiteSettings()
+  const siteTitle = siteSettings.siteTitle || "Our Company"
 
   return (
     <div className="flex flex-col min-h-screen">
@@ -54,8 +56,8 @@ export default async function TrainingPage() {
             <div className="max-w-4xl mx-auto space-y-6">
               <h2 className="text-3xl font-bold">World-Class Certification Programs</h2>
               <p className="text-lg text-muted-foreground leading-relaxed">
-                ABSON Solutions is proud to offer comprehensive vibration analysis training programs in partnership with
-                the Mobius Institute of Australia. Our courses prepare professionals for internationally recognized
+                {siteTitle} is proud to offer comprehensive vibration analysis training programs in partnership with the
+                Mobius Institute of Australia. Our courses prepare professionals for internationally recognized
                 certifications in predictive maintenance and machinery diagnostics.
               </p>
               <p className="text-lg text-muted-foreground leading-relaxed">
@@ -119,7 +121,7 @@ export default async function TrainingPage() {
         <section className="py-16 bg-background">
           <div className="container mx-auto px-4 lg:px-8">
             <div className="max-w-4xl mx-auto">
-              <h2 className="text-3xl font-bold mb-8">Why Train With ABSON Solutions</h2>
+              <h2 className="text-3xl font-bold mb-8">Why Train With {siteTitle}</h2>
               <div className="grid md:grid-cols-2 gap-6">
                 <div className="flex gap-3">
                   <CheckCircle2 className="h-6 w-6 text-primary flex-shrink-0 mt-1" />

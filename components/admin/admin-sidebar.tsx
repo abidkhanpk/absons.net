@@ -39,9 +39,11 @@ const navItems = [
 export function AdminSidebar({
   user,
   pendingApprovals = 0,
+  siteTitle,
 }: {
   user: { id: string; email: string; role: string }
   pendingApprovals?: number
+  siteTitle?: string | null
 }) {
   const pathname = usePathname()
   const router = useRouter()
@@ -77,7 +79,7 @@ export function AdminSidebar({
                 AS
               </div>
               <div>
-                <p className="font-bold text-lg">ABSON</p>
+                <p className="font-bold text-lg">{siteTitle || "Site"}</p>
                 <p className="text-xs text-muted-foreground">Admin CMS</p>
               </div>
             </Link>

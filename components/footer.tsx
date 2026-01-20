@@ -14,7 +14,7 @@ export function Footer({ settings }: { settings: SiteSettings }) {
               <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary text-primary-foreground font-bold text-lg">
                 {settings.siteTitle?.slice(0, 2).toUpperCase() || "AS"}
               </div>
-              <span className="font-bold text-lg">{settings.siteTitle || "ABSON Solutions"}</span>
+              <span className="font-bold text-lg">{settings.siteTitle || "Site"}</span>
             </div>
             <p className="text-sm text-muted-foreground leading-relaxed">
               Professional software solutions and training services for educational institutions and organizations.
@@ -93,7 +93,7 @@ export function Footer({ settings }: { settings: SiteSettings }) {
 
         <div className="mt-12 pt-8 border-t border-border text-center">
           <p className="text-sm text-muted-foreground">
-            © {new Date().getFullYear()} ABSON Solutions. All rights reserved.
+            © {new Date().getFullYear()} {settings.siteTitle || "Site"}. All rights reserved.
           </p>
         </div>
       </div>

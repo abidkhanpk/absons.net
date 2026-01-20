@@ -3,6 +3,7 @@ import { FileText, Briefcase, GraduationCap, MessageSquare, Mail, TrendingUp } f
 import { getSession } from "@/lib/auth"
 import { withRls } from "@/lib/prisma"
 import { redirect } from "next/navigation"
+import { getSiteSettings } from "@/lib/site-settings"
 
 export default async function AdminDashboard() {
   const session = await getSession()
@@ -15,8 +16,9 @@ export default async function AdminDashboard() {
     redirect("/admin/blog")
   }
 
-  const [blogCount, servicesCount, trainingCount, testimonialsCount, inquiriesCount, newInquiriesCount, recentInquiries] =
-    await withRls(session.userId, async (tx) => {
+  const [siteSettings, statsData] = await Promise.all([
+    getSiteSettings(),
+    withRls(session.userId, async (tx) => {
       const [blogs, services, training, testimonials, inquiries, newInquiries, recent] = await Promise.all([
         tx.blogPost.count(),
         tx.service.count(),
@@ -27,7 +29,11 @@ export default async function AdminDashboard() {
         tx.contactInquiry.findMany({ orderBy: { createdAt: "desc" }, take: 5 }),
       ])
       return [blogs, services, training, testimonials, inquiries, newInquiries, recent]
-    })
+    }),
+  ])
+  const [blogCount, servicesCount, trainingCount, testimonialsCount, inquiriesCount, newInquiriesCount, recentInquiries] =
+    statsData
+  const siteTitle = siteSettings.siteTitle || "Site"
 
   const stats = [
     { title: "Blog Posts", value: blogCount || 0, icon: FileText, color: "text-blue-600" },
@@ -43,7 +49,7 @@ export default async function AdminDashboard() {
       {/* Header */}
       <div>
         <h1 className="text-3xl font-bold">Dashboard</h1>
-        <p className="text-muted-foreground mt-1">Welcome to the ABSON Solutions CMS</p>
+        <p className="text-muted-foreground mt-1">Welcome to the {siteTitle} CMS</p>
       </div>
 
       {/* Stats Grid */}

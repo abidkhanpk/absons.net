@@ -127,7 +127,7 @@ model ContactInquiry {
 
 model SiteSettings {
   id             String   @id @default("site")
-  siteTitle      String   @default("ABSON Solutions") @map("site_title")
+  siteTitle      String   @default("Site") @map("site_title")
   logoUrl        String?  @map("logo_url")
   faviconUrl     String?  @map("favicon_url")
   contactEmail   String?  @map("contact_email")

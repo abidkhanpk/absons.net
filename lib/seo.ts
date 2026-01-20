@@ -14,8 +14,10 @@ type SeoOverrides = {
 function applyTitleTemplate(title: string, template: string, fallbackSiteTitle: string) {
   const trimmedTemplate = template.trim()
   if (!trimmedTemplate) return title
-  if (trimmedTemplate.includes("{title}")) {
-    return trimmedTemplate.replace("{title}", title)
+  if (trimmedTemplate.includes("{title}") || trimmedTemplate.includes("{siteTitle}")) {
+    return trimmedTemplate
+      .replace("{title}", title)
+      .replace("{siteTitle}", fallbackSiteTitle)
   }
   if (trimmedTemplate === fallbackSiteTitle) {
     return `${title} - ${fallbackSiteTitle}`
@@ -25,7 +27,7 @@ function applyTitleTemplate(title: string, template: string, fallbackSiteTitle: 
 
 export function buildSeoMetadata(settings: SiteSettings, overrides: SeoOverrides): Metadata {
   const baseTitle = (overrides.title || settings.seoDefaultTitle || settings.siteTitle).trim()
-  const fallbackSiteTitle = settings.siteTitle || "ABSON Solutions"
+  const fallbackSiteTitle = settings.siteTitle || "Site"
   const resolvedTitle = applyTitleTemplate(baseTitle, settings.seoTitleTemplate || "", fallbackSiteTitle)
   const description = (overrides.description ?? settings.seoDefaultDescription)?.trim() || undefined
   const keywords = (overrides.keywords ?? settings.seoDefaultKeywords)?.trim() || undefined

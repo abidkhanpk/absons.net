@@ -13,12 +13,29 @@ export default function LoginPage() {
   const [error, setError] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(false)
   const [isRedirecting, setIsRedirecting] = useState(false)
+  const [siteTitle, setSiteTitle] = useState("Site")
   const router = useRouter()
 
   // Prefetch admin dashboard to speed up navigation after login
   useEffect(() => {
     router.prefetch("/admin")
   }, [router])
+
+  useEffect(() => {
+    const loadSiteTitle = async () => {
+      try {
+        const response = await fetch("/api/site-settings")
+        const result = await response.json().catch(() => ({}))
+        const title = result?.settings?.siteTitle
+        if (typeof title === "string" && title.trim()) {
+          setSiteTitle(title.trim())
+        }
+      } catch {
+        // Keep default title on failure.
+      }
+    }
+    loadSiteTitle()
+  }, [])
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -50,7 +67,7 @@ export default function LoginPage() {
       <div className="w-full max-w-sm">
         <div className="flex flex-col gap-6">
           <div className="text-center mb-4">
-            <h1 className="text-2xl font-bold text-primary">ABSON Solutions</h1>
+            <h1 className="text-2xl font-bold text-primary">{siteTitle}</h1>
             <p className="text-sm text-muted-foreground mt-1">Admin Portal</p>
           </div>
           <Card>

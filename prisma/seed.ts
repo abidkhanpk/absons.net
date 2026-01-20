@@ -29,7 +29,7 @@ async function main() {
     update: {},
     create: {
       id: "site",
-      siteTitle: "ABSONS Innovations",
+      siteTitle: "Site",
       faviconUrl: "/uploads/default-icon-light-32x32.png",
       contactEmail: "info@absons.net",
       contactPhone: "+92 XXX XXXXXXX",
@@ -70,8 +70,8 @@ async function main() {
       headerCode: "",
       footerCode: "",
       allowIndexing: true,
-      seoTitleTemplate: "{title} - ABSON Solutions",
-      seoDefaultTitle: "ABSON Solutions",
+      seoTitleTemplate: "{title} - {siteTitle}",
+      seoDefaultTitle: "Site",
       seoDefaultDescription:
         "Professional software solutions for schools, Quran academies, madaris, and vibration analysis training certification from Mobius Institute of Australia",
       seoDefaultKeywords: "",
@@ -168,7 +168,7 @@ async function main() {
           bgColor: "#0f172a",
         },
         {
-          title: "Partner With ABSON",
+          title: "Partner With Us",
           subtitle: "Custom software, dependable support, and general order supplies for growing organizations.",
           ctaText: "Talk to Us",
           ctaHref: "/contact",
@@ -232,7 +232,7 @@ async function main() {
             bgColor: "#0f172a",
           },
           {
-            title: "Partner With ABSON",
+            title: "Partner With Us",
             subtitle: "Custom software, dependable support, and general order supplies for growing organizations.",
             ctaText: "Talk to Us",
             ctaHref: "/contact",
@@ -263,8 +263,8 @@ async function main() {
         headerCode: existingSettings?.headerCode ?? "",
         footerCode: existingSettings?.footerCode ?? "",
         allowIndexing: existingSettings?.allowIndexing ?? true,
-        seoTitleTemplate: existingSettings?.seoTitleTemplate ?? "{title} - ABSON Solutions",
-        seoDefaultTitle: existingSettings?.seoDefaultTitle ?? "ABSON Solutions",
+        seoTitleTemplate: existingSettings?.seoTitleTemplate ?? "{title} - {siteTitle}",
+        seoDefaultTitle: existingSettings?.seoDefaultTitle ?? existingSettings?.siteTitle ?? "Site",
         seoDefaultDescription:
           existingSettings?.seoDefaultDescription ??
           "Professional software solutions for schools, Quran academies, madaris, and vibration analysis training certification from Mobius Institute of Australia",
@@ -411,17 +411,17 @@ async function main() {
   const blogPosts = [
     {
       id: "b3e7c2d5-8f1a-4c9e-9d6b-2a3f4e5c6d7a",
-      title: "Welcome to ABSON Solutions",
+      title: "Welcome to Our Company",
       slug: "welcome-to-abson-solutions",
       excerpt:
         "Learn about our mission to provide innovative software solutions for educational institutions and organizations.",
-      content: `# Welcome to ABSON Solutions
+      content: `# Welcome to Our Company
 
 We are dedicated to providing cutting-edge software solutions that empower educational institutions, Quran academies, and organizations to achieve their goals efficiently.
 
 ## Our Mission
 
-At ABSON Solutions, we believe in combining technology with education to create meaningful impact. Our solutions are designed with user experience and functionality in mind.
+At our company, we believe in combining technology with education to create meaningful impact. Our solutions are designed with user experience and functionality in mind.
 
 ## What We Offer
 
@@ -490,7 +490,7 @@ Stay tuned for more updates and insights from our team!`,
       clientCompany: "Al-Noor Academy",
       clientPosition: "Principal",
       content:
-        "ABSON Solutions transformed our academy management. The system is intuitive and has significantly improved our administrative efficiency.",
+        "Our company transformed our academy management. The system is intuitive and has significantly improved our administrative efficiency.",
       rating: 5,
       isFeatured: true,
       displayOrder: 1,

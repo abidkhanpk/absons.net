@@ -41,7 +41,7 @@ export default async function SettingsPage() {
         <CardContent>
           <SiteSettingsForm
             initial={{
-              site_title: settings?.siteTitle || "ABSON Solutions",
+              site_title: settings?.siteTitle || resolved.siteTitle || "Site",
               logo_url: settings?.logoUrl || null,
               favicon_url: settings?.faviconUrl || "/icon-light-32x32.png",
               contact_email: settings?.contactEmail || "info@absonsolutions.com",
@@ -76,7 +76,10 @@ export default async function SettingsPage() {
               logo_radius: settings?.logoRadius ?? 8,
               show_login_link: settings?.showLoginLink ?? true,
               editor_approval_required: settings?.editorApprovalRequired ?? resolved.editorApprovalRequired ?? true,
-              why_choose_title: settings?.whyChooseTitle ?? resolved.whyChooseTitle ?? "Why Choose ABSON Solutions",
+              why_choose_title:
+                settings?.whyChooseTitle ??
+                resolved.whyChooseTitle ??
+                `Why Choose ${settings?.siteTitle ?? resolved.siteTitle ?? "Our Company"}`,
               why_choose_subtitle:
                 settings?.whyChooseSubtitle ??
                 resolved.whyChooseSubtitle ??
@@ -93,8 +96,11 @@ export default async function SettingsPage() {
               header_code: settings?.headerCode ?? resolved.headerCode ?? "",
               footer_code: settings?.footerCode ?? resolved.footerCode ?? "",
               allow_indexing: settings?.allowIndexing ?? resolved.allowIndexing ?? true,
-              seo_title_template: settings?.seoTitleTemplate ?? resolved.seoTitleTemplate ?? "{title} - ABSON Solutions",
-              seo_default_title: settings?.seoDefaultTitle ?? resolved.seoDefaultTitle ?? "ABSON Solutions",
+              seo_title_template:
+                settings?.seoTitleTemplate ??
+                resolved.seoTitleTemplate ??
+                `{title} - ${settings?.siteTitle ?? resolved.siteTitle ?? "Site"}`,
+              seo_default_title: settings?.seoDefaultTitle ?? resolved.seoDefaultTitle ?? (settings?.siteTitle ?? resolved.siteTitle ?? "Site"),
               seo_default_description:
                 settings?.seoDefaultDescription ??
                 resolved.seoDefaultDescription ??
