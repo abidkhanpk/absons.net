@@ -30,6 +30,7 @@ async function main() {
     create: {
       id: "site",
       siteTitle: "Site",
+      logo_url: "/uploads/default-logo.png"
       faviconUrl: "/uploads/default-icon-light-32x32.png",
       contactEmail: "info@absons.net",
       contactPhone: "+92 XXX XXXXXXX",
@@ -48,8 +49,8 @@ async function main() {
         { day: "Tuesday", open: "09:00", close: "18:00", closed: false },
         { day: "Wednesday", open: "09:00", close: "18:00", closed: false },
         { day: "Thursday", open: "09:00", close: "18:00", closed: false },
-        { day: "Friday", open: "09:00", close: "18:00", closed: false },
-        { day: "Saturday", open: "10:00", close: "14:00", closed: false },
+        { day: "Friday", open: "09:00", close: "12:00", closed: false },
+        { day: "Saturday", open: "00:00", close: "00:00", closed: true },
         { day: "Sunday", open: "00:00", close: "00:00", closed: true },
       ],
       showBusinessHours: true,
@@ -57,7 +58,7 @@ async function main() {
       heroMode: "parallax",
       heroStaticIndex: 0,
       heroAutoplaySeconds: 6,
-      heroHeight: 560,
+      heroHeight: 500,
       showServices: true,
       showTraining: true,
       showTestimonials: true,

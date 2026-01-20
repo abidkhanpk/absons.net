@@ -13,7 +13,7 @@ model User {
   fullName  String?  @map("full_name")
   role      String   @default("admin")
   passwordHash String @map("password_hash")
-  createdAt DateTime @default(dbgenerated("now()")) @db.Timestamptz(6) @map("created_at")
+  createdAt DateTime @default(now()) @db.Timestamptz(6) @map("created_at")
 
   @@map("users")
 }
@@ -26,8 +26,8 @@ model Service {
   category     String
   isFeatured   Boolean  @default(false) @map("is_featured")
   displayOrder Int      @default(0) @map("display_order")
-  createdAt    DateTime @default(dbgenerated("now()")) @db.Timestamptz(6) @map("created_at")
-  updatedAt    DateTime @default(dbgenerated("now()")) @db.Timestamptz(6) @map("updated_at")
+  createdAt    DateTime @default(now()) @db.Timestamptz(6) @map("created_at")
+  updatedAt    DateTime @default(now()) @db.Timestamptz(6) @map("updated_at")
 
   @@map("services")
 }
@@ -51,8 +51,8 @@ model BlogPost {
   approved    Boolean  @default(false)
   approvedAt  DateTime? @db.Timestamptz(6) @map("approved_at")
   publishedAt DateTime? @db.Timestamptz(6) @map("published_at")
-  createdAt   DateTime @default(dbgenerated("now()")) @db.Timestamptz(6) @map("created_at")
-  updatedAt   DateTime @default(dbgenerated("now()")) @db.Timestamptz(6) @map("updated_at")
+  createdAt   DateTime @default(now()) @db.Timestamptz(6) @map("created_at")
+  updatedAt   DateTime @default(now()) @db.Timestamptz(6) @map("updated_at")
 
   @@map("blog_posts")
 }
@@ -74,8 +74,8 @@ model Page {
   approved    Boolean  @default(false)
   approvedAt  DateTime? @db.Timestamptz(6) @map("approved_at")
   publishedAt DateTime? @db.Timestamptz(6) @map("published_at")
-  createdAt   DateTime @default(dbgenerated("now()")) @db.Timestamptz(6) @map("created_at")
-  updatedAt   DateTime @default(dbgenerated("now()")) @db.Timestamptz(6) @map("updated_at")
+  createdAt   DateTime @default(now()) @db.Timestamptz(6) @map("created_at")
+  updatedAt   DateTime @default(now()) @db.Timestamptz(6) @map("updated_at")
 
   @@map("pages")
 }
@@ -90,8 +90,8 @@ model TrainingCourse {
   featuredImage String?  @map("featured_image")
   isActive      Boolean  @default(true) @map("is_active")
   displayOrder  Int      @default(0) @map("display_order")
-  createdAt     DateTime @default(dbgenerated("now()")) @db.Timestamptz(6) @map("created_at")
-  updatedAt     DateTime @default(dbgenerated("now()")) @db.Timestamptz(6) @map("updated_at")
+  createdAt     DateTime @default(now()) @db.Timestamptz(6) @map("created_at")
+  updatedAt     DateTime @default(now()) @db.Timestamptz(6) @map("updated_at")
 
   @@map("training_courses")
 }
@@ -106,8 +106,8 @@ model Testimonial {
   avatarUrl      String?  @map("avatar_url")
   isFeatured     Boolean  @default(false) @map("is_featured")
   displayOrder   Int      @default(0) @map("display_order")
-  createdAt      DateTime @default(dbgenerated("now()")) @db.Timestamptz(6) @map("created_at")
-  updatedAt      DateTime @default(dbgenerated("now()")) @db.Timestamptz(6) @map("updated_at")
+  createdAt      DateTime @default(now()) @db.Timestamptz(6) @map("created_at")
+  updatedAt      DateTime @default(now()) @db.Timestamptz(6) @map("updated_at")
 
   @@map("testimonials")
 }
@@ -120,7 +120,7 @@ model ContactInquiry {
   company   String?
   message   String
   status    String?  @default("new")
-  createdAt DateTime @default(dbgenerated("now()")) @db.Timestamptz(6) @map("created_at")
+  createdAt DateTime @default(now()) @db.Timestamptz(6) @map("created_at")
 
   @@map("contact_inquiries")
 }
@@ -177,8 +177,8 @@ model SiteSettings {
   seoDefaultOgImage String? @map("seo_default_og_image")
   seoDefaultCanonicalBase String? @map("seo_default_canonical_base")
   staticSeo     Json?    @map("static_seo")
-  createdAt      DateTime @default(dbgenerated("now()")) @db.Timestamptz(6) @map("created_at")
-  updatedAt      DateTime @default(dbgenerated("now()")) @db.Timestamptz(6) @map("updated_at")
+  createdAt      DateTime @default(now()) @db.Timestamptz(6) @map("created_at")
+  updatedAt      DateTime @default(now()) @db.Timestamptz(6) @map("updated_at")
 
   @@map("site_settings")
 }
