@@ -29,8 +29,8 @@ async function main() {
     update: {},
     create: {
       id: "site",
-      siteTitle: "Site",
-      logo_url: "/uploads/default-logo.png",
+      siteTitle: "ABSONS Innovations",
+      logoUrl: "/uploads/default-logo.png",
       faviconUrl: "/uploads/default-icon-light-32x32.png",
       contactEmail: "info@absons.net",
       contactPhone: "+92 XXX XXXXXXX",
