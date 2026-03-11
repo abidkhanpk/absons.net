@@ -106,6 +106,33 @@ model TrainingCourse {
   @@map("training_courses")
 }
 
+model Product {
+  id           String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  title        String
+  description  String
+  icon         String?
+  isActive     Boolean  @default(true) @map("is_active")
+  displayOrder Int      @default(0) @map("display_order")
+  createdAt    DateTime @default(now()) @db.Timestamptz(6) @map("created_at")
+  updatedAt    DateTime @default(now()) @db.Timestamptz(6) @map("updated_at")
+
+  @@map("products")
+}
+
+model PricingPlan {
+  id           String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name         String
+  price        String
+  period       String?  @default("/month")
+  features     Json?
+  isActive     Boolean  @default(true) @map("is_active")
+  displayOrder Int      @default(0) @map("display_order")
+  createdAt    DateTime @default(now()) @db.Timestamptz(6) @map("created_at")
+  updatedAt    DateTime @default(now()) @db.Timestamptz(6) @map("updated_at")
+
+  @@map("pricing_plans")
+}
+
 model Testimonial {
   id             String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   clientName     String   @map("client_name")

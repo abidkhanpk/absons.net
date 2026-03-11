@@ -5,7 +5,7 @@ import { Card, CardContent } from "@/components/ui/card"
 import { Carousel, CarouselContent, CarouselItem } from "@/components/ui/carousel"
 import Link from "next/link"
 import { Fragment } from "react"
-import { GraduationCap, BookOpen, School, Award, Activity, Package, ArrowRight, Star } from "lucide-react"
+import { GraduationCap, BookOpen, School, Award, Activity, Package, ArrowRight, Star, Check } from "lucide-react"
 import { prisma } from "@/lib/prisma"
 import { getSiteSettings } from "@/lib/site-settings"
 import { HeroSlider } from "@/components/hero-slider"
@@ -70,9 +70,28 @@ export default async function HomePage() {
       console.error("Failed to load training courses, using empty list:", error)
       return []
     })
+  const products = await prisma.product
+    .findMany({
+      where: { isActive: true },
+      orderBy: { displayOrder: "asc" },
+      take: 6,
+    })
+    .catch((error) => {
+      console.error("Failed to load products, using empty list:", error)
+      return []
+    })
+  const pricingPlans = await prisma.pricingPlan
+    .findMany({
+      where: { isActive: true },
+      orderBy: { displayOrder: "asc" },
+      take: 6,
+    })
+    .catch((error) => {
+      console.error("Failed to load pricing plans, using empty list:", error)
+      return []
+    })
 
   const siteSettings = await getSiteSettings()
-
   const homeSectionBlocks = {
     services: (
       <section className="py-20 bg-background">
@@ -110,6 +129,127 @@ export default async function HomePage() {
             <Button asChild variant="outline" size="lg">
               <Link href="/services">View All Services</Link>
             </Button>
+          </div>
+        </div>
+      </section>
+    ),
+    products: (
+      <section className="py-20 bg-muted/30">
+        <div className="container mx-auto px-4 lg:px-8">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl md:text-4xl font-bold mb-4">Our Products</h2>
+            <p className="text-lg text-muted-foreground max-w-2xl mx-auto text-pretty leading-relaxed">
+              Ready-to-deploy products that help your teams launch faster and operate with confidence.
+            </p>
+          </div>
+
+          <div className="grid md:grid-cols-3 gap-6">
+            {(products.length > 0
+              ? products.map((product) => ({
+                  id: product.id,
+                  title: product.title,
+                  description: product.description,
+                }))
+              : [
+                  {
+                    id: "fallback-product-1",
+                    title: "Education Suite",
+                    description: "Admissions, attendance, exams, and fee tracking designed for schools and institutions.",
+                  },
+                  {
+                    id: "fallback-product-2",
+                    title: "Operations Dashboard",
+                    description: "One place to monitor workflows, team activity, and key performance indicators.",
+                  },
+                  {
+                    id: "fallback-product-3",
+                    title: "Reporting Toolkit",
+                    description: "Actionable analytics and export-ready reports for leadership and stakeholders.",
+                  },
+                ]).map((product) => (
+              <Card key={product.id} className="border-border hover:shadow-lg transition-shadow">
+                <CardContent className="p-6 space-y-4">
+                  <h3 className="text-xl font-semibold">{product.title}</h3>
+                  <p className="text-muted-foreground leading-relaxed">{product.description}</p>
+                  <Button asChild variant="link" className="p-0">
+                    <Link href="/products">
+                      Explore product <ArrowRight className="ml-2 h-4 w-4" />
+                    </Link>
+                  </Button>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </div>
+      </section>
+    ),
+    pricing: (
+      <section className="py-20 bg-background">
+        <div className="container mx-auto px-4 lg:px-8">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl md:text-4xl font-bold mb-4">Pricing</h2>
+            <p className="text-lg text-muted-foreground max-w-2xl mx-auto text-pretty leading-relaxed">
+              Transparent plans for organizations at different stages, with support included.
+            </p>
+          </div>
+
+          <div className="grid md:grid-cols-3 gap-6">
+            {(pricingPlans.length > 0
+              ? pricingPlans.map((plan) => ({
+                  id: plan.id,
+                  name: plan.name,
+                  price: plan.price,
+                  period: plan.period || "",
+                  features: Array.isArray(plan.features)
+                    ? plan.features.map((entry) => String(entry)).slice(0, 4)
+                    : ["Contact us for full plan details"],
+                }))
+              : [
+                  {
+                    id: "fallback-pricing-1",
+                    name: "Starter",
+                    price: "PKR 25,000",
+                    period: "/month",
+                    features: ["Core modules", "Email support", "Monthly reporting"],
+                  },
+                  {
+                    id: "fallback-pricing-2",
+                    name: "Growth",
+                    price: "PKR 55,000",
+                    period: "/month",
+                    features: ["Everything in Starter", "Advanced workflows", "Priority support"],
+                  },
+                  {
+                    id: "fallback-pricing-3",
+                    name: "Enterprise",
+                    price: "Custom",
+                    period: "",
+                    features: ["Custom integrations", "Dedicated account team", "On-site training"],
+                  },
+                ]).map((plan) => (
+              <Card key={plan.id} className="border-border hover:shadow-lg transition-shadow">
+                <CardContent className="p-6 space-y-5">
+                  <div>
+                    <h3 className="text-xl font-semibold">{plan.name}</h3>
+                    <p className="mt-2 text-2xl font-bold">
+                      {plan.price}
+                      {plan.period && <span className="text-sm font-normal text-muted-foreground">{plan.period}</span>}
+                    </p>
+                  </div>
+                  <ul className="space-y-2">
+                    {plan.features.map((feature) => (
+                      <li key={feature} className="flex items-start gap-2 text-sm text-muted-foreground">
+                        <Check className="h-4 w-4 mt-0.5 text-primary" />
+                        <span>{feature}</span>
+                      </li>
+                    ))}
+                  </ul>
+                  <Button asChild variant="outline" className="w-full">
+                    <Link href="/pricing">View Plan</Link>
+                  </Button>
+                </CardContent>
+              </Card>
+            ))}
           </div>
         </div>
       </section>

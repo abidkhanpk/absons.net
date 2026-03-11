@@ -409,6 +409,81 @@ async function main() {
     })
   }
 
+  const products = [
+    {
+      id: "d0a4b8c1-9f3e-4d77-bf52-9ec2cfcb56a1",
+      title: "Education Suite",
+      description: "Admissions, attendance, exams, and fee tracking designed for schools and institutions.",
+      icon: "School",
+      isActive: true,
+      displayOrder: 1,
+    },
+    {
+      id: "e3f84c2d-62b7-4db1-a0dd-1b177a76d1d8",
+      title: "Operations Dashboard",
+      description: "One place to monitor workflows, team activity, and key performance indicators.",
+      icon: "Activity",
+      isActive: true,
+      displayOrder: 2,
+    },
+    {
+      id: "f47f6570-0dc3-4cc0-9a38-59495f9d1732",
+      title: "Reporting Toolkit",
+      description: "Actionable analytics and export-ready reports for leadership and stakeholders.",
+      icon: "BookOpen",
+      isActive: true,
+      displayOrder: 3,
+    },
+  ]
+
+  for (const product of products) {
+    const { id, ...data } = product
+    await prisma.product.upsert({
+      where: { id },
+      update: data,
+      create: product,
+    })
+  }
+
+  const pricingPlans = [
+    {
+      id: "8071ea64-8df9-4ec1-b07e-54bbce4cde5a",
+      name: "Starter",
+      price: "PKR 25,000",
+      period: "/month",
+      features: ["Core modules", "Email support", "Monthly reporting"],
+      isActive: true,
+      displayOrder: 1,
+    },
+    {
+      id: "f40c8580-5cb9-4be7-9608-82db9205e9ec",
+      name: "Growth",
+      price: "PKR 55,000",
+      period: "/month",
+      features: ["Everything in Starter", "Advanced workflows", "Priority support"],
+      isActive: true,
+      displayOrder: 2,
+    },
+    {
+      id: "1f0df9ba-a95f-4064-8a4f-9f17374f50a4",
+      name: "Enterprise",
+      price: "Custom",
+      period: "",
+      features: ["Custom integrations", "Dedicated account team", "On-site training"],
+      isActive: true,
+      displayOrder: 3,
+    },
+  ]
+
+  for (const plan of pricingPlans) {
+    const { id, ...data } = plan
+    await prisma.pricingPlan.upsert({
+      where: { id },
+      update: data,
+      create: plan,
+    })
+  }
+
   const blogPosts = [
     {
       id: "b3e7c2d5-8f1a-4c9e-9d6b-2a3f4e5c6d7a",

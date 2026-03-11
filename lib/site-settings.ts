@@ -62,7 +62,7 @@ export type NavItem = {
 }
 
 export type HomeSection = {
-  id: "services" | "training" | "testimonials" | "why-choose"
+  id: "services" | "products" | "pricing" | "training" | "testimonials" | "why-choose"
   enabled: boolean
 }
 
@@ -176,6 +176,8 @@ const defaultSettings: SiteSettings = {
   ],
   homeSections: [
     { id: "services", enabled: true },
+    { id: "products", enabled: true },
+    { id: "pricing", enabled: true },
     { id: "training", enabled: true },
     { id: "testimonials", enabled: true },
     { id: "why-choose", enabled: true },
@@ -400,19 +402,23 @@ function parseNavItemsGroup(raw: unknown) {
 
 function parseHomeSections(
   raw: unknown,
-  fallback: { services: boolean; training: boolean; testimonials: boolean; whyChoose: boolean },
+  fallback: Record<HomeSection["id"], boolean>,
 ): HomeSection[] {
+  const defaultHomeSections: HomeSection[] = [
+    { id: "services", enabled: fallback.services },
+    { id: "products", enabled: fallback.products },
+    { id: "pricing", enabled: fallback.pricing },
+    { id: "training", enabled: fallback.training },
+    { id: "testimonials", enabled: fallback.testimonials },
+    { id: "why-choose", enabled: fallback["why-choose"] },
+  ]
+
   try {
     const parsed = Array.isArray(raw) ? raw : raw ? JSON.parse(String(raw)) : []
     if (!Array.isArray(parsed)) {
-      return [
-        { id: "services", enabled: fallback.services },
-        { id: "training", enabled: fallback.training },
-        { id: "testimonials", enabled: fallback.testimonials },
-        { id: "why-choose", enabled: fallback.whyChoose },
-      ]
+      return defaultHomeSections
     }
-    const allowed: HomeSection["id"][] = ["services", "training", "testimonials", "why-choose"]
+    const allowed: HomeSection["id"][] = ["services", "products", "pricing", "training", "testimonials", "why-choose"]
     const normalized: HomeSection[] = []
     const seen = new Set<string>()
     parsed.forEach((entry) => {
@@ -431,12 +437,7 @@ function parseHomeSections(
     })
     return normalized
   } catch {
-    return [
-      { id: "services", enabled: fallback.services },
-      { id: "training", enabled: fallback.training },
-      { id: "testimonials", enabled: fallback.testimonials },
-      { id: "why-choose", enabled: fallback.whyChoose },
-    ]
+    return defaultHomeSections
   }
 }
 
@@ -521,9 +522,11 @@ export async function getSiteSettings(): Promise<SiteSettings> {
 
     const fallbackHomeVisibility = {
       services: settings.showServices ?? defaultSettings.showServices,
+      products: true,
+      pricing: true,
       training: settings.showTraining ?? defaultSettings.showTraining,
       testimonials: settings.showTestimonials ?? defaultSettings.showTestimonials,
-      whyChoose: true,
+      "why-choose": true,
     }
     const homeSections = parseHomeSections(settings.homeSections, fallbackHomeVisibility)
     const resolvedVisibility = homeSections.reduce(
@@ -533,9 +536,11 @@ export async function getSiteSettings(): Promise<SiteSettings> {
       },
       {
         services: fallbackHomeVisibility.services,
+        products: fallbackHomeVisibility.products,
+        pricing: fallbackHomeVisibility.pricing,
         training: fallbackHomeVisibility.training,
         testimonials: fallbackHomeVisibility.testimonials,
-        "why-choose": fallbackHomeVisibility.whyChoose,
+        "why-choose": fallbackHomeVisibility["why-choose"],
       },
     )
 

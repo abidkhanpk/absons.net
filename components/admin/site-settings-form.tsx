@@ -117,7 +117,7 @@ type NavItem = {
 }
 
 type HomeSection = {
-  id: "services" | "training" | "testimonials" | "why-choose"
+  id: "services" | "products" | "pricing" | "training" | "testimonials" | "why-choose"
   enabled: boolean
 }
 
@@ -257,27 +257,26 @@ function safeParseNavItemsGroup(raw: string | null | undefined, fallback: NavIte
 
 function safeParseHomeSections(
   raw: string | null | undefined,
-  fallback: { services: boolean; training: boolean; testimonials: boolean; whyChoose: boolean },
+  fallback: Record<HomeSection["id"], boolean>,
 ): HomeSection[] {
+  const defaultHomeSections: HomeSection[] = [
+    { id: "services", enabled: fallback.services },
+    { id: "products", enabled: fallback.products },
+    { id: "pricing", enabled: fallback.pricing },
+    { id: "training", enabled: fallback.training },
+    { id: "testimonials", enabled: fallback.testimonials },
+    { id: "why-choose", enabled: fallback["why-choose"] },
+  ]
+
   if (!raw) {
-    return [
-      { id: "services", enabled: fallback.services },
-      { id: "training", enabled: fallback.training },
-      { id: "testimonials", enabled: fallback.testimonials },
-      { id: "why-choose", enabled: fallback.whyChoose },
-    ]
+    return defaultHomeSections
   }
   try {
     const parsed = JSON.parse(raw)
     if (!Array.isArray(parsed)) {
-      return [
-        { id: "services", enabled: fallback.services },
-        { id: "training", enabled: fallback.training },
-        { id: "testimonials", enabled: fallback.testimonials },
-        { id: "why-choose", enabled: fallback.whyChoose },
-      ]
+      return defaultHomeSections
     }
-    const allowed: HomeSection["id"][] = ["services", "training", "testimonials", "why-choose"]
+    const allowed: HomeSection["id"][] = ["services", "products", "pricing", "training", "testimonials", "why-choose"]
     const normalized: HomeSection[] = []
     const seen = new Set<string>()
     parsed.forEach((entry) => {
@@ -286,28 +285,18 @@ function safeParseHomeSections(
       if (!allowed.includes(id) || seen.has(id)) return
       normalized.push({
         id,
-        enabled:
-          typeof entry.enabled === "boolean"
-            ? entry.enabled
-            : id === "why-choose"
-              ? fallback.whyChoose
-              : fallback[id],
+        enabled: typeof entry.enabled === "boolean" ? entry.enabled : fallback[id],
       })
       seen.add(id)
     })
     allowed.forEach((id) => {
       if (!seen.has(id)) {
-        normalized.push({ id, enabled: id === "why-choose" ? fallback.whyChoose : fallback[id] })
+        normalized.push({ id, enabled: fallback[id] })
       }
     })
     return normalized
   } catch {
-    return [
-      { id: "services", enabled: fallback.services },
-      { id: "training", enabled: fallback.training },
-      { id: "testimonials", enabled: fallback.testimonials },
-      { id: "why-choose", enabled: fallback.whyChoose },
-    ]
+    return defaultHomeSections
   }
 }
 
@@ -362,9 +351,11 @@ export function SiteSettingsForm({ initial, pages }: { initial: SiteSettings; pa
   const defaultNavItemIds = new Set(defaultNavItems.map((item) => item.id))
   const defaultHomeFallback = {
     services: initial.show_services ?? true,
+    products: true,
+    pricing: true,
     training: initial.show_training ?? true,
     testimonials: initial.show_testimonials ?? true,
-    whyChoose: true,
+    "why-choose": true,
   }
   const defaultWhyChooseItems: WhyChooseItem[] = [
     { title: "Proven Expertise", description: "Years of experience delivering quality solutions", icon: "check" },
@@ -805,6 +796,10 @@ export function SiteSettingsForm({ initial, pages }: { initial: SiteSettings; pa
                   const label =
                     section.id === "services"
                       ? "Services"
+                      : section.id === "products"
+                        ? "Products"
+                        : section.id === "pricing"
+                          ? "Pricing"
                       : section.id === "training"
                         ? "Training"
                         : section.id === "testimonials"
