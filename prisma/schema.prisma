@@ -23,6 +23,8 @@ model Service {
   title        String
   description  String
   icon         String?
+  imageUrl     String?  @map("image_url")
+  linkUrl      String?  @map("link_url")
   category     String
   isFeatured   Boolean  @default(false) @map("is_featured")
   displayOrder Int      @default(0) @map("display_order")
@@ -98,6 +100,7 @@ model TrainingCourse {
   level         String?
   provider      String?  @default("Mobius Institute")
   featuredImage String?  @map("featured_image")
+  linkUrl       String?  @map("link_url")
   isActive      Boolean  @default(true) @map("is_active")
   displayOrder  Int      @default(0) @map("display_order")
   createdAt     DateTime @default(now()) @db.Timestamptz(6) @map("created_at")
@@ -111,6 +114,8 @@ model Product {
   title        String
   description  String
   icon         String?
+  imageUrl     String?  @map("image_url")
+  linkUrl      String?  @map("link_url")
   isActive     Boolean  @default(true) @map("is_active")
   displayOrder Int      @default(0) @map("display_order")
   createdAt    DateTime @default(now()) @db.Timestamptz(6) @map("created_at")

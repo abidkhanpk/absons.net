@@ -26,6 +26,9 @@ export async function generateMetadata() {
 }
 
 export default async function ProductsPage() {
+  const resolveItemLink = (link: string | null | undefined, fallback: string) =>
+    typeof link === "string" && link.trim() ? link.trim() : fallback
+
   const [products, siteSettings] = await Promise.all([
     prisma.product.findMany({
       where: { isActive: true },
@@ -59,9 +62,17 @@ export default async function ProductsPage() {
                   return (
                     <Card key={product.id} className="border-border hover:shadow-lg transition-shadow">
                       <CardContent className="p-6 space-y-4">
-                        <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-primary/10 text-primary">
-                          <IconComponent className="h-6 w-6" />
-                        </div>
+                        {product.imageUrl ? (
+                          <img
+                            src={product.imageUrl}
+                            alt={product.title}
+                            className="w-full h-44 object-cover rounded-md border border-border/60"
+                          />
+                        ) : (
+                          <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-primary/10 text-primary">
+                            <IconComponent className="h-6 w-6" />
+                          </div>
+                        )}
                         <h3 className="text-xl font-semibold">{product.title}</h3>
                         <p className="text-muted-foreground leading-relaxed">{product.description}</p>
                         <ul className="space-y-2">
@@ -78,6 +89,11 @@ export default async function ProductsPage() {
                             <span className="text-muted-foreground">Role-based access support</span>
                           </li>
                         </ul>
+                        <Button asChild variant="outline" className="w-full bg-transparent">
+                          <Link href={resolveItemLink(product.linkUrl, "/products")}>
+                            Learn more <ArrowRight className="ml-2 h-4 w-4" />
+                          </Link>
+                        </Button>
                       </CardContent>
                     </Card>
                   )

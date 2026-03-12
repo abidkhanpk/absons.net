@@ -33,6 +33,9 @@ export async function generateMetadata() {
 }
 
 export default async function ServicesPage() {
+  const resolveItemLink = (link: string | null | undefined, fallback: string) =>
+    typeof link === "string" && link.trim() ? link.trim() : fallback
+
   const services = await prisma.service.findMany({ orderBy: { displayOrder: "asc" } })
   const siteSettings = await getSiteSettings()
 
@@ -74,9 +77,17 @@ export default async function ServicesPage() {
                   return (
                     <Card key={service.id} className="border-border hover:shadow-lg transition-shadow">
                       <CardContent className="p-6 space-y-4">
-                        <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-primary/10 text-primary">
-                          <IconComponent className="h-6 w-6" />
-                        </div>
+                        {service.imageUrl ? (
+                          <img
+                            src={service.imageUrl}
+                            alt={service.title}
+                            className="w-full h-44 object-cover rounded-md border border-border/60"
+                          />
+                        ) : (
+                          <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-primary/10 text-primary">
+                            <IconComponent className="h-6 w-6" />
+                          </div>
+                        )}
                         <h3 className="text-xl font-semibold">{service.title}</h3>
                         <p className="text-muted-foreground leading-relaxed">{service.description}</p>
                         <ul className="space-y-2">
@@ -93,6 +104,11 @@ export default async function ServicesPage() {
                             <span className="text-muted-foreground">Progress monitoring & assessment</span>
                           </li>
                         </ul>
+                        <Button asChild variant="outline" className="w-full bg-transparent">
+                          <Link href={resolveItemLink(service.linkUrl, "/services")}>
+                            Learn more <ArrowRight className="ml-2 h-4 w-4" />
+                          </Link>
+                        </Button>
                       </CardContent>
                     </Card>
                   )
@@ -119,9 +135,17 @@ export default async function ServicesPage() {
                   return (
                     <Card key={service.id} className="border-border hover:shadow-lg transition-shadow">
                       <CardContent className="p-6 space-y-4">
-                        <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-accent/10 text-accent">
-                          <IconComponent className="h-6 w-6" />
-                        </div>
+                        {service.imageUrl ? (
+                          <img
+                            src={service.imageUrl}
+                            alt={service.title}
+                            className="w-full h-44 object-cover rounded-md border border-border/60"
+                          />
+                        ) : (
+                          <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-accent/10 text-accent">
+                            <IconComponent className="h-6 w-6" />
+                          </div>
+                        )}
                         <h3 className="text-xl font-semibold">{service.title}</h3>
                         <p className="text-muted-foreground leading-relaxed">{service.description}</p>
                         <ul className="space-y-2">
@@ -139,8 +163,8 @@ export default async function ServicesPage() {
                           </li>
                         </ul>
                         <Button asChild variant="outline" className="w-full bg-transparent">
-                          <Link href="/training">
-                            View Training Programs <ArrowRight className="ml-2 h-4 w-4" />
+                          <Link href={resolveItemLink(service.linkUrl, "/training")}>
+                            Learn more <ArrowRight className="ml-2 h-4 w-4" />
                           </Link>
                         </Button>
                       </CardContent>
@@ -169,9 +193,17 @@ export default async function ServicesPage() {
                   return (
                     <Card key={service.id} className="border-border hover:shadow-lg transition-shadow">
                       <CardContent className="p-6 space-y-4">
-                        <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-primary/10 text-primary">
-                          <IconComponent className="h-6 w-6" />
-                        </div>
+                        {service.imageUrl ? (
+                          <img
+                            src={service.imageUrl}
+                            alt={service.title}
+                            className="w-full h-44 object-cover rounded-md border border-border/60"
+                          />
+                        ) : (
+                          <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-primary/10 text-primary">
+                            <IconComponent className="h-6 w-6" />
+                          </div>
+                        )}
                         <h3 className="text-xl font-semibold">{service.title}</h3>
                         <p className="text-muted-foreground leading-relaxed">{service.description}</p>
                         <ul className="space-y-2">
@@ -188,6 +220,11 @@ export default async function ServicesPage() {
                             <span className="text-muted-foreground">Supply chain optimization</span>
                           </li>
                         </ul>
+                        <Button asChild variant="outline" className="w-full bg-transparent">
+                          <Link href={resolveItemLink(service.linkUrl, "/services")}>
+                            Learn more <ArrowRight className="ml-2 h-4 w-4" />
+                          </Link>
+                        </Button>
                       </CardContent>
                     </Card>
                   )

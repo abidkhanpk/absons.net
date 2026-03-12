@@ -40,6 +40,9 @@ const iconMap = {
 }
 
 export default async function HomePage() {
+  const resolveItemLink = (link: string | null | undefined, fallback: string) =>
+    typeof link === "string" && link.trim() ? link.trim() : fallback
+
   const services = await prisma.service
     .findMany({
       where: { isFeatured: true },
@@ -109,13 +112,21 @@ export default async function HomePage() {
               return (
                 <Card key={service.id} className="border-border hover:shadow-lg transition-shadow">
                   <CardContent className="p-6 space-y-4">
-                    <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-primary/10 text-primary">
-                      <IconComponent className="h-6 w-6" />
-                    </div>
+                    {service.imageUrl ? (
+                      <img
+                        src={service.imageUrl}
+                        alt={service.title}
+                        className="w-full h-44 object-cover rounded-md border border-border/60"
+                      />
+                    ) : (
+                      <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-primary/10 text-primary">
+                        <IconComponent className="h-6 w-6" />
+                      </div>
+                    )}
                     <h3 className="text-xl font-semibold">{service.title}</h3>
                     <p className="text-muted-foreground leading-relaxed">{service.description}</p>
                     <Button asChild variant="link" className="p-0">
-                      <Link href="/services">
+                      <Link href={resolveItemLink(service.linkUrl, "/services")}>
                         Learn more <ArrowRight className="ml-2 h-4 w-4" />
                       </Link>
                     </Button>
@@ -149,30 +160,45 @@ export default async function HomePage() {
                   id: product.id,
                   title: product.title,
                   description: product.description,
+                  imageUrl: product.imageUrl,
+                  linkUrl: product.linkUrl,
                 }))
               : [
                   {
                     id: "fallback-product-1",
                     title: "Education Suite",
                     description: "Admissions, attendance, exams, and fee tracking designed for schools and institutions.",
+                    imageUrl: "",
+                    linkUrl: "/products",
                   },
                   {
                     id: "fallback-product-2",
                     title: "Operations Dashboard",
                     description: "One place to monitor workflows, team activity, and key performance indicators.",
+                    imageUrl: "",
+                    linkUrl: "/products",
                   },
                   {
                     id: "fallback-product-3",
                     title: "Reporting Toolkit",
                     description: "Actionable analytics and export-ready reports for leadership and stakeholders.",
+                    imageUrl: "",
+                    linkUrl: "/products",
                   },
                 ]).map((product) => (
               <Card key={product.id} className="border-border hover:shadow-lg transition-shadow">
                 <CardContent className="p-6 space-y-4">
+                  {product.imageUrl ? (
+                    <img
+                      src={product.imageUrl}
+                      alt={product.title}
+                      className="w-full h-44 object-cover rounded-md border border-border/60"
+                    />
+                  ) : null}
                   <h3 className="text-xl font-semibold">{product.title}</h3>
                   <p className="text-muted-foreground leading-relaxed">{product.description}</p>
                   <Button asChild variant="link" className="p-0">
-                    <Link href="/products">
+                    <Link href={resolveItemLink(product.linkUrl, "/products")}>
                       Explore product <ArrowRight className="ml-2 h-4 w-4" />
                     </Link>
                   </Button>
@@ -268,6 +294,13 @@ export default async function HomePage() {
               {trainings.map((course) => (
                 <Card key={course.id} className="border-border hover:shadow-lg transition-shadow">
                   <CardContent className="p-6 space-y-4">
+                    {course.featuredImage ? (
+                      <img
+                        src={course.featuredImage}
+                        alt={course.title}
+                        className="w-full h-44 object-cover rounded-md border border-border/60"
+                      />
+                    ) : null}
                     <h3 className="text-xl font-semibold">{course.title}</h3>
                     <p className="text-muted-foreground leading-relaxed">{course.description}</p>
                     <div className="flex items-center gap-4 text-sm text-muted-foreground">
@@ -275,7 +308,7 @@ export default async function HomePage() {
                       {course.level && <span>Level: {course.level}</span>}
                     </div>
                     <Button asChild variant="link" className="p-0">
-                      <Link href="/training">
+                      <Link href={resolveItemLink(course.linkUrl, "/training")}>
                         Learn more <ArrowRight className="ml-2 h-4 w-4" />
                       </Link>
                     </Button>

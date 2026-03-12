@@ -26,6 +26,9 @@ export async function generateMetadata() {
 }
 
 export default async function TrainingPage() {
+  const resolveItemLink = (link: string | null | undefined, fallback: string) =>
+    typeof link === "string" && link.trim() ? link.trim() : fallback
+
   const courses = await prisma.trainingCourse.findMany({
     where: { isActive: true },
     orderBy: { displayOrder: "asc" },
@@ -84,6 +87,13 @@ export default async function TrainingPage() {
                   <CardContent className="p-6 md:p-8">
                     <div className="grid md:grid-cols-4 gap-6">
                       <div className="md:col-span-3 space-y-4">
+                        {course.featuredImage ? (
+                          <img
+                            src={course.featuredImage}
+                            alt={course.title}
+                            className="w-full h-52 object-cover rounded-md border border-border/60"
+                          />
+                        ) : null}
                         <div className="flex flex-wrap items-center gap-3">
                           <h3 className="text-2xl font-bold">{course.title}</h3>
                           <Badge variant="secondary">{course.level}</Badge>
@@ -106,7 +116,7 @@ export default async function TrainingPage() {
                       </div>
                       <div className="flex items-center">
                         <Button asChild className="w-full md:w-auto">
-                          <Link href="/contact">Enroll Now</Link>
+                          <Link href={resolveItemLink(course.linkUrl, "/contact")}>Enroll Now</Link>
                         </Button>
                       </div>
                     </div>

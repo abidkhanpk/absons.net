@@ -16,7 +16,9 @@ type Service = {
   id: string
   title: string
   description: string
-  icon: string
+  icon: string | null
+  imageUrl?: string | null
+  linkUrl?: string | null
   category: string
   isFeatured: boolean
   displayOrder: number
@@ -29,6 +31,8 @@ export function ServiceForm({ service }: { service?: Service }) {
     title: service?.title || "",
     description: service?.description || "",
     icon: service?.icon || "Package",
+    image_url: service?.imageUrl || "",
+    link_url: service?.linkUrl || "",
     category: service?.category || "education",
     is_featured: service?.isFeatured || false,
     display_order: service?.displayOrder || 0,
@@ -124,6 +128,28 @@ export function ServiceForm({ service }: { service?: Service }) {
                   <SelectItem value="supply">Supply</SelectItem>
                 </SelectContent>
               </Select>
+            </div>
+          </div>
+
+          <div className="grid md:grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="image_url">Custom Image URL</Label>
+              <Input
+                id="image_url"
+                value={formData.image_url}
+                onChange={(e) => setFormData({ ...formData, image_url: e.target.value })}
+                placeholder="https://example.com/image.jpg"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="link_url">Custom Link URL</Label>
+              <Input
+                id="link_url"
+                value={formData.link_url}
+                onChange={(e) => setFormData({ ...formData, link_url: e.target.value })}
+                placeholder="/services/custom-service or https://example.com/page"
+              />
+              <p className="text-xs text-muted-foreground">Relative (`/path`) or absolute (`https://...`) URL.</p>
             </div>
           </div>
 

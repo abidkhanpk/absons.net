@@ -16,12 +16,13 @@ type TrainingCourse = {
   id: string
   title: string
   description: string
-  duration: string
-  level: string
-  provider: string
+  duration: string | null
+  level: string | null
+  provider: string | null
   isActive: boolean
   displayOrder: number
-  featuredImage?: string
+  featuredImage?: string | null
+  linkUrl?: string | null
 }
 
 export function TrainingForm({ course }: { course?: TrainingCourse }) {
@@ -36,6 +37,7 @@ export function TrainingForm({ course }: { course?: TrainingCourse }) {
     is_active: course?.isActive !== undefined ? course.isActive : true,
     display_order: course?.displayOrder ?? 0,
     featured_image: course?.featuredImage || "",
+    link_url: course?.linkUrl || "",
   })
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -141,14 +143,26 @@ export function TrainingForm({ course }: { course?: TrainingCourse }) {
             </div>
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="featured_image">Featured Image URL</Label>
-            <Input
-              id="featured_image"
-              value={formData.featured_image}
-              onChange={(e) => setFormData({ ...formData, featured_image: e.target.value })}
-              placeholder="https://example.com/image.jpg"
-            />
+          <div className="grid md:grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="featured_image">Custom Image URL</Label>
+              <Input
+                id="featured_image"
+                value={formData.featured_image}
+                onChange={(e) => setFormData({ ...formData, featured_image: e.target.value })}
+                placeholder="https://example.com/image.jpg"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="link_url">Custom Link URL</Label>
+              <Input
+                id="link_url"
+                value={formData.link_url}
+                onChange={(e) => setFormData({ ...formData, link_url: e.target.value })}
+                placeholder="/training/custom-course or https://example.com/page"
+              />
+              <p className="text-xs text-muted-foreground">Relative (`/path`) or absolute (`https://...`) URL.</p>
+            </div>
           </div>
 
           <div className="flex items-center space-x-2">

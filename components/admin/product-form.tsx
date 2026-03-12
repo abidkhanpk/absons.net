@@ -16,6 +16,8 @@ type Product = {
   title: string
   description: string
   icon: string | null
+  imageUrl?: string | null
+  linkUrl?: string | null
   isActive: boolean
   displayOrder: number
 }
@@ -27,6 +29,8 @@ export function ProductForm({ product }: { product?: Product }) {
     title: product?.title || "",
     description: product?.description || "",
     icon: product?.icon || "Package",
+    image_url: product?.imageUrl || "",
+    link_url: product?.linkUrl || "",
     is_active: product?.isActive !== undefined ? product.isActive : true,
     display_order: product?.displayOrder ?? 0,
   })
@@ -108,6 +112,28 @@ export function ProductForm({ product }: { product?: Product }) {
                 value={formData.display_order}
                 onChange={(e) => setFormData({ ...formData, display_order: Number.parseInt(e.target.value) || 0 })}
               />
+            </div>
+          </div>
+
+          <div className="grid md:grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="image_url">Custom Image URL</Label>
+              <Input
+                id="image_url"
+                value={formData.image_url}
+                onChange={(e) => setFormData({ ...formData, image_url: e.target.value })}
+                placeholder="https://example.com/image.jpg"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="link_url">Custom Link URL</Label>
+              <Input
+                id="link_url"
+                value={formData.link_url}
+                onChange={(e) => setFormData({ ...formData, link_url: e.target.value })}
+                placeholder="/products/custom-item or https://example.com/page"
+              />
+              <p className="text-xs text-muted-foreground">Relative (`/path`) or absolute (`https://...`) URL.</p>
             </div>
           </div>
 
