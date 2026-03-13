@@ -9,6 +9,7 @@ import { prisma } from "@/lib/prisma"
 import { getSiteSettings } from "@/lib/site-settings"
 import { HeroSlider } from "@/components/hero-slider"
 import { WhyChooseSectionClient } from "@/components/home/why-choose-section-client"
+import { ScrollingLoop } from "@/components/home/scrolling-loop"
 import { buildSeoMetadata } from "@/lib/seo"
 
 // Ensure the homepage is served dynamically so it can gracefully handle missing data in production
@@ -104,6 +105,8 @@ export default async function HomePage() {
       itemsLayout: "grid" | "scroll"
       mobileLayout: "match" | "grid" | "scroll"
       scrollSpeed: number
+      pauseOnHover: boolean
+      dragEnabled: boolean
     }
   > = {
     services: {
@@ -112,6 +115,8 @@ export default async function HomePage() {
       itemsLayout: "grid",
       mobileLayout: "match",
       scrollSpeed: 30,
+      pauseOnHover: true,
+      dragEnabled: true,
     },
     products: {
       title: "Our Products",
@@ -119,6 +124,8 @@ export default async function HomePage() {
       itemsLayout: "grid",
       mobileLayout: "match",
       scrollSpeed: 30,
+      pauseOnHover: true,
+      dragEnabled: true,
     },
     pricing: {
       title: "Pricing",
@@ -126,6 +133,8 @@ export default async function HomePage() {
       itemsLayout: "grid",
       mobileLayout: "match",
       scrollSpeed: 30,
+      pauseOnHover: true,
+      dragEnabled: true,
     },
     training: {
       title: "Training Programs",
@@ -133,6 +142,8 @@ export default async function HomePage() {
       itemsLayout: "grid",
       mobileLayout: "match",
       scrollSpeed: 30,
+      pauseOnHover: true,
+      dragEnabled: true,
     },
     testimonials: {
       title: "What Our Clients Say",
@@ -140,6 +151,8 @@ export default async function HomePage() {
       itemsLayout: "grid",
       mobileLayout: "match",
       scrollSpeed: 30,
+      pauseOnHover: true,
+      dragEnabled: true,
     },
     "why-choose": {
       title: "Why Choose Us",
@@ -147,6 +160,8 @@ export default async function HomePage() {
       itemsLayout: "grid",
       mobileLayout: "match",
       scrollSpeed: siteSettings.whyChooseScrollSpeed || 30,
+      pauseOnHover: true,
+      dragEnabled: true,
     },
   }
   const sectionConfigMap = new Map(siteSettings.homeSections.map((section) => [section.id, section]))
@@ -160,6 +175,8 @@ export default async function HomePage() {
             itemsLayout: siteSettings.whyChooseLayout || defaultSectionConfig[id].itemsLayout,
             mobileLayout: siteSettings.whyChooseMobileLayout || defaultSectionConfig[id].mobileLayout,
             scrollSpeed: siteSettings.whyChooseScrollSpeed || defaultSectionConfig[id].scrollSpeed,
+            pauseOnHover: defaultSectionConfig[id].pauseOnHover,
+            dragEnabled: defaultSectionConfig[id].dragEnabled,
           }
         : defaultSectionConfig[id]
     return {
@@ -174,6 +191,8 @@ export default async function HomePage() {
         typeof section?.scrollSpeed === "number" && Number.isFinite(section.scrollSpeed)
           ? Math.min(120, Math.max(5, Math.round(section.scrollSpeed)))
           : fallback.scrollSpeed,
+      pauseOnHover: typeof section?.pauseOnHover === "boolean" ? section.pauseOnHover : fallback.pauseOnHover,
+      dragEnabled: typeof section?.dragEnabled === "boolean" ? section.dragEnabled : fallback.dragEnabled,
     }
   }
   const renderSectionItems = <T,>(
@@ -182,7 +201,7 @@ export default async function HomePage() {
     renderCard: (item: T, index: number) => ReactNode,
     keyForItem: (item: T, index: number) => string,
   ) => {
-    const { itemsLayout, mobileLayout, scrollSpeed } = getSectionConfig(sectionId)
+    const { itemsLayout, mobileLayout, scrollSpeed, pauseOnHover, dragEnabled } = getSectionConfig(sectionId)
     const desktopScroll = itemsLayout === "scroll"
     const mobileResolvedLayout = mobileLayout === "match" ? itemsLayout : mobileLayout
     const mobileScroll = mobileResolvedLayout === "scroll"
@@ -190,15 +209,19 @@ export default async function HomePage() {
     const renderScroll = (className: string) => {
       const scrollingItems = items.length > 1 ? [...items, ...items] : items
       return (
-        <div className={className} style={{ ["--home-section-duration" as string]: `${scrollSpeed || 30}s` }}>
-          <div className="home-section-track">
-            {scrollingItems.map((item, index) => (
-              <div key={`${keyForItem(item, index)}-${index}`} className="home-section-scroll-card">
-                {renderCard(item, index)}
-              </div>
-            ))}
-          </div>
-        </div>
+        <ScrollingLoop
+          durationSeconds={scrollSpeed || 30}
+          pauseOnHover={pauseOnHover}
+          dragEnabled={dragEnabled}
+          className={className}
+          trackClassName="home-section-track"
+        >
+          {scrollingItems.map((item, index) => (
+            <div key={`${keyForItem(item, index)}-${index}`} className="home-section-scroll-card">
+              {renderCard(item, index)}
+            </div>
+          ))}
+        </ScrollingLoop>
       )
     }
     const renderGrid = (className: string) => (
@@ -506,6 +529,8 @@ export default async function HomePage() {
         layout={getSectionConfig("why-choose").itemsLayout || siteSettings.whyChooseLayout}
         mobileLayout={getSectionConfig("why-choose").mobileLayout || siteSettings.whyChooseMobileLayout}
         scrollSpeed={siteSettings.whyChooseScrollSpeed}
+        pauseOnHover={getSectionConfig("why-choose").pauseOnHover}
+        dragEnabled={getSectionConfig("why-choose").dragEnabled}
       />
     ),
   }

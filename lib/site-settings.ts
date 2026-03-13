@@ -69,6 +69,8 @@ export type HomeSection = {
   itemsLayout?: "grid" | "scroll"
   mobileLayout?: "match" | "grid" | "scroll"
   scrollSpeed?: number
+  pauseOnHover?: boolean
+  dragEnabled?: boolean
 }
 
 export type HeroSlide = {
@@ -188,6 +190,8 @@ const defaultSettings: SiteSettings = {
       itemsLayout: "grid",
       mobileLayout: "match",
       scrollSpeed: 30,
+      pauseOnHover: true,
+      dragEnabled: true,
     },
     {
       id: "products",
@@ -197,6 +201,8 @@ const defaultSettings: SiteSettings = {
       itemsLayout: "grid",
       mobileLayout: "match",
       scrollSpeed: 30,
+      pauseOnHover: true,
+      dragEnabled: true,
     },
     {
       id: "pricing",
@@ -206,6 +212,8 @@ const defaultSettings: SiteSettings = {
       itemsLayout: "grid",
       mobileLayout: "match",
       scrollSpeed: 30,
+      pauseOnHover: true,
+      dragEnabled: true,
     },
     {
       id: "training",
@@ -215,6 +223,8 @@ const defaultSettings: SiteSettings = {
       itemsLayout: "grid",
       mobileLayout: "match",
       scrollSpeed: 30,
+      pauseOnHover: true,
+      dragEnabled: true,
     },
     {
       id: "testimonials",
@@ -224,6 +234,8 @@ const defaultSettings: SiteSettings = {
       itemsLayout: "grid",
       mobileLayout: "match",
       scrollSpeed: 30,
+      pauseOnHover: true,
+      dragEnabled: true,
     },
     {
       id: "why-choose",
@@ -233,6 +245,8 @@ const defaultSettings: SiteSettings = {
       itemsLayout: "grid",
       mobileLayout: "match",
       scrollSpeed: 30,
+      pauseOnHover: true,
+      dragEnabled: true,
     },
   ],
   businessHoursSchedule: [
@@ -465,6 +479,8 @@ function parseHomeSections(
       itemsLayout: "grid" | "scroll"
       mobileLayout: "match" | "grid" | "scroll"
       scrollSpeed: number
+      pauseOnHover: boolean
+      dragEnabled: boolean
     }
   > = {
     services: {
@@ -473,6 +489,8 @@ function parseHomeSections(
       itemsLayout: "grid",
       mobileLayout: "match",
       scrollSpeed: 30,
+      pauseOnHover: true,
+      dragEnabled: true,
     },
     products: {
       title: "Our Products",
@@ -480,6 +498,8 @@ function parseHomeSections(
       itemsLayout: "grid",
       mobileLayout: "match",
       scrollSpeed: 30,
+      pauseOnHover: true,
+      dragEnabled: true,
     },
     pricing: {
       title: "Pricing",
@@ -487,6 +507,8 @@ function parseHomeSections(
       itemsLayout: "grid",
       mobileLayout: "match",
       scrollSpeed: 30,
+      pauseOnHover: true,
+      dragEnabled: true,
     },
     training: {
       title: "Training Programs",
@@ -494,6 +516,8 @@ function parseHomeSections(
       itemsLayout: "grid",
       mobileLayout: "match",
       scrollSpeed: 30,
+      pauseOnHover: true,
+      dragEnabled: true,
     },
     testimonials: {
       title: "What Our Clients Say",
@@ -501,6 +525,8 @@ function parseHomeSections(
       itemsLayout: "grid",
       mobileLayout: "match",
       scrollSpeed: 30,
+      pauseOnHover: true,
+      dragEnabled: true,
     },
     "why-choose": {
       title: "Why Choose Us",
@@ -508,6 +534,8 @@ function parseHomeSections(
       itemsLayout: "grid",
       mobileLayout: "match",
       scrollSpeed: 30,
+      pauseOnHover: true,
+      dragEnabled: true,
     },
   }
   const defaultHomeSections: HomeSection[] = [
@@ -558,6 +586,14 @@ function parseHomeSections(
           Number.isFinite((entry as { scrollSpeed: number }).scrollSpeed)
             ? Math.min(120, Math.max(5, Math.round((entry as { scrollSpeed: number }).scrollSpeed)))
             : defaultMeta[id].scrollSpeed,
+        pauseOnHover:
+          typeof (entry as { pauseOnHover?: unknown }).pauseOnHover === "boolean"
+            ? (entry as { pauseOnHover: boolean }).pauseOnHover
+            : defaultMeta[id].pauseOnHover,
+        dragEnabled:
+          typeof (entry as { dragEnabled?: unknown }).dragEnabled === "boolean"
+            ? (entry as { dragEnabled: boolean }).dragEnabled
+            : defaultMeta[id].dragEnabled,
       })
       seen.add(id)
     })

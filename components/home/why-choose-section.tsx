@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react"
 import { Award, BookOpen, CheckCircle2, Globe, Heart, Shield, Sparkles, Star, Users, Zap } from "lucide-react"
+import { ScrollingLoop } from "@/components/home/scrolling-loop"
 
 type WhyChooseItem = {
   title: string
@@ -16,6 +17,8 @@ type WhyChooseSectionProps = {
   layout: "grid" | "scroll"
   mobileLayout: "match" | "grid" | "scroll"
   scrollSpeed: number
+  pauseOnHover?: boolean
+  dragEnabled?: boolean
 }
 
 const iconMap = {
@@ -38,6 +41,8 @@ export function WhyChooseSection({
   layout,
   mobileLayout,
   scrollSpeed,
+  pauseOnHover = true,
+  dragEnabled = true,
 }: WhyChooseSectionProps) {
   const [isMobile, setIsMobile] = useState(false)
   const [visibleCount, setVisibleCount] = useState<number>(Number.POSITIVE_INFINITY)
@@ -98,24 +103,28 @@ export function WhyChooseSection({
   )
 
   const renderScroll = () => (
-    <div className="why-choose-scroll">
-      <div className="why-choose-track" style={{ ["--why-choose-duration" as string]: `${scrollSpeed || 30}s` }}>
-        {[...items, ...items].map((item, index) => {
-          const Icon = iconMap[item.icon] || CheckCircle2
-          return (
-            <div key={`${item.title}-${index}`} className="why-choose-tile text-center space-y-3">
-              <div className="flex justify-center">
-                <div className="flex h-14 w-14 items-center justify-center rounded-full bg-primary/10 text-primary">
-                  <Icon className="h-7 w-7" />
-                </div>
+    <ScrollingLoop
+      durationSeconds={scrollSpeed || 30}
+      pauseOnHover={pauseOnHover}
+      dragEnabled={dragEnabled}
+      className="why-choose-scroll"
+      trackClassName="why-choose-track"
+    >
+      {[...items, ...items].map((item, index) => {
+        const Icon = iconMap[item.icon] || CheckCircle2
+        return (
+          <div key={`${item.title}-${index}`} className="why-choose-tile text-center space-y-3">
+            <div className="flex justify-center">
+              <div className="flex h-14 w-14 items-center justify-center rounded-full bg-primary/10 text-primary">
+                <Icon className="h-7 w-7" />
               </div>
-              <h3 className="text-lg font-semibold">{item.title}</h3>
-              <p className="text-sm text-muted-foreground leading-relaxed">{item.description}</p>
             </div>
-          )
-        })}
-      </div>
-    </div>
+            <h3 className="text-lg font-semibold">{item.title}</h3>
+            <p className="text-sm text-muted-foreground leading-relaxed">{item.description}</p>
+          </div>
+        )
+      })}
+    </ScrollingLoop>
   )
 
   return (

@@ -16,6 +16,8 @@ type WhyChooseSectionClientProps = {
   layout: "grid" | "scroll"
   mobileLayout: "match" | "grid" | "scroll"
   scrollSpeed: number
+  pauseOnHover?: boolean
+  dragEnabled?: boolean
 }
 
 export function WhyChooseSectionClient(props: WhyChooseSectionClientProps) {

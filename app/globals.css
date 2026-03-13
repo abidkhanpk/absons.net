@@ -141,14 +141,13 @@
 }
 
 .why-choose-scroll {
-  overflow: hidden;
+  --why-choose-tile-gap: 1.5rem;
 }
 
 .why-choose-track {
   display: flex;
   gap: var(--why-choose-tile-gap);
   width: max-content;
-  animation: why-choose-scroll var(--why-choose-duration, 30s) linear infinite;
 }
 
 .why-choose-tile {
@@ -160,24 +159,14 @@
   white-space: normal;
 }
 
-@keyframes why-choose-scroll {
-  from {
-    transform: translateX(0);
-  }
-  to {
-    transform: translateX(-50%);
-  }
-}
-
 .home-section-scroll {
-  overflow: hidden;
+  --home-section-gap: 1.5rem;
 }
 
 .home-section-track {
   display: flex;
-  gap: 1.5rem;
+  gap: var(--home-section-gap);
   width: max-content;
-  animation: home-section-scroll var(--home-section-duration, 30s) linear infinite;
 }
 
 .home-section-scroll-card {
@@ -185,7 +174,41 @@
   max-width: min(360px, calc(100vw - 2rem));
 }
 
-@keyframes home-section-scroll {
+.scrolling-loop {
+  overflow-x: auto;
+  overflow-y: hidden;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  touch-action: pan-x;
+}
+
+.scrolling-loop.drag-enabled {
+  cursor: grab;
+}
+
+.scrolling-loop.drag-disabled {
+  cursor: default;
+}
+
+.scrolling-loop::-webkit-scrollbar {
+  display: none;
+}
+
+.scrolling-loop.is-dragging {
+  cursor: grabbing;
+  user-select: none;
+}
+
+.scrolling-loop-track {
+  animation: scrolling-loop var(--scroll-duration, 30s) linear infinite;
+}
+
+.scrolling-loop.pause-on-hover:hover .scrolling-loop-track,
+.scrolling-loop.is-dragging .scrolling-loop-track {
+  animation-play-state: paused;
+}
+
+@keyframes scrolling-loop {
   from {
     transform: translateX(0);
   }

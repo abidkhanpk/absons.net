@@ -124,6 +124,8 @@ type HomeSection = {
   itemsLayout?: "grid" | "scroll"
   mobileLayout?: "match" | "grid" | "scroll"
   scrollSpeed?: number
+  pauseOnHover?: boolean
+  dragEnabled?: boolean
 }
 
 function parseStaticSeo(raw: string | null | undefined): StaticSeoSettings {
@@ -272,6 +274,8 @@ function safeParseHomeSections(
       itemsLayout: "grid" | "scroll"
       mobileLayout: "match" | "grid" | "scroll"
       scrollSpeed: number
+      pauseOnHover: boolean
+      dragEnabled: boolean
     }
   > = {
     services: {
@@ -280,6 +284,8 @@ function safeParseHomeSections(
       itemsLayout: "grid",
       mobileLayout: "match",
       scrollSpeed: 30,
+      pauseOnHover: true,
+      dragEnabled: true,
     },
     products: {
       title: "Our Products",
@@ -287,6 +293,8 @@ function safeParseHomeSections(
       itemsLayout: "grid",
       mobileLayout: "match",
       scrollSpeed: 30,
+      pauseOnHover: true,
+      dragEnabled: true,
     },
     pricing: {
       title: "Pricing",
@@ -294,6 +302,8 @@ function safeParseHomeSections(
       itemsLayout: "grid",
       mobileLayout: "match",
       scrollSpeed: 30,
+      pauseOnHover: true,
+      dragEnabled: true,
     },
     training: {
       title: "Training Programs",
@@ -301,6 +311,8 @@ function safeParseHomeSections(
       itemsLayout: "grid",
       mobileLayout: "match",
       scrollSpeed: 30,
+      pauseOnHover: true,
+      dragEnabled: true,
     },
     testimonials: {
       title: "What Our Clients Say",
@@ -308,6 +320,8 @@ function safeParseHomeSections(
       itemsLayout: "grid",
       mobileLayout: "match",
       scrollSpeed: 30,
+      pauseOnHover: true,
+      dragEnabled: true,
     },
     "why-choose": {
       title: "Why Choose Us",
@@ -315,6 +329,8 @@ function safeParseHomeSections(
       itemsLayout: "grid",
       mobileLayout: "match",
       scrollSpeed: 30,
+      pauseOnHover: true,
+      dragEnabled: true,
     },
   }
   const defaultHomeSections: HomeSection[] = [
@@ -367,6 +383,14 @@ function safeParseHomeSections(
           Number.isFinite((entry as { scrollSpeed: number }).scrollSpeed)
             ? Math.min(120, Math.max(5, Math.round((entry as { scrollSpeed: number }).scrollSpeed)))
             : defaultMeta[id].scrollSpeed,
+        pauseOnHover:
+          typeof (entry as { pauseOnHover?: unknown }).pauseOnHover === "boolean"
+            ? (entry as { pauseOnHover: boolean }).pauseOnHover
+            : defaultMeta[id].pauseOnHover,
+        dragEnabled:
+          typeof (entry as { dragEnabled?: unknown }).dragEnabled === "boolean"
+            ? (entry as { dragEnabled: boolean }).dragEnabled
+            : defaultMeta[id].dragEnabled,
       })
       seen.add(id)
     })
@@ -470,6 +494,8 @@ export function SiteSettingsForm({ initial, pages }: { initial: SiteSettings; pa
             typeof initial.why_choose_scroll_speed === "number" && Number.isFinite(initial.why_choose_scroll_speed)
               ? Math.min(120, Math.max(5, Math.round(initial.why_choose_scroll_speed)))
               : section.scrollSpeed,
+          pauseOnHover: section.pauseOnHover ?? true,
+          dragEnabled: section.dragEnabled ?? true,
         }
       : section,
   )
@@ -542,7 +568,7 @@ export function SiteSettingsForm({ initial, pages }: { initial: SiteSettings; pa
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState(false)
   const [uploading, setUploading] = useState(false)
-  const [activeTab, setActiveTab] = useState<"general" | "navigation" | "hero" | "contact" | "seo">("general")
+  const [activeTab, setActiveTab] = useState<"general" | "home-sections" | "navigation" | "hero" | "contact" | "seo">("general")
   const [selectedHeaderPage, setSelectedHeaderPage] = useState("")
   const [selectedFooterPage, setSelectedFooterPage] = useState("")
 
@@ -653,6 +679,20 @@ export function SiteSettingsForm({ initial, pages }: { initial: SiteSettings; pa
         whyChooseScrollSpeed: id === "why-choose" ? normalized : prev.whyChooseScrollSpeed,
       }
     })
+  }
+
+  const updateHomeSectionPauseOnHover = (id: HomeSection["id"], pauseOnHover: boolean) => {
+    setFormData((prev) => ({
+      ...prev,
+      homeSections: prev.homeSections.map((section) => (section.id === id ? { ...section, pauseOnHover } : section)),
+    }))
+  }
+
+  const updateHomeSectionDragEnabled = (id: HomeSection["id"], dragEnabled: boolean) => {
+    setFormData((prev) => ({
+      ...prev,
+      homeSections: prev.homeSections.map((section) => (section.id === id ? { ...section, dragEnabled } : section)),
+    }))
   }
 
   const toggleNavItem = (id: NavItem["id"], enabled: boolean) => {
@@ -846,6 +886,7 @@ export function SiteSettingsForm({ initial, pages }: { initial: SiteSettings; pa
       <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as typeof activeTab)} className="space-y-6">
         <TabsList>
           <TabsTrigger value="general">General</TabsTrigger>
+          <TabsTrigger value="home-sections">Home Sections</TabsTrigger>
           <TabsTrigger value="navigation">Navigation & Layout</TabsTrigger>
           <TabsTrigger value="hero">Hero Slides</TabsTrigger>
           <TabsTrigger value="contact">Contact</TabsTrigger>
@@ -955,146 +996,6 @@ export function SiteSettingsForm({ initial, pages }: { initial: SiteSettings; pa
           </div>
 
           <div className="space-y-2">
-            <div className="space-y-2">
-              <Label className="font-semibold">Home Sections</Label>
-              <div className="space-y-2 pt-1">
-                {formData.homeSections.map((section, index) => {
-                  const mobileLayout = section.mobileLayout === "match" ? section.itemsLayout || "grid" : section.mobileLayout
-                  const usesScroll = section.itemsLayout === "scroll" || mobileLayout === "scroll"
-                  const label =
-                    section.id === "services"
-                      ? "Services"
-                      : section.id === "products"
-                        ? "Products"
-                        : section.id === "pricing"
-                          ? "Pricing"
-                      : section.id === "training"
-                        ? "Training"
-                        : section.id === "testimonials"
-                          ? "Testimonials"
-                          : "Why Choose Us"
-                  return (
-                    <div
-                      key={section.id}
-                      className="space-y-3 rounded-md border border-border/60 bg-muted/40 px-3 py-3 md:rounded-none md:border-0 md:bg-transparent md:px-0"
-                    >
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-3">
-                          <Switch
-                            id={`home-section-${section.id}`}
-                            checked={section.enabled}
-                            onCheckedChange={(checked) => toggleHomeSection(section.id, checked)}
-                          />
-                          <Label
-                            htmlFor={`home-section-${section.id}`}
-                            className="text-sm text-muted-foreground font-normal"
-                          >
-                            {label} section
-                          </Label>
-                        </div>
-                        <div className="flex items-center gap-1">
-                          <Button
-                            type="button"
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => moveHomeSection(index, -1)}
-                            disabled={index === 0}
-                            aria-label={`Move ${label} up`}
-                          >
-                            <ArrowUp className="h-4 w-4" />
-                          </Button>
-                          <Button
-                            type="button"
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => moveHomeSection(index, 1)}
-                            disabled={index === formData.homeSections.length - 1}
-                            aria-label={`Move ${label} down`}
-                          >
-                            <ArrowDown className="h-4 w-4" />
-                          </Button>
-                        </div>
-                      </div>
-                      <div className="grid gap-3 md:grid-cols-2">
-                        <div className="space-y-1">
-                          <Label htmlFor={`home-section-title-${section.id}`} className="text-xs text-muted-foreground">
-                            Section Title
-                          </Label>
-                          <Input
-                            id={`home-section-title-${section.id}`}
-                            value={section.title || label}
-                            onChange={(e) => updateHomeSectionTitle(section.id, e.target.value)}
-                            placeholder={label}
-                          />
-                        </div>
-                        <div className="space-y-1">
-                          <Label htmlFor={`home-section-subtitle-${section.id}`} className="text-xs text-muted-foreground">
-                            Section Subtitle
-                          </Label>
-                          <Input
-                            id={`home-section-subtitle-${section.id}`}
-                            value={section.subtitle || ""}
-                            onChange={(e) => updateHomeSectionSubtitle(section.id, e.target.value)}
-                            placeholder="Section subtitle"
-                          />
-                        </div>
-                        <div className="space-y-1">
-                          <Label className="text-xs text-muted-foreground">Layout</Label>
-                          <Select
-                            value={section.itemsLayout || "grid"}
-                            onValueChange={(value: "grid" | "scroll") => updateHomeSectionLayout(section.id, value)}
-                          >
-                            <SelectTrigger>
-                              <SelectValue placeholder="Select layout" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="grid">Multi-line grid</SelectItem>
-                              <SelectItem value="scroll">Scrolling loop</SelectItem>
-                            </SelectContent>
-                          </Select>
-                        </div>
-                        <div className="space-y-1">
-                          <Label className="text-xs text-muted-foreground">Mobile Layout</Label>
-                          <Select
-                            value={section.mobileLayout || "match"}
-                            onValueChange={(value: "match" | "grid" | "scroll") =>
-                              updateHomeSectionMobileLayout(section.id, value)
-                            }
-                          >
-                            <SelectTrigger>
-                              <SelectValue placeholder="Select mobile layout" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="match">Same as desktop</SelectItem>
-                              <SelectItem value="grid">Multi-line grid</SelectItem>
-                              <SelectItem value="scroll">Scrolling loop</SelectItem>
-                            </SelectContent>
-                          </Select>
-                        </div>
-                        {usesScroll && (
-                          <div className="space-y-1">
-                            <Label htmlFor={`home-section-scroll-speed-${section.id}`} className="text-xs text-muted-foreground">
-                              Scroll Speed (seconds)
-                            </Label>
-                            <Input
-                              id={`home-section-scroll-speed-${section.id}`}
-                              type="number"
-                              min={5}
-                              max={120}
-                              value={section.scrollSpeed ?? 30}
-                              onChange={(e) => updateHomeSectionScrollSpeed(section.id, Number(e.target.value))}
-                            />
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  )
-                })}
-              </div>
-            </div>
-          </div>
-
-          <div className="space-y-2">
             <Label className="font-semibold">Editorial Approval</Label>
             <div className="flex items-center justify-between rounded-md border border-border/60 bg-muted/40 px-3 py-2">
               <div className="space-y-1">
@@ -1150,6 +1051,165 @@ export function SiteSettingsForm({ initial, pages }: { initial: SiteSettings; pa
             </div>
           </div>
 
+        </TabsContent>
+
+        <TabsContent value="home-sections" className="space-y-6">
+          <div className="space-y-2">
+            <Label className="font-semibold">Home Sections</Label>
+            <div className="space-y-2 pt-1">
+              {formData.homeSections.map((section, index) => {
+                const label =
+                  section.id === "services"
+                    ? "Services"
+                    : section.id === "products"
+                      ? "Products"
+                      : section.id === "pricing"
+                        ? "Pricing"
+                    : section.id === "training"
+                      ? "Training"
+                      : section.id === "testimonials"
+                        ? "Testimonials"
+                        : "Why Choose Us"
+                return (
+                  <div
+                    key={section.id}
+                    className="space-y-3 rounded-md border border-border/60 bg-muted/40 px-3 py-3 md:rounded-none md:border-0 md:bg-transparent md:px-0"
+                  >
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <Switch
+                          id={`home-section-${section.id}`}
+                          checked={section.enabled}
+                          onCheckedChange={(checked) => toggleHomeSection(section.id, checked)}
+                        />
+                        <Label htmlFor={`home-section-${section.id}`} className="text-sm text-muted-foreground font-normal">
+                          {label} section
+                        </Label>
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => moveHomeSection(index, -1)}
+                          disabled={index === 0}
+                          aria-label={`Move ${label} up`}
+                        >
+                          <ArrowUp className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => moveHomeSection(index, 1)}
+                          disabled={index === formData.homeSections.length - 1}
+                          aria-label={`Move ${label} down`}
+                        >
+                          <ArrowDown className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </div>
+                    <div className="grid gap-3 md:grid-cols-2">
+                      <div className="space-y-1">
+                        <Label htmlFor={`home-section-title-${section.id}`} className="text-xs text-muted-foreground">
+                          Section Title
+                        </Label>
+                        <Input
+                          id={`home-section-title-${section.id}`}
+                          value={section.title || label}
+                          onChange={(e) => updateHomeSectionTitle(section.id, e.target.value)}
+                          placeholder={label}
+                        />
+                      </div>
+                      <div className="space-y-1">
+                        <Label htmlFor={`home-section-subtitle-${section.id}`} className="text-xs text-muted-foreground">
+                          Section Subtitle
+                        </Label>
+                        <Input
+                          id={`home-section-subtitle-${section.id}`}
+                          value={section.subtitle || ""}
+                          onChange={(e) => updateHomeSectionSubtitle(section.id, e.target.value)}
+                          placeholder="Section subtitle"
+                        />
+                      </div>
+                      <div className="space-y-1">
+                        <Label className="text-xs text-muted-foreground">Layout</Label>
+                        <Select
+                          value={section.itemsLayout || "grid"}
+                          onValueChange={(value: "grid" | "scroll") => updateHomeSectionLayout(section.id, value)}
+                        >
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select layout" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="grid">Multi-line grid</SelectItem>
+                            <SelectItem value="scroll">Scrolling loop</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div className="space-y-1">
+                        <Label className="text-xs text-muted-foreground">Mobile Layout</Label>
+                        <Select
+                          value={section.mobileLayout || "match"}
+                          onValueChange={(value: "match" | "grid" | "scroll") =>
+                            updateHomeSectionMobileLayout(section.id, value)
+                          }
+                        >
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select mobile layout" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="match">Same as desktop</SelectItem>
+                            <SelectItem value="grid">Multi-line grid</SelectItem>
+                            <SelectItem value="scroll">Scrolling loop</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div className="space-y-1">
+                        <Label htmlFor={`home-section-scroll-speed-${section.id}`} className="text-xs text-muted-foreground">
+                          Scroll Speed (seconds)
+                        </Label>
+                        <Input
+                          id={`home-section-scroll-speed-${section.id}`}
+                          type="number"
+                          min={5}
+                          max={120}
+                          value={section.scrollSpeed ?? 30}
+                          onChange={(e) => updateHomeSectionScrollSpeed(section.id, Number(e.target.value))}
+                        />
+                      </div>
+                      <div className="space-y-1">
+                        <Label className="text-xs text-muted-foreground">Pause On Hover</Label>
+                        <div className="flex items-center gap-3 rounded-md border border-border/60 bg-background px-3 py-2">
+                          <Switch
+                            id={`home-section-pause-hover-${section.id}`}
+                            checked={section.pauseOnHover ?? true}
+                            onCheckedChange={(checked) => updateHomeSectionPauseOnHover(section.id, checked)}
+                          />
+                          <Label htmlFor={`home-section-pause-hover-${section.id}`} className="text-sm font-normal">
+                            Pause while hovered
+                          </Label>
+                        </div>
+                      </div>
+                      <div className="space-y-1">
+                        <Label className="text-xs text-muted-foreground">Drag To Scroll</Label>
+                        <div className="flex items-center gap-3 rounded-md border border-border/60 bg-background px-3 py-2">
+                          <Switch
+                            id={`home-section-drag-enabled-${section.id}`}
+                            checked={section.dragEnabled ?? true}
+                            onCheckedChange={(checked) => updateHomeSectionDragEnabled(section.id, checked)}
+                          />
+                          <Label htmlFor={`home-section-drag-enabled-${section.id}`} className="text-sm font-normal">
+                            Allow mouse/touch dragging
+                          </Label>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
+          </div>
         </TabsContent>
 
         <TabsContent value="contact" className="space-y-6">
