@@ -14,12 +14,7 @@ type WhyChooseItem = {
 }
 
 type WhyChooseFormValues = {
-  whyChooseTitle: string
-  whyChooseSubtitle: string
   whyChooseItems: WhyChooseItem[]
-  whyChooseLayout: "grid" | "scroll"
-  whyChooseMobileLayout: "match" | "grid" | "scroll"
-  whyChooseScrollSpeed: number
 }
 
 export function WhyChooseForm({ initial }: { initial: WhyChooseFormValues }) {
@@ -27,9 +22,6 @@ export function WhyChooseForm({ initial }: { initial: WhyChooseFormValues }) {
   const [isSaving, setIsSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState(false)
-  const mobileLayout =
-    formData.whyChooseMobileLayout === "match" ? formData.whyChooseLayout : formData.whyChooseMobileLayout
-  const usesScroll = formData.whyChooseLayout === "scroll" || mobileLayout === "scroll"
 
   const moveItem = <T,>(items: T[], fromIndex: number, toIndex: number) => {
     if (toIndex < 0 || toIndex >= items.length) return items
@@ -82,12 +74,7 @@ export function WhyChooseForm({ initial }: { initial: WhyChooseFormValues }) {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          whyChooseTitle: formData.whyChooseTitle,
-          whyChooseSubtitle: formData.whyChooseSubtitle,
           whyChooseItems: formData.whyChooseItems,
-          whyChooseLayout: formData.whyChooseLayout,
-          whyChooseMobileLayout: formData.whyChooseMobileLayout,
-          whyChooseScrollSpeed: formData.whyChooseScrollSpeed,
         }),
       })
       const result = await response.json().catch(() => ({}))
@@ -104,74 +91,6 @@ export function WhyChooseForm({ initial }: { initial: WhyChooseFormValues }) {
 
   return (
     <form className="space-y-6" onSubmit={handleSubmit}>
-      <div className="grid gap-4 md:grid-cols-2">
-        <div className="space-y-2">
-          <Label htmlFor="whyChooseTitle">Section Title</Label>
-          <Input
-            id="whyChooseTitle"
-            value={formData.whyChooseTitle}
-            onChange={(e) => setFormData({ ...formData, whyChooseTitle: e.target.value })}
-          />
-        </div>
-        <div className="space-y-2">
-          <Label htmlFor="whyChooseSubtitle">Section Subtitle</Label>
-          <Input
-            id="whyChooseSubtitle"
-            value={formData.whyChooseSubtitle}
-            onChange={(e) => setFormData({ ...formData, whyChooseSubtitle: e.target.value })}
-          />
-        </div>
-      </div>
-
-      <div className="grid gap-4 md:grid-cols-2">
-        <div className="space-y-2">
-          <Label htmlFor="whyChooseLayout">Layout</Label>
-          <Select
-            value={formData.whyChooseLayout}
-            onValueChange={(value: "grid" | "scroll") => setFormData({ ...formData, whyChooseLayout: value })}
-          >
-            <SelectTrigger id="whyChooseLayout">
-              <SelectValue placeholder="Select layout" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="grid">Multi-line grid</SelectItem>
-              <SelectItem value="scroll">Scrolling loop</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-        <div className="space-y-2">
-          <Label htmlFor="whyChooseMobileLayout">Mobile Layout</Label>
-          <Select
-            value={formData.whyChooseMobileLayout}
-            onValueChange={(value: "match" | "grid" | "scroll") =>
-              setFormData({ ...formData, whyChooseMobileLayout: value })
-            }
-          >
-            <SelectTrigger id="whyChooseMobileLayout">
-              <SelectValue placeholder="Select layout" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="match">Same as desktop</SelectItem>
-              <SelectItem value="grid">Multi-line grid</SelectItem>
-              <SelectItem value="scroll">Scrolling loop</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-      </div>
-      {usesScroll && (
-        <div className="space-y-2">
-          <Label htmlFor="whyChooseScrollSpeed">Scroll Speed (seconds)</Label>
-          <Input
-            id="whyChooseScrollSpeed"
-            type="number"
-            min={5}
-            max={120}
-            value={formData.whyChooseScrollSpeed}
-            onChange={(e) => setFormData({ ...formData, whyChooseScrollSpeed: Number(e.target.value) })}
-          />
-        </div>
-      )}
-
       <div className="flex items-center justify-between">
         <Label className="text-sm font-medium">Tiles</Label>
         <Button type="button" variant="outline" onClick={addItem}>

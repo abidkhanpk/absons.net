@@ -96,20 +96,84 @@ export default async function HomePage() {
     })
 
   const siteSettings = await getSiteSettings()
-  const defaultSectionConfig: Record<HomeSectionId, { title: string; itemsLayout: "grid" | "scroll" }> = {
-    services: { title: "Our Services", itemsLayout: "grid" },
-    products: { title: "Our Products", itemsLayout: "grid" },
-    pricing: { title: "Pricing", itemsLayout: "grid" },
-    training: { title: "Training Programs", itemsLayout: "grid" },
-    testimonials: { title: "What Our Clients Say", itemsLayout: "grid" },
-    "why-choose": { title: "Why Choose Us", itemsLayout: "grid" },
+  const defaultSectionConfig: Record<
+    HomeSectionId,
+    {
+      title: string
+      subtitle: string
+      itemsLayout: "grid" | "scroll"
+      mobileLayout: "match" | "grid" | "scroll"
+      scrollSpeed: number
+    }
+  > = {
+    services: {
+      title: "Our Services",
+      subtitle: "Comprehensive solutions tailored to your organization's specific needs",
+      itemsLayout: "grid",
+      mobileLayout: "match",
+      scrollSpeed: 30,
+    },
+    products: {
+      title: "Our Products",
+      subtitle: "Ready-to-deploy products that help your teams launch faster and operate with confidence.",
+      itemsLayout: "grid",
+      mobileLayout: "match",
+      scrollSpeed: 30,
+    },
+    pricing: {
+      title: "Pricing",
+      subtitle: "Transparent plans for organizations at different stages, with support included.",
+      itemsLayout: "grid",
+      mobileLayout: "match",
+      scrollSpeed: 30,
+    },
+    training: {
+      title: "Training Programs",
+      subtitle: "Vibration analysis training aligned with Mobius Institute standards.",
+      itemsLayout: "grid",
+      mobileLayout: "match",
+      scrollSpeed: 30,
+    },
+    testimonials: {
+      title: "What Our Clients Say",
+      subtitle: "Trusted by institutions and organizations across the region",
+      itemsLayout: "grid",
+      mobileLayout: "match",
+      scrollSpeed: 30,
+    },
+    "why-choose": {
+      title: "Why Choose Us",
+      subtitle: "Trusted by educational institutions and organizations across Pakistan",
+      itemsLayout: "grid",
+      mobileLayout: "match",
+      scrollSpeed: siteSettings.whyChooseScrollSpeed || 30,
+    },
   }
   const sectionConfigMap = new Map(siteSettings.homeSections.map((section) => [section.id, section]))
   const getSectionConfig = (id: HomeSectionId) => {
     const section = sectionConfigMap.get(id)
+    const fallback =
+      id === "why-choose"
+        ? {
+            title: siteSettings.whyChooseTitle || defaultSectionConfig[id].title,
+            subtitle: siteSettings.whyChooseSubtitle || defaultSectionConfig[id].subtitle,
+            itemsLayout: siteSettings.whyChooseLayout || defaultSectionConfig[id].itemsLayout,
+            mobileLayout: siteSettings.whyChooseMobileLayout || defaultSectionConfig[id].mobileLayout,
+            scrollSpeed: siteSettings.whyChooseScrollSpeed || defaultSectionConfig[id].scrollSpeed,
+          }
+        : defaultSectionConfig[id]
     return {
-      title: section?.title?.trim() || defaultSectionConfig[id].title,
-      itemsLayout: section?.itemsLayout === "scroll" ? "scroll" : defaultSectionConfig[id].itemsLayout,
+      title: section?.title?.trim() || fallback.title,
+      subtitle: section?.subtitle?.trim() || fallback.subtitle,
+      itemsLayout: section?.itemsLayout === "scroll" ? "scroll" : fallback.itemsLayout,
+      mobileLayout:
+        section?.mobileLayout === "grid" || section?.mobileLayout === "scroll"
+          ? section.mobileLayout
+          : fallback.mobileLayout,
+      scrollSpeed:
+        typeof section?.scrollSpeed === "number" && Number.isFinite(section.scrollSpeed)
+          ? Math.min(120, Math.max(5, Math.round(section.scrollSpeed)))
+          : fallback.scrollSpeed,
     }
   }
   const renderSectionItems = <T,>(
@@ -118,11 +182,15 @@ export default async function HomePage() {
     renderCard: (item: T, index: number) => ReactNode,
     keyForItem: (item: T, index: number) => string,
   ) => {
-    const itemsLayout = getSectionConfig(sectionId).itemsLayout
-    if (itemsLayout === "scroll") {
+    const { itemsLayout, mobileLayout, scrollSpeed } = getSectionConfig(sectionId)
+    const desktopScroll = itemsLayout === "scroll"
+    const mobileResolvedLayout = mobileLayout === "match" ? itemsLayout : mobileLayout
+    const mobileScroll = mobileResolvedLayout === "scroll"
+
+    const renderScroll = (className: string) => {
       const scrollingItems = items.length > 1 ? [...items, ...items] : items
       return (
-        <div className="home-section-scroll">
+        <div className={className} style={{ ["--home-section-duration" as string]: `${scrollSpeed || 30}s` }}>
           <div className="home-section-track">
             {scrollingItems.map((item, index) => (
               <div key={`${keyForItem(item, index)}-${index}`} className="home-section-scroll-card">
@@ -133,7 +201,23 @@ export default async function HomePage() {
         </div>
       )
     }
-    return <div className="grid md:grid-cols-3 gap-6">{items.map((item, index) => renderCard(item, index))}</div>
+    const renderGrid = (className: string) => (
+      <div className={className}>{items.map((item, index) => renderCard(item, index))}</div>
+    )
+
+    if (desktopScroll === mobileScroll) {
+      return desktopScroll ? renderScroll("home-section-scroll") : renderGrid("grid md:grid-cols-3 gap-6")
+    }
+    return (
+      <>
+        {mobileScroll
+          ? renderScroll("home-section-scroll md:hidden")
+          : renderGrid("grid gap-6 md:hidden")}
+        {desktopScroll
+          ? renderScroll("home-section-scroll hidden md:block")
+          : renderGrid("hidden md:grid md:grid-cols-3 gap-6")}
+      </>
+    )
   }
   const homeSectionBlocks = {
     services: (
@@ -142,7 +226,7 @@ export default async function HomePage() {
           <div className="text-center mb-12">
             <h2 className="text-3xl md:text-4xl font-bold mb-4">{getSectionConfig("services").title}</h2>
             <p className="text-lg text-muted-foreground max-w-2xl mx-auto text-pretty leading-relaxed">
-              Comprehensive solutions tailored to your organization's specific needs
+              {getSectionConfig("services").subtitle}
             </p>
           </div>
 
@@ -193,7 +277,7 @@ export default async function HomePage() {
           <div className="text-center mb-12">
             <h2 className="text-3xl md:text-4xl font-bold mb-4">{getSectionConfig("products").title}</h2>
             <p className="text-lg text-muted-foreground max-w-2xl mx-auto text-pretty leading-relaxed">
-              Ready-to-deploy products that help your teams launch faster and operate with confidence.
+              {getSectionConfig("products").subtitle}
             </p>
           </div>
 
@@ -261,7 +345,7 @@ export default async function HomePage() {
           <div className="text-center mb-12">
             <h2 className="text-3xl md:text-4xl font-bold mb-4">{getSectionConfig("pricing").title}</h2>
             <p className="text-lg text-muted-foreground max-w-2xl mx-auto text-pretty leading-relaxed">
-              Transparent plans for organizations at different stages, with support included.
+              {getSectionConfig("pricing").subtitle}
             </p>
           </div>
 
@@ -336,7 +420,7 @@ export default async function HomePage() {
             <div className="text-center mb-12">
               <h2 className="text-3xl md:text-4xl font-bold mb-4">{getSectionConfig("training").title}</h2>
               <p className="text-lg text-muted-foreground max-w-2xl mx-auto text-pretty leading-relaxed">
-                Vibration analysis training aligned with Mobius Institute standards.
+                {getSectionConfig("training").subtitle}
               </p>
             </div>
             {renderSectionItems(
@@ -383,7 +467,7 @@ export default async function HomePage() {
             <div className="text-center mb-12">
               <h2 className="text-3xl md:text-4xl font-bold mb-4">{getSectionConfig("testimonials").title}</h2>
               <p className="text-lg text-muted-foreground max-w-2xl mx-auto text-pretty leading-relaxed">
-                Trusted by institutions and organizations across the region
+                {getSectionConfig("testimonials").subtitle}
               </p>
             </div>
 
@@ -416,11 +500,11 @@ export default async function HomePage() {
       ) : null,
     "why-choose": (
       <WhyChooseSectionClient
-        title={siteSettings.whyChooseTitle || `Why Choose ${siteSettings.siteTitle || "Our Company"}`}
-        subtitle={siteSettings.whyChooseSubtitle || "Trusted by educational institutions and organizations across Pakistan"}
+        title={getSectionConfig("why-choose").title || siteSettings.whyChooseTitle || `Why Choose ${siteSettings.siteTitle || "Our Company"}`}
+        subtitle={getSectionConfig("why-choose").subtitle || siteSettings.whyChooseSubtitle || "Trusted by educational institutions and organizations across Pakistan"}
         items={siteSettings.whyChooseItems}
-        layout={siteSettings.whyChooseLayout}
-        mobileLayout={siteSettings.whyChooseMobileLayout}
+        layout={getSectionConfig("why-choose").itemsLayout || siteSettings.whyChooseLayout}
+        mobileLayout={getSectionConfig("why-choose").mobileLayout || siteSettings.whyChooseMobileLayout}
         scrollSpeed={siteSettings.whyChooseScrollSpeed}
       />
     ),

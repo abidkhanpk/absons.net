@@ -177,7 +177,7 @@
   display: flex;
   gap: 1.5rem;
   width: max-content;
-  animation: home-section-scroll 40s linear infinite;
+  animation: home-section-scroll var(--home-section-duration, 30s) linear infinite;
 }
 
 .home-section-scroll-card {

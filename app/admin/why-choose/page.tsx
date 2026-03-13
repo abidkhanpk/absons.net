@@ -21,23 +21,18 @@ export default async function WhyChoosePage() {
     <div className="p-6 lg:p-8 space-y-6">
       <div>
         <h1 className="text-3xl font-bold">Why Choose Us</h1>
-        <p className="text-muted-foreground mt-1">Edit the homepage Why Choose Us section</p>
+        <p className="text-muted-foreground mt-1">Edit the homepage Why Choose Us tiles</p>
       </div>
 
       <Card className="w-full">
         <CardHeader>
-          <CardTitle>Section Content</CardTitle>
-          <CardDescription>Update the layout, tiles, and icon choices</CardDescription>
+          <CardTitle>Section Tiles</CardTitle>
+          <CardDescription>Update the tiles and icon choices</CardDescription>
         </CardHeader>
         <CardContent>
           <WhyChooseForm
             initial={{
-              whyChooseTitle: settings.whyChooseTitle,
-              whyChooseSubtitle: settings.whyChooseSubtitle,
               whyChooseItems: settings.whyChooseItems,
-              whyChooseLayout: settings.whyChooseLayout,
-              whyChooseMobileLayout: settings.whyChooseMobileLayout,
-              whyChooseScrollSpeed: settings.whyChooseScrollSpeed,
             }}
           />
         </CardContent>

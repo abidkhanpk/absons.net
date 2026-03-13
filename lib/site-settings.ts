@@ -65,7 +65,10 @@ export type HomeSection = {
   id: "services" | "products" | "pricing" | "training" | "testimonials" | "why-choose"
   enabled: boolean
   title?: string
+  subtitle?: string
   itemsLayout?: "grid" | "scroll"
+  mobileLayout?: "match" | "grid" | "scroll"
+  scrollSpeed?: number
 }
 
 export type HeroSlide = {
@@ -177,12 +180,60 @@ const defaultSettings: SiteSettings = {
     { id: "contact", label: "Contact", href: "/contact", enabled: true },
   ],
   homeSections: [
-    { id: "services", enabled: true, title: "Our Services", itemsLayout: "grid" },
-    { id: "products", enabled: true, title: "Our Products", itemsLayout: "grid" },
-    { id: "pricing", enabled: true, title: "Pricing", itemsLayout: "grid" },
-    { id: "training", enabled: true, title: "Training Programs", itemsLayout: "grid" },
-    { id: "testimonials", enabled: true, title: "What Our Clients Say", itemsLayout: "grid" },
-    { id: "why-choose", enabled: true, title: "Why Choose Us", itemsLayout: "grid" },
+    {
+      id: "services",
+      enabled: true,
+      title: "Our Services",
+      subtitle: "Comprehensive solutions tailored to your organization's specific needs",
+      itemsLayout: "grid",
+      mobileLayout: "match",
+      scrollSpeed: 30,
+    },
+    {
+      id: "products",
+      enabled: true,
+      title: "Our Products",
+      subtitle: "Ready-to-deploy products that help your teams launch faster and operate with confidence.",
+      itemsLayout: "grid",
+      mobileLayout: "match",
+      scrollSpeed: 30,
+    },
+    {
+      id: "pricing",
+      enabled: true,
+      title: "Pricing",
+      subtitle: "Transparent plans for organizations at different stages, with support included.",
+      itemsLayout: "grid",
+      mobileLayout: "match",
+      scrollSpeed: 30,
+    },
+    {
+      id: "training",
+      enabled: true,
+      title: "Training Programs",
+      subtitle: "Vibration analysis training aligned with Mobius Institute standards.",
+      itemsLayout: "grid",
+      mobileLayout: "match",
+      scrollSpeed: 30,
+    },
+    {
+      id: "testimonials",
+      enabled: true,
+      title: "What Our Clients Say",
+      subtitle: "Trusted by institutions and organizations across the region",
+      itemsLayout: "grid",
+      mobileLayout: "match",
+      scrollSpeed: 30,
+    },
+    {
+      id: "why-choose",
+      enabled: true,
+      title: "Why Choose Us",
+      subtitle: "Trusted by educational institutions and organizations across Pakistan",
+      itemsLayout: "grid",
+      mobileLayout: "match",
+      scrollSpeed: 30,
+    },
   ],
   businessHoursSchedule: [
     { day: "Monday", open: "09:00", close: "18:00" },
@@ -406,13 +457,58 @@ function parseHomeSections(
   raw: unknown,
   fallback: Record<HomeSection["id"], boolean>,
 ): HomeSection[] {
-  const defaultMeta: Record<HomeSection["id"], { title: string; itemsLayout: "grid" | "scroll" }> = {
-    services: { title: "Our Services", itemsLayout: "grid" },
-    products: { title: "Our Products", itemsLayout: "grid" },
-    pricing: { title: "Pricing", itemsLayout: "grid" },
-    training: { title: "Training Programs", itemsLayout: "grid" },
-    testimonials: { title: "What Our Clients Say", itemsLayout: "grid" },
-    "why-choose": { title: "Why Choose Us", itemsLayout: "grid" },
+  const defaultMeta: Record<
+    HomeSection["id"],
+    {
+      title: string
+      subtitle: string
+      itemsLayout: "grid" | "scroll"
+      mobileLayout: "match" | "grid" | "scroll"
+      scrollSpeed: number
+    }
+  > = {
+    services: {
+      title: "Our Services",
+      subtitle: "Comprehensive solutions tailored to your organization's specific needs",
+      itemsLayout: "grid",
+      mobileLayout: "match",
+      scrollSpeed: 30,
+    },
+    products: {
+      title: "Our Products",
+      subtitle: "Ready-to-deploy products that help your teams launch faster and operate with confidence.",
+      itemsLayout: "grid",
+      mobileLayout: "match",
+      scrollSpeed: 30,
+    },
+    pricing: {
+      title: "Pricing",
+      subtitle: "Transparent plans for organizations at different stages, with support included.",
+      itemsLayout: "grid",
+      mobileLayout: "match",
+      scrollSpeed: 30,
+    },
+    training: {
+      title: "Training Programs",
+      subtitle: "Vibration analysis training aligned with Mobius Institute standards.",
+      itemsLayout: "grid",
+      mobileLayout: "match",
+      scrollSpeed: 30,
+    },
+    testimonials: {
+      title: "What Our Clients Say",
+      subtitle: "Trusted by institutions and organizations across the region",
+      itemsLayout: "grid",
+      mobileLayout: "match",
+      scrollSpeed: 30,
+    },
+    "why-choose": {
+      title: "Why Choose Us",
+      subtitle: "Trusted by educational institutions and organizations across Pakistan",
+      itemsLayout: "grid",
+      mobileLayout: "match",
+      scrollSpeed: 30,
+    },
   }
   const defaultHomeSections: HomeSection[] = [
     { id: "services", enabled: fallback.services, ...defaultMeta.services },
@@ -443,10 +539,25 @@ function parseHomeSections(
           typeof (entry as { title?: unknown }).title === "string" && (entry as { title: string }).title.trim()
             ? (entry as { title: string }).title.trim()
             : defaultMeta[id].title,
+        subtitle:
+          typeof (entry as { subtitle?: unknown }).subtitle === "string" &&
+          (entry as { subtitle: string }).subtitle.trim()
+            ? (entry as { subtitle: string }).subtitle.trim()
+            : defaultMeta[id].subtitle,
         itemsLayout:
           (entry as { itemsLayout?: unknown }).itemsLayout === "scroll"
             ? "scroll"
             : defaultMeta[id].itemsLayout,
+        mobileLayout:
+          (entry as { mobileLayout?: unknown }).mobileLayout === "grid" ||
+          (entry as { mobileLayout?: unknown }).mobileLayout === "scroll"
+            ? ((entry as { mobileLayout: "grid" | "scroll" }).mobileLayout as "grid" | "scroll")
+            : defaultMeta[id].mobileLayout,
+        scrollSpeed:
+          typeof (entry as { scrollSpeed?: unknown }).scrollSpeed === "number" &&
+          Number.isFinite((entry as { scrollSpeed: number }).scrollSpeed)
+            ? Math.min(120, Math.max(5, Math.round((entry as { scrollSpeed: number }).scrollSpeed)))
+            : defaultMeta[id].scrollSpeed,
       })
       seen.add(id)
     })

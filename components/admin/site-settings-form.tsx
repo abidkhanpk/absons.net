@@ -120,7 +120,10 @@ type HomeSection = {
   id: "services" | "products" | "pricing" | "training" | "testimonials" | "why-choose"
   enabled: boolean
   title?: string
+  subtitle?: string
   itemsLayout?: "grid" | "scroll"
+  mobileLayout?: "match" | "grid" | "scroll"
+  scrollSpeed?: number
 }
 
 function parseStaticSeo(raw: string | null | undefined): StaticSeoSettings {
@@ -261,13 +264,58 @@ function safeParseHomeSections(
   raw: string | null | undefined,
   fallback: Record<HomeSection["id"], boolean>,
 ): HomeSection[] {
-  const defaultMeta: Record<HomeSection["id"], { title: string; itemsLayout: "grid" | "scroll" }> = {
-    services: { title: "Our Services", itemsLayout: "grid" },
-    products: { title: "Our Products", itemsLayout: "grid" },
-    pricing: { title: "Pricing", itemsLayout: "grid" },
-    training: { title: "Training Programs", itemsLayout: "grid" },
-    testimonials: { title: "What Our Clients Say", itemsLayout: "grid" },
-    "why-choose": { title: "Why Choose Us", itemsLayout: "grid" },
+  const defaultMeta: Record<
+    HomeSection["id"],
+    {
+      title: string
+      subtitle: string
+      itemsLayout: "grid" | "scroll"
+      mobileLayout: "match" | "grid" | "scroll"
+      scrollSpeed: number
+    }
+  > = {
+    services: {
+      title: "Our Services",
+      subtitle: "Comprehensive solutions tailored to your organization's specific needs",
+      itemsLayout: "grid",
+      mobileLayout: "match",
+      scrollSpeed: 30,
+    },
+    products: {
+      title: "Our Products",
+      subtitle: "Ready-to-deploy products that help your teams launch faster and operate with confidence.",
+      itemsLayout: "grid",
+      mobileLayout: "match",
+      scrollSpeed: 30,
+    },
+    pricing: {
+      title: "Pricing",
+      subtitle: "Transparent plans for organizations at different stages, with support included.",
+      itemsLayout: "grid",
+      mobileLayout: "match",
+      scrollSpeed: 30,
+    },
+    training: {
+      title: "Training Programs",
+      subtitle: "Vibration analysis training aligned with Mobius Institute standards.",
+      itemsLayout: "grid",
+      mobileLayout: "match",
+      scrollSpeed: 30,
+    },
+    testimonials: {
+      title: "What Our Clients Say",
+      subtitle: "Trusted by institutions and organizations across the region",
+      itemsLayout: "grid",
+      mobileLayout: "match",
+      scrollSpeed: 30,
+    },
+    "why-choose": {
+      title: "Why Choose Us",
+      subtitle: "Trusted by educational institutions and organizations across Pakistan",
+      itemsLayout: "grid",
+      mobileLayout: "match",
+      scrollSpeed: 30,
+    },
   }
   const defaultHomeSections: HomeSection[] = [
     { id: "services", enabled: fallback.services, ...defaultMeta.services },
@@ -300,10 +348,25 @@ function safeParseHomeSections(
           typeof (entry as { title?: unknown }).title === "string" && (entry as { title: string }).title.trim()
             ? (entry as { title: string }).title.trim()
             : defaultMeta[id].title,
+        subtitle:
+          typeof (entry as { subtitle?: unknown }).subtitle === "string" &&
+          (entry as { subtitle: string }).subtitle.trim()
+            ? (entry as { subtitle: string }).subtitle.trim()
+            : defaultMeta[id].subtitle,
         itemsLayout:
           (entry as { itemsLayout?: unknown }).itemsLayout === "scroll"
             ? "scroll"
             : defaultMeta[id].itemsLayout,
+        mobileLayout:
+          (entry as { mobileLayout?: unknown }).mobileLayout === "grid" ||
+          (entry as { mobileLayout?: unknown }).mobileLayout === "scroll"
+            ? ((entry as { mobileLayout: "grid" | "scroll" }).mobileLayout as "grid" | "scroll")
+            : defaultMeta[id].mobileLayout,
+        scrollSpeed:
+          typeof (entry as { scrollSpeed?: unknown }).scrollSpeed === "number" &&
+          Number.isFinite((entry as { scrollSpeed: number }).scrollSpeed)
+            ? Math.min(120, Math.max(5, Math.round((entry as { scrollSpeed: number }).scrollSpeed)))
+            : defaultMeta[id].scrollSpeed,
       })
       seen.add(id)
     })
@@ -393,6 +456,20 @@ export function SiteSettingsForm({ initial, pages }: { initial: SiteSettings; pa
             initial.why_choose_layout === "scroll" || initial.why_choose_layout === "grid"
               ? initial.why_choose_layout
               : section.itemsLayout,
+          subtitle:
+            typeof initial.why_choose_subtitle === "string" && initial.why_choose_subtitle.trim()
+              ? initial.why_choose_subtitle
+              : section.subtitle,
+          mobileLayout:
+            initial.why_choose_mobile_layout === "match" ||
+            initial.why_choose_mobile_layout === "grid" ||
+            initial.why_choose_mobile_layout === "scroll"
+              ? initial.why_choose_mobile_layout
+              : section.mobileLayout,
+          scrollSpeed:
+            typeof initial.why_choose_scroll_speed === "number" && Number.isFinite(initial.why_choose_scroll_speed)
+              ? Math.min(120, Math.max(5, Math.round(initial.why_choose_scroll_speed)))
+              : section.scrollSpeed,
         }
       : section,
   )
@@ -533,6 +610,17 @@ export function SiteSettingsForm({ initial, pages }: { initial: SiteSettings; pa
     })
   }
 
+  const updateHomeSectionSubtitle = (id: HomeSection["id"], subtitle: string) => {
+    setFormData((prev) => {
+      const next = prev.homeSections.map((section) => (section.id === id ? { ...section, subtitle } : section))
+      return {
+        ...prev,
+        homeSections: next,
+        whyChooseSubtitle: id === "why-choose" ? subtitle : prev.whyChooseSubtitle,
+      }
+    })
+  }
+
   const updateHomeSectionLayout = (id: HomeSection["id"], itemsLayout: "grid" | "scroll") => {
     setFormData((prev) => {
       const next = prev.homeSections.map((section) => (section.id === id ? { ...section, itemsLayout } : section))
@@ -540,6 +628,29 @@ export function SiteSettingsForm({ initial, pages }: { initial: SiteSettings; pa
         ...prev,
         homeSections: next,
         whyChooseLayout: id === "why-choose" ? itemsLayout : prev.whyChooseLayout,
+      }
+    })
+  }
+
+  const updateHomeSectionMobileLayout = (id: HomeSection["id"], mobileLayout: "match" | "grid" | "scroll") => {
+    setFormData((prev) => {
+      const next = prev.homeSections.map((section) => (section.id === id ? { ...section, mobileLayout } : section))
+      return {
+        ...prev,
+        homeSections: next,
+        whyChooseMobileLayout: id === "why-choose" ? mobileLayout : prev.whyChooseMobileLayout,
+      }
+    })
+  }
+
+  const updateHomeSectionScrollSpeed = (id: HomeSection["id"], scrollSpeed: number) => {
+    const normalized = Math.min(120, Math.max(5, Math.round(scrollSpeed || 30)))
+    setFormData((prev) => {
+      const next = prev.homeSections.map((section) => (section.id === id ? { ...section, scrollSpeed: normalized } : section))
+      return {
+        ...prev,
+        homeSections: next,
+        whyChooseScrollSpeed: id === "why-choose" ? normalized : prev.whyChooseScrollSpeed,
       }
     })
   }
@@ -669,11 +780,11 @@ export function SiteSettingsForm({ initial, pages }: { initial: SiteSettings; pa
           homeSections: formData.homeSections,
           editorApprovalRequired: formData.editorApprovalRequired,
           whyChooseTitle: whyChooseSection?.title || formData.whyChooseTitle,
-          whyChooseSubtitle: formData.whyChooseSubtitle,
+          whyChooseSubtitle: whyChooseSection?.subtitle || formData.whyChooseSubtitle,
           whyChooseItems: formData.whyChooseItems,
           whyChooseLayout: whyChooseSection?.itemsLayout || formData.whyChooseLayout,
-          whyChooseMobileLayout: formData.whyChooseMobileLayout,
-          whyChooseScrollSpeed: formData.whyChooseScrollSpeed,
+          whyChooseMobileLayout: whyChooseSection?.mobileLayout || formData.whyChooseMobileLayout,
+          whyChooseScrollSpeed: whyChooseSection?.scrollSpeed || formData.whyChooseScrollSpeed,
           analyticsScript: formData.analyticsScript,
           headerCode: formData.headerCode,
           footerCode: formData.footerCode,
@@ -843,11 +954,13 @@ export function SiteSettingsForm({ initial, pages }: { initial: SiteSettings; pa
             </div>
           </div>
 
-          <div className="grid gap-4 md:grid-cols-2">
+          <div className="space-y-2">
             <div className="space-y-2">
               <Label className="font-semibold">Home Sections</Label>
               <div className="space-y-2 pt-1">
                 {formData.homeSections.map((section, index) => {
+                  const mobileLayout = section.mobileLayout === "match" ? section.itemsLayout || "grid" : section.mobileLayout
+                  const usesScroll = section.itemsLayout === "scroll" || mobileLayout === "scroll"
                   const label =
                     section.id === "services"
                       ? "Services"
@@ -863,7 +976,7 @@ export function SiteSettingsForm({ initial, pages }: { initial: SiteSettings; pa
                   return (
                     <div
                       key={section.id}
-                      className="space-y-3 rounded-md border border-border/60 bg-muted/40 px-3 py-3"
+                      className="space-y-3 rounded-md border border-border/60 bg-muted/40 px-3 py-3 md:rounded-none md:border-0 md:bg-transparent md:px-0"
                     >
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-3">
@@ -905,7 +1018,7 @@ export function SiteSettingsForm({ initial, pages }: { initial: SiteSettings; pa
                       <div className="grid gap-3 md:grid-cols-2">
                         <div className="space-y-1">
                           <Label htmlFor={`home-section-title-${section.id}`} className="text-xs text-muted-foreground">
-                            Section title
+                            Section Title
                           </Label>
                           <Input
                             id={`home-section-title-${section.id}`}
@@ -915,7 +1028,18 @@ export function SiteSettingsForm({ initial, pages }: { initial: SiteSettings; pa
                           />
                         </div>
                         <div className="space-y-1">
-                          <Label className="text-xs text-muted-foreground">Items layout</Label>
+                          <Label htmlFor={`home-section-subtitle-${section.id}`} className="text-xs text-muted-foreground">
+                            Section Subtitle
+                          </Label>
+                          <Input
+                            id={`home-section-subtitle-${section.id}`}
+                            value={section.subtitle || ""}
+                            onChange={(e) => updateHomeSectionSubtitle(section.id, e.target.value)}
+                            placeholder="Section subtitle"
+                          />
+                        </div>
+                        <div className="space-y-1">
+                          <Label className="text-xs text-muted-foreground">Layout</Label>
                           <Select
                             value={section.itemsLayout || "grid"}
                             onValueChange={(value: "grid" | "scroll") => updateHomeSectionLayout(section.id, value)}
@@ -924,11 +1048,44 @@ export function SiteSettingsForm({ initial, pages }: { initial: SiteSettings; pa
                               <SelectValue placeholder="Select layout" />
                             </SelectTrigger>
                             <SelectContent>
-                              <SelectItem value="grid">Multiple rows</SelectItem>
-                              <SelectItem value="scroll">Sliding drawer</SelectItem>
+                              <SelectItem value="grid">Multi-line grid</SelectItem>
+                              <SelectItem value="scroll">Scrolling loop</SelectItem>
                             </SelectContent>
                           </Select>
                         </div>
+                        <div className="space-y-1">
+                          <Label className="text-xs text-muted-foreground">Mobile Layout</Label>
+                          <Select
+                            value={section.mobileLayout || "match"}
+                            onValueChange={(value: "match" | "grid" | "scroll") =>
+                              updateHomeSectionMobileLayout(section.id, value)
+                            }
+                          >
+                            <SelectTrigger>
+                              <SelectValue placeholder="Select mobile layout" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="match">Same as desktop</SelectItem>
+                              <SelectItem value="grid">Multi-line grid</SelectItem>
+                              <SelectItem value="scroll">Scrolling loop</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                        {usesScroll && (
+                          <div className="space-y-1">
+                            <Label htmlFor={`home-section-scroll-speed-${section.id}`} className="text-xs text-muted-foreground">
+                              Scroll Speed (seconds)
+                            </Label>
+                            <Input
+                              id={`home-section-scroll-speed-${section.id}`}
+                              type="number"
+                              min={5}
+                              max={120}
+                              value={section.scrollSpeed ?? 30}
+                              onChange={(e) => updateHomeSectionScrollSpeed(section.id, Number(e.target.value))}
+                            />
+                          </div>
+                        )}
                       </div>
                     </div>
                   )
