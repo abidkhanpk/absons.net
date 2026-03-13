@@ -169,6 +169,31 @@
   }
 }
 
+.home-section-scroll {
+  overflow: hidden;
+}
+
+.home-section-track {
+  display: flex;
+  gap: 1.5rem;
+  width: max-content;
+  animation: home-section-scroll 40s linear infinite;
+}
+
+.home-section-scroll-card {
+  flex: 0 0 min(360px, calc(100vw - 2rem));
+  max-width: min(360px, calc(100vw - 2rem));
+}
+
+@keyframes home-section-scroll {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+
 /* Allow site-wide container width to be adjusted via settings */
 .container {
   max-width: var(--page-container-max, 1200px);

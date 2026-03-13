@@ -119,6 +119,8 @@ type NavItem = {
 type HomeSection = {
   id: "services" | "products" | "pricing" | "training" | "testimonials" | "why-choose"
   enabled: boolean
+  title?: string
+  itemsLayout?: "grid" | "scroll"
 }
 
 function parseStaticSeo(raw: string | null | undefined): StaticSeoSettings {
@@ -259,13 +261,21 @@ function safeParseHomeSections(
   raw: string | null | undefined,
   fallback: Record<HomeSection["id"], boolean>,
 ): HomeSection[] {
+  const defaultMeta: Record<HomeSection["id"], { title: string; itemsLayout: "grid" | "scroll" }> = {
+    services: { title: "Our Services", itemsLayout: "grid" },
+    products: { title: "Our Products", itemsLayout: "grid" },
+    pricing: { title: "Pricing", itemsLayout: "grid" },
+    training: { title: "Training Programs", itemsLayout: "grid" },
+    testimonials: { title: "What Our Clients Say", itemsLayout: "grid" },
+    "why-choose": { title: "Why Choose Us", itemsLayout: "grid" },
+  }
   const defaultHomeSections: HomeSection[] = [
-    { id: "services", enabled: fallback.services },
-    { id: "products", enabled: fallback.products },
-    { id: "pricing", enabled: fallback.pricing },
-    { id: "training", enabled: fallback.training },
-    { id: "testimonials", enabled: fallback.testimonials },
-    { id: "why-choose", enabled: fallback["why-choose"] },
+    { id: "services", enabled: fallback.services, ...defaultMeta.services },
+    { id: "products", enabled: fallback.products, ...defaultMeta.products },
+    { id: "pricing", enabled: fallback.pricing, ...defaultMeta.pricing },
+    { id: "training", enabled: fallback.training, ...defaultMeta.training },
+    { id: "testimonials", enabled: fallback.testimonials, ...defaultMeta.testimonials },
+    { id: "why-choose", enabled: fallback["why-choose"], ...defaultMeta["why-choose"] },
   ]
 
   if (!raw) {
@@ -286,12 +296,20 @@ function safeParseHomeSections(
       normalized.push({
         id,
         enabled: typeof entry.enabled === "boolean" ? entry.enabled : fallback[id],
+        title:
+          typeof (entry as { title?: unknown }).title === "string" && (entry as { title: string }).title.trim()
+            ? (entry as { title: string }).title.trim()
+            : defaultMeta[id].title,
+        itemsLayout:
+          (entry as { itemsLayout?: unknown }).itemsLayout === "scroll"
+            ? "scroll"
+            : defaultMeta[id].itemsLayout,
       })
       seen.add(id)
     })
     allowed.forEach((id) => {
       if (!seen.has(id)) {
-        normalized.push({ id, enabled: fallback[id] })
+        normalized.push({ id, enabled: fallback[id], ...defaultMeta[id] })
       }
     })
     return normalized
@@ -363,7 +381,21 @@ export function SiteSettingsForm({ initial, pages }: { initial: SiteSettings; pa
     { title: "Tailored Solutions", description: "Custom software designed for your specific requirements", icon: "book" },
     { title: "Ongoing Support", description: "Dedicated support and maintenance for all solutions", icon: "star" },
   ]
-  const initialHomeSections = safeParseHomeSections(initial.home_sections, defaultHomeFallback)
+  const initialHomeSections = safeParseHomeSections(initial.home_sections, defaultHomeFallback).map((section) =>
+    section.id === "why-choose"
+      ? {
+          ...section,
+          title:
+            typeof initial.why_choose_title === "string" && initial.why_choose_title.trim()
+              ? initial.why_choose_title
+              : section.title,
+          itemsLayout:
+            initial.why_choose_layout === "scroll" || initial.why_choose_layout === "grid"
+              ? initial.why_choose_layout
+              : section.itemsLayout,
+        }
+      : section,
+  )
   const { main: initialNavItems, footer: initialFooterNavItems } = safeParseNavItemsGroup(
     initial.nav_items,
     defaultNavItems,
@@ -490,6 +522,28 @@ export function SiteSettingsForm({ initial, pages }: { initial: SiteSettings; pa
     })
   }
 
+  const updateHomeSectionTitle = (id: HomeSection["id"], title: string) => {
+    setFormData((prev) => {
+      const next = prev.homeSections.map((section) => (section.id === id ? { ...section, title } : section))
+      return {
+        ...prev,
+        homeSections: next,
+        whyChooseTitle: id === "why-choose" ? title : prev.whyChooseTitle,
+      }
+    })
+  }
+
+  const updateHomeSectionLayout = (id: HomeSection["id"], itemsLayout: "grid" | "scroll") => {
+    setFormData((prev) => {
+      const next = prev.homeSections.map((section) => (section.id === id ? { ...section, itemsLayout } : section))
+      return {
+        ...prev,
+        homeSections: next,
+        whyChooseLayout: id === "why-choose" ? itemsLayout : prev.whyChooseLayout,
+      }
+    })
+  }
+
   const toggleNavItem = (id: NavItem["id"], enabled: boolean) => {
     setFormData((prev) => {
       const navItems = prev.navItems.map((item) => (item.id === id ? { ...item, enabled } : item))
@@ -604,6 +658,7 @@ export function SiteSettingsForm({ initial, pages }: { initial: SiteSettings; pa
     setSuccess(false)
 
     try {
+      const whyChooseSection = formData.homeSections.find((section) => section.id === "why-choose")
       const response = await fetch("/api/admin/site-settings", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
@@ -613,10 +668,10 @@ export function SiteSettingsForm({ initial, pages }: { initial: SiteSettings; pa
           footerNavItems: formData.footerNavItems,
           homeSections: formData.homeSections,
           editorApprovalRequired: formData.editorApprovalRequired,
-          whyChooseTitle: formData.whyChooseTitle,
+          whyChooseTitle: whyChooseSection?.title || formData.whyChooseTitle,
           whyChooseSubtitle: formData.whyChooseSubtitle,
           whyChooseItems: formData.whyChooseItems,
-          whyChooseLayout: formData.whyChooseLayout,
+          whyChooseLayout: whyChooseSection?.itemsLayout || formData.whyChooseLayout,
           whyChooseMobileLayout: formData.whyChooseMobileLayout,
           whyChooseScrollSpeed: formData.whyChooseScrollSpeed,
           analyticsScript: formData.analyticsScript,
@@ -808,39 +863,72 @@ export function SiteSettingsForm({ initial, pages }: { initial: SiteSettings; pa
                   return (
                     <div
                       key={section.id}
-                      className="flex items-center justify-between rounded-md border border-border/60 bg-muted/40 px-3 py-2"
+                      className="space-y-3 rounded-md border border-border/60 bg-muted/40 px-3 py-3"
                     >
-                      <div className="flex items-center gap-3">
-                        <Switch
-                          id={`home-section-${section.id}`}
-                          checked={section.enabled}
-                          onCheckedChange={(checked) => toggleHomeSection(section.id, checked)}
-                        />
-                        <Label htmlFor={`home-section-${section.id}`} className="text-sm text-muted-foreground font-normal">
-                          {label} section
-                        </Label>
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                          <Switch
+                            id={`home-section-${section.id}`}
+                            checked={section.enabled}
+                            onCheckedChange={(checked) => toggleHomeSection(section.id, checked)}
+                          />
+                          <Label
+                            htmlFor={`home-section-${section.id}`}
+                            className="text-sm text-muted-foreground font-normal"
+                          >
+                            {label} section
+                          </Label>
+                        </div>
+                        <div className="flex items-center gap-1">
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => moveHomeSection(index, -1)}
+                            disabled={index === 0}
+                            aria-label={`Move ${label} up`}
+                          >
+                            <ArrowUp className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => moveHomeSection(index, 1)}
+                            disabled={index === formData.homeSections.length - 1}
+                            aria-label={`Move ${label} down`}
+                          >
+                            <ArrowDown className="h-4 w-4" />
+                          </Button>
+                        </div>
                       </div>
-                      <div className="flex items-center gap-1">
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => moveHomeSection(index, -1)}
-                          disabled={index === 0}
-                          aria-label={`Move ${label} up`}
-                        >
-                          <ArrowUp className="h-4 w-4" />
-                        </Button>
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => moveHomeSection(index, 1)}
-                          disabled={index === formData.homeSections.length - 1}
-                          aria-label={`Move ${label} down`}
-                        >
-                          <ArrowDown className="h-4 w-4" />
-                        </Button>
+                      <div className="grid gap-3 md:grid-cols-2">
+                        <div className="space-y-1">
+                          <Label htmlFor={`home-section-title-${section.id}`} className="text-xs text-muted-foreground">
+                            Section title
+                          </Label>
+                          <Input
+                            id={`home-section-title-${section.id}`}
+                            value={section.title || label}
+                            onChange={(e) => updateHomeSectionTitle(section.id, e.target.value)}
+                            placeholder={label}
+                          />
+                        </div>
+                        <div className="space-y-1">
+                          <Label className="text-xs text-muted-foreground">Items layout</Label>
+                          <Select
+                            value={section.itemsLayout || "grid"}
+                            onValueChange={(value: "grid" | "scroll") => updateHomeSectionLayout(section.id, value)}
+                          >
+                            <SelectTrigger>
+                              <SelectValue placeholder="Select layout" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="grid">Multiple rows</SelectItem>
+                              <SelectItem value="scroll">Sliding drawer</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
                       </div>
                     </div>
                   )

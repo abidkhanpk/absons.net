@@ -64,6 +64,8 @@ export type NavItem = {
 export type HomeSection = {
   id: "services" | "products" | "pricing" | "training" | "testimonials" | "why-choose"
   enabled: boolean
+  title?: string
+  itemsLayout?: "grid" | "scroll"
 }
 
 export type HeroSlide = {
@@ -175,12 +177,12 @@ const defaultSettings: SiteSettings = {
     { id: "contact", label: "Contact", href: "/contact", enabled: true },
   ],
   homeSections: [
-    { id: "services", enabled: true },
-    { id: "products", enabled: true },
-    { id: "pricing", enabled: true },
-    { id: "training", enabled: true },
-    { id: "testimonials", enabled: true },
-    { id: "why-choose", enabled: true },
+    { id: "services", enabled: true, title: "Our Services", itemsLayout: "grid" },
+    { id: "products", enabled: true, title: "Our Products", itemsLayout: "grid" },
+    { id: "pricing", enabled: true, title: "Pricing", itemsLayout: "grid" },
+    { id: "training", enabled: true, title: "Training Programs", itemsLayout: "grid" },
+    { id: "testimonials", enabled: true, title: "What Our Clients Say", itemsLayout: "grid" },
+    { id: "why-choose", enabled: true, title: "Why Choose Us", itemsLayout: "grid" },
   ],
   businessHoursSchedule: [
     { day: "Monday", open: "09:00", close: "18:00" },
@@ -404,13 +406,21 @@ function parseHomeSections(
   raw: unknown,
   fallback: Record<HomeSection["id"], boolean>,
 ): HomeSection[] {
+  const defaultMeta: Record<HomeSection["id"], { title: string; itemsLayout: "grid" | "scroll" }> = {
+    services: { title: "Our Services", itemsLayout: "grid" },
+    products: { title: "Our Products", itemsLayout: "grid" },
+    pricing: { title: "Pricing", itemsLayout: "grid" },
+    training: { title: "Training Programs", itemsLayout: "grid" },
+    testimonials: { title: "What Our Clients Say", itemsLayout: "grid" },
+    "why-choose": { title: "Why Choose Us", itemsLayout: "grid" },
+  }
   const defaultHomeSections: HomeSection[] = [
-    { id: "services", enabled: fallback.services },
-    { id: "products", enabled: fallback.products },
-    { id: "pricing", enabled: fallback.pricing },
-    { id: "training", enabled: fallback.training },
-    { id: "testimonials", enabled: fallback.testimonials },
-    { id: "why-choose", enabled: fallback["why-choose"] },
+    { id: "services", enabled: fallback.services, ...defaultMeta.services },
+    { id: "products", enabled: fallback.products, ...defaultMeta.products },
+    { id: "pricing", enabled: fallback.pricing, ...defaultMeta.pricing },
+    { id: "training", enabled: fallback.training, ...defaultMeta.training },
+    { id: "testimonials", enabled: fallback.testimonials, ...defaultMeta.testimonials },
+    { id: "why-choose", enabled: fallback["why-choose"], ...defaultMeta["why-choose"] },
   ]
 
   try {
@@ -429,11 +439,19 @@ function parseHomeSections(
       normalized.push({
         id,
         enabled: typeof entry.enabled === "boolean" ? entry.enabled : fallbackEnabled,
+        title:
+          typeof (entry as { title?: unknown }).title === "string" && (entry as { title: string }).title.trim()
+            ? (entry as { title: string }).title.trim()
+            : defaultMeta[id].title,
+        itemsLayout:
+          (entry as { itemsLayout?: unknown }).itemsLayout === "scroll"
+            ? "scroll"
+            : defaultMeta[id].itemsLayout,
       })
       seen.add(id)
     })
     allowed.forEach((id) => {
-      if (!seen.has(id)) normalized.push({ id, enabled: fallback[id] })
+      if (!seen.has(id)) normalized.push({ id, enabled: fallback[id], ...defaultMeta[id] })
     })
     return normalized
   } catch {

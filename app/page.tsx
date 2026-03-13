@@ -2,9 +2,8 @@ import { Header } from "@/components/header"
 import { Footer } from "@/components/footer"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
-import { Carousel, CarouselContent, CarouselItem } from "@/components/ui/carousel"
 import Link from "next/link"
-import { Fragment } from "react"
+import { Fragment, type ReactNode } from "react"
 import { GraduationCap, BookOpen, School, Award, Activity, Package, ArrowRight, Star, Check } from "lucide-react"
 import { prisma } from "@/lib/prisma"
 import { getSiteSettings } from "@/lib/site-settings"
@@ -38,6 +37,8 @@ const iconMap = {
   Activity,
   Package,
 }
+
+type HomeSectionId = "services" | "products" | "pricing" | "training" | "testimonials" | "why-choose"
 
 export default async function HomePage() {
   const resolveItemLink = (link: string | null | undefined, fallback: string) =>
@@ -95,19 +96,60 @@ export default async function HomePage() {
     })
 
   const siteSettings = await getSiteSettings()
+  const defaultSectionConfig: Record<HomeSectionId, { title: string; itemsLayout: "grid" | "scroll" }> = {
+    services: { title: "Our Services", itemsLayout: "grid" },
+    products: { title: "Our Products", itemsLayout: "grid" },
+    pricing: { title: "Pricing", itemsLayout: "grid" },
+    training: { title: "Training Programs", itemsLayout: "grid" },
+    testimonials: { title: "What Our Clients Say", itemsLayout: "grid" },
+    "why-choose": { title: "Why Choose Us", itemsLayout: "grid" },
+  }
+  const sectionConfigMap = new Map(siteSettings.homeSections.map((section) => [section.id, section]))
+  const getSectionConfig = (id: HomeSectionId) => {
+    const section = sectionConfigMap.get(id)
+    return {
+      title: section?.title?.trim() || defaultSectionConfig[id].title,
+      itemsLayout: section?.itemsLayout === "scroll" ? "scroll" : defaultSectionConfig[id].itemsLayout,
+    }
+  }
+  const renderSectionItems = <T,>(
+    sectionId: HomeSectionId,
+    items: T[],
+    renderCard: (item: T, index: number) => ReactNode,
+    keyForItem: (item: T, index: number) => string,
+  ) => {
+    const itemsLayout = getSectionConfig(sectionId).itemsLayout
+    if (itemsLayout === "scroll") {
+      const scrollingItems = items.length > 1 ? [...items, ...items] : items
+      return (
+        <div className="home-section-scroll">
+          <div className="home-section-track">
+            {scrollingItems.map((item, index) => (
+              <div key={`${keyForItem(item, index)}-${index}`} className="home-section-scroll-card">
+                {renderCard(item, index)}
+              </div>
+            ))}
+          </div>
+        </div>
+      )
+    }
+    return <div className="grid md:grid-cols-3 gap-6">{items.map((item, index) => renderCard(item, index))}</div>
+  }
   const homeSectionBlocks = {
     services: (
       <section className="py-20 bg-background">
         <div className="container mx-auto px-4 lg:px-8">
           <div className="text-center mb-12">
-            <h2 className="text-3xl md:text-4xl font-bold mb-4">Our Services</h2>
+            <h2 className="text-3xl md:text-4xl font-bold mb-4">{getSectionConfig("services").title}</h2>
             <p className="text-lg text-muted-foreground max-w-2xl mx-auto text-pretty leading-relaxed">
               Comprehensive solutions tailored to your organization's specific needs
             </p>
           </div>
 
-          <div className="grid md:grid-cols-3 gap-6">
-            {services?.map((service) => {
+          {renderSectionItems(
+            "services",
+            services || [],
+            (service) => {
               const IconComponent = iconMap[service.icon as keyof typeof iconMap] || Package
               return (
                 <Card key={service.id} className="border-border hover:shadow-lg transition-shadow">
@@ -133,8 +175,9 @@ export default async function HomePage() {
                   </CardContent>
                 </Card>
               )
-            })}
-          </div>
+            },
+            (service) => service.id,
+          )}
 
           <div className="text-center mt-8">
             <Button asChild variant="outline" size="lg">
@@ -148,14 +191,15 @@ export default async function HomePage() {
       <section className="py-20 bg-muted/30">
         <div className="container mx-auto px-4 lg:px-8">
           <div className="text-center mb-12">
-            <h2 className="text-3xl md:text-4xl font-bold mb-4">Our Products</h2>
+            <h2 className="text-3xl md:text-4xl font-bold mb-4">{getSectionConfig("products").title}</h2>
             <p className="text-lg text-muted-foreground max-w-2xl mx-auto text-pretty leading-relaxed">
               Ready-to-deploy products that help your teams launch faster and operate with confidence.
             </p>
           </div>
 
-          <div className="grid md:grid-cols-3 gap-6">
-            {(products.length > 0
+          {renderSectionItems(
+            "products",
+            products.length > 0
               ? products.map((product) => ({
                   id: product.id,
                   title: product.title,
@@ -185,7 +229,8 @@ export default async function HomePage() {
                     imageUrl: "",
                     linkUrl: "/products",
                   },
-                ]).map((product) => (
+                ],
+            (product) => (
               <Card key={product.id} className="border-border hover:shadow-lg transition-shadow">
                 <CardContent className="p-6 space-y-4">
                   {product.imageUrl ? (
@@ -204,8 +249,9 @@ export default async function HomePage() {
                   </Button>
                 </CardContent>
               </Card>
-            ))}
-          </div>
+            ),
+            (product) => product.id,
+          )}
         </div>
       </section>
     ),
@@ -213,14 +259,15 @@ export default async function HomePage() {
       <section className="py-20 bg-background">
         <div className="container mx-auto px-4 lg:px-8">
           <div className="text-center mb-12">
-            <h2 className="text-3xl md:text-4xl font-bold mb-4">Pricing</h2>
+            <h2 className="text-3xl md:text-4xl font-bold mb-4">{getSectionConfig("pricing").title}</h2>
             <p className="text-lg text-muted-foreground max-w-2xl mx-auto text-pretty leading-relaxed">
               Transparent plans for organizations at different stages, with support included.
             </p>
           </div>
 
-          <div className="grid md:grid-cols-3 gap-6">
-            {(pricingPlans.length > 0
+          {renderSectionItems(
+            "pricing",
+            pricingPlans.length > 0
               ? pricingPlans.map((plan) => ({
                   id: plan.id,
                   name: plan.name,
@@ -252,7 +299,8 @@ export default async function HomePage() {
                     period: "",
                     features: ["Custom integrations", "Dedicated account team", "On-site training"],
                   },
-                ]).map((plan) => (
+                ],
+            (plan) => (
               <Card key={plan.id} className="border-border hover:shadow-lg transition-shadow">
                 <CardContent className="p-6 space-y-5">
                   <div>
@@ -275,8 +323,9 @@ export default async function HomePage() {
                   </Button>
                 </CardContent>
               </Card>
-            ))}
-          </div>
+            ),
+            (plan) => plan.id,
+          )}
         </div>
       </section>
     ),
@@ -285,13 +334,15 @@ export default async function HomePage() {
         <section className="py-20 bg-muted/30">
           <div className="container mx-auto px-4 lg:px-8">
             <div className="text-center mb-12">
-              <h2 className="text-3xl md:text-4xl font-bold mb-4">Training Programs</h2>
+              <h2 className="text-3xl md:text-4xl font-bold mb-4">{getSectionConfig("training").title}</h2>
               <p className="text-lg text-muted-foreground max-w-2xl mx-auto text-pretty leading-relaxed">
                 Vibration analysis training aligned with Mobius Institute standards.
               </p>
             </div>
-            <div className="grid md:grid-cols-3 gap-6">
-              {trainings.map((course) => (
+            {renderSectionItems(
+              "training",
+              trainings,
+              (course) => (
                 <Card key={course.id} className="border-border hover:shadow-lg transition-shadow">
                   <CardContent className="p-6 space-y-4">
                     {course.featuredImage ? (
@@ -314,8 +365,9 @@ export default async function HomePage() {
                     </Button>
                   </CardContent>
                 </Card>
-              ))}
-            </div>
+              ),
+              (course) => course.id,
+            )}
             <div className="text-center mt-8">
               <Button asChild variant="outline" size="lg">
                 <Link href="/training">View All Training</Link>
@@ -329,14 +381,16 @@ export default async function HomePage() {
         <section className="py-20 bg-background">
           <div className="container mx-auto px-4 lg:px-8">
             <div className="text-center mb-12">
-              <h2 className="text-3xl md:text-4xl font-bold mb-4">What Our Clients Say</h2>
+              <h2 className="text-3xl md:text-4xl font-bold mb-4">{getSectionConfig("testimonials").title}</h2>
               <p className="text-lg text-muted-foreground max-w-2xl mx-auto text-pretty leading-relaxed">
                 Trusted by institutions and organizations across the region
               </p>
             </div>
 
-            <div className="grid md:grid-cols-3 gap-6">
-              {testimonials.map((testimonial) => (
+            {renderSectionItems(
+              "testimonials",
+              testimonials,
+              (testimonial) => (
                 <Card key={testimonial.id} className="border-border">
                   <CardContent className="p-6 space-y-4">
                     <div className="flex gap-1">
@@ -354,8 +408,9 @@ export default async function HomePage() {
                     </div>
                   </CardContent>
                 </Card>
-              ))}
-            </div>
+              ),
+              (testimonial) => testimonial.id,
+            )}
           </div>
         </section>
       ) : null,
