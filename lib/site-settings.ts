@@ -1,4 +1,5 @@
 import { prisma } from "./prisma"
+import { DatabaseConnectionError, isDatabaseConnectionError } from "./prisma"
 
 export type SiteSettings = {
   siteTitle: string
@@ -766,6 +767,9 @@ export async function getSiteSettings(): Promise<SiteSettings> {
       contactAddress: settings.contactAddress ?? defaultSettings.contactAddress,
     }
   } catch (error) {
+    if (isDatabaseConnectionError(error)) {
+      throw new DatabaseConnectionError()
+    }
     console.error("Failed to load site settings, using defaults:", error)
     return defaultSettings
   }

@@ -51,19 +51,11 @@ export default async function HomePage() {
       orderBy: { displayOrder: "asc" },
       take: 3,
     })
-    .catch((error) => {
-      console.error("Failed to load services, using empty list:", error)
-      return []
-    })
 
   const testimonials = await prisma.testimonial
     .findMany({
       where: { isFeatured: true },
       take: 3,
-    })
-    .catch((error) => {
-      console.error("Failed to load testimonials, using empty list:", error)
-      return []
     })
   const trainings = await prisma.trainingCourse
     .findMany({
@@ -71,29 +63,17 @@ export default async function HomePage() {
       orderBy: { displayOrder: "asc" },
       take: 3,
     })
-    .catch((error) => {
-      console.error("Failed to load training courses, using empty list:", error)
-      return []
-    })
   const products = await prisma.product
     .findMany({
       where: { isActive: true },
       orderBy: { displayOrder: "asc" },
       take: 6,
     })
-    .catch((error) => {
-      console.error("Failed to load products, using empty list:", error)
-      return []
-    })
   const pricingPlans = await prisma.pricingPlan
     .findMany({
       where: { isActive: true },
       orderBy: { displayOrder: "asc" },
       take: 6,
-    })
-    .catch((error) => {
-      console.error("Failed to load pricing plans, using empty list:", error)
-      return []
     })
 
   const siteSettings = await getSiteSettings()
@@ -306,41 +286,14 @@ export default async function HomePage() {
 
           {renderSectionItems(
             "products",
-            products.length > 0
-              ? products.map((product) => ({
-                  id: product.id,
-                  title: product.title,
-                  description: product.description,
-                  imageUrl: product.imageUrl,
-                  linkUrl: product.linkUrl,
-                  linkLabel: product.linkLabel || "Explore product",
-                }))
-              : [
-                  {
-                    id: "fallback-product-1",
-                    title: "Education Suite",
-                    description: "Admissions, attendance, exams, and fee tracking designed for schools and institutions.",
-                    imageUrl: "",
-                    linkUrl: "/products",
-                    linkLabel: "Explore product",
-                  },
-                  {
-                    id: "fallback-product-2",
-                    title: "Operations Dashboard",
-                    description: "One place to monitor workflows, team activity, and key performance indicators.",
-                    imageUrl: "",
-                    linkUrl: "/products",
-                    linkLabel: "Explore product",
-                  },
-                  {
-                    id: "fallback-product-3",
-                    title: "Reporting Toolkit",
-                    description: "Actionable analytics and export-ready reports for leadership and stakeholders.",
-                    imageUrl: "",
-                    linkUrl: "/products",
-                    linkLabel: "Explore product",
-                  },
-                ],
+            products.map((product) => ({
+              id: product.id,
+              title: product.title,
+              description: product.description,
+              imageUrl: product.imageUrl,
+              linkUrl: product.linkUrl,
+              linkLabel: product.linkLabel || "Explore product",
+            })),
             (product) => (
               <Card key={product.id} className="border-border hover:shadow-lg transition-shadow h-full">
                 <CardContent className="p-6 h-full flex flex-col gap-4">
@@ -378,39 +331,15 @@ export default async function HomePage() {
 
           {renderSectionItems(
             "pricing",
-            pricingPlans.length > 0
-              ? pricingPlans.map((plan) => ({
-                  id: plan.id,
-                  name: plan.name,
-                  price: plan.price,
-                  period: plan.period || "",
-                  features: Array.isArray(plan.features)
-                    ? plan.features.map((entry) => String(entry)).slice(0, 4)
-                    : ["Contact us for full plan details"],
-                }))
-              : [
-                  {
-                    id: "fallback-pricing-1",
-                    name: "Starter",
-                    price: "PKR 25,000",
-                    period: "/month",
-                    features: ["Core modules", "Email support", "Monthly reporting"],
-                  },
-                  {
-                    id: "fallback-pricing-2",
-                    name: "Growth",
-                    price: "PKR 55,000",
-                    period: "/month",
-                    features: ["Everything in Starter", "Advanced workflows", "Priority support"],
-                  },
-                  {
-                    id: "fallback-pricing-3",
-                    name: "Enterprise",
-                    price: "Custom",
-                    period: "",
-                    features: ["Custom integrations", "Dedicated account team", "On-site training"],
-                  },
-                ],
+            pricingPlans.map((plan) => ({
+              id: plan.id,
+              name: plan.name,
+              price: plan.price,
+              period: plan.period || "",
+              features: Array.isArray(plan.features)
+                ? plan.features.map((entry) => String(entry)).slice(0, 4)
+                : ["Contact us for full plan details"],
+            })),
             (plan) => (
               <Card key={plan.id} className="border-border hover:shadow-lg transition-shadow">
                 <CardContent className="p-6 space-y-5">
