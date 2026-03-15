@@ -116,7 +116,7 @@ export default async function TrainingPage() {
                       </div>
                       <div className="flex items-center">
                         <Button asChild className="w-full md:w-auto">
-                          <Link href={resolveItemLink(course.linkUrl, "/contact")}>Enroll Now</Link>
+                          <Link href={resolveItemLink(course.linkUrl, "/contact")}>{course.linkLabel || "Enroll Now"}</Link>
                         </Button>
                       </div>
                     </div>

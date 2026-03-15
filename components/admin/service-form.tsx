@@ -19,6 +19,7 @@ type Service = {
   icon: string | null
   imageUrl?: string | null
   linkUrl?: string | null
+  linkLabel?: string | null
   category: string
   isFeatured: boolean
   displayOrder: number
@@ -33,6 +34,7 @@ export function ServiceForm({ service }: { service?: Service }) {
     icon: service?.icon || "Package",
     image_url: service?.imageUrl || "",
     link_url: service?.linkUrl || "",
+    link_label: service?.linkLabel || "Learn more",
     category: service?.category || "education",
     is_featured: service?.isFeatured || false,
     display_order: service?.displayOrder || 0,
@@ -151,6 +153,16 @@ export function ServiceForm({ service }: { service?: Service }) {
               />
               <p className="text-xs text-muted-foreground">Relative (`/path`) or absolute (`https://...`) URL.</p>
             </div>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="link_label">Card Link Text</Label>
+            <Input
+              id="link_label"
+              value={formData.link_label}
+              onChange={(e) => setFormData({ ...formData, link_label: e.target.value })}
+              placeholder="Learn more"
+            />
           </div>
 
           <div className="space-y-2">

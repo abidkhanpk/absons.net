@@ -23,6 +23,7 @@ type TrainingCourse = {
   displayOrder: number
   featuredImage?: string | null
   linkUrl?: string | null
+  linkLabel?: string | null
 }
 
 export function TrainingForm({ course }: { course?: TrainingCourse }) {
@@ -38,6 +39,7 @@ export function TrainingForm({ course }: { course?: TrainingCourse }) {
     display_order: course?.displayOrder ?? 0,
     featured_image: course?.featuredImage || "",
     link_url: course?.linkUrl || "",
+    link_label: course?.linkLabel || "Learn more",
   })
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -163,6 +165,16 @@ export function TrainingForm({ course }: { course?: TrainingCourse }) {
               />
               <p className="text-xs text-muted-foreground">Relative (`/path`) or absolute (`https://...`) URL.</p>
             </div>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="link_label">Card Link Text</Label>
+            <Input
+              id="link_label"
+              value={formData.link_label}
+              onChange={(e) => setFormData({ ...formData, link_label: e.target.value })}
+              placeholder="Learn more"
+            />
           </div>
 
           <div className="flex items-center space-x-2">

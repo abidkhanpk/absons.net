@@ -276,7 +276,7 @@ export default async function HomePage() {
                     <p className="text-muted-foreground leading-relaxed">{service.description}</p>
                     <Button asChild variant="link" className="p-0">
                       <Link href={resolveItemLink(service.linkUrl, "/services")}>
-                        Learn more <ArrowRight className="ml-2 h-4 w-4" />
+                        {service.linkLabel || "Learn more"} <ArrowRight className="ml-2 h-4 w-4" />
                       </Link>
                     </Button>
                   </CardContent>
@@ -471,7 +471,7 @@ export default async function HomePage() {
                     </div>
                     <Button asChild variant="link" className="p-0">
                       <Link href={resolveItemLink(course.linkUrl, "/training")}>
-                        Learn more <ArrowRight className="ml-2 h-4 w-4" />
+                        {course.linkLabel || "Learn more"} <ArrowRight className="ml-2 h-4 w-4" />
                       </Link>
                     </Button>
                   </CardContent>

@@ -106,7 +106,7 @@ export default async function ServicesPage() {
                         </ul>
                         <Button asChild variant="outline" className="w-full bg-transparent">
                           <Link href={resolveItemLink(service.linkUrl, "/services")}>
-                            Learn more <ArrowRight className="ml-2 h-4 w-4" />
+                            {service.linkLabel || "Learn more"} <ArrowRight className="ml-2 h-4 w-4" />
                           </Link>
                         </Button>
                       </CardContent>
@@ -164,7 +164,7 @@ export default async function ServicesPage() {
                         </ul>
                         <Button asChild variant="outline" className="w-full bg-transparent">
                           <Link href={resolveItemLink(service.linkUrl, "/training")}>
-                            Learn more <ArrowRight className="ml-2 h-4 w-4" />
+                            {service.linkLabel || "Learn more"} <ArrowRight className="ml-2 h-4 w-4" />
                           </Link>
                         </Button>
                       </CardContent>
@@ -222,7 +222,7 @@ export default async function ServicesPage() {
                         </ul>
                         <Button asChild variant="outline" className="w-full bg-transparent">
                           <Link href={resolveItemLink(service.linkUrl, "/services")}>
-                            Learn more <ArrowRight className="ml-2 h-4 w-4" />
+                            {service.linkLabel || "Learn more"} <ArrowRight className="ml-2 h-4 w-4" />
                           </Link>
                         </Button>
                       </CardContent>
