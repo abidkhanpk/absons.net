@@ -18,6 +18,7 @@ type Product = {
   icon: string | null
   imageUrl?: string | null
   linkUrl?: string | null
+  linkLabel?: string | null
   isActive: boolean
   displayOrder: number
 }
@@ -31,6 +32,7 @@ export function ProductForm({ product }: { product?: Product }) {
     icon: product?.icon || "Package",
     image_url: product?.imageUrl || "",
     link_url: product?.linkUrl || "",
+    link_label: product?.linkLabel || "Explore product",
     is_active: product?.isActive !== undefined ? product.isActive : true,
     display_order: product?.displayOrder ?? 0,
   })
@@ -135,6 +137,16 @@ export function ProductForm({ product }: { product?: Product }) {
               />
               <p className="text-xs text-muted-foreground">Relative (`/path`) or absolute (`https://...`) URL.</p>
             </div>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="link_label">Card Link Text</Label>
+            <Input
+              id="link_label"
+              value={formData.link_label}
+              onChange={(e) => setFormData({ ...formData, link_label: e.target.value })}
+              placeholder="Explore product"
+            />
           </div>
 
           <div className="flex items-center space-x-2">

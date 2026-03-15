@@ -60,8 +60,8 @@ export default async function ProductsPage() {
                 {products.map((product) => {
                   const IconComponent = iconMap[product.icon as keyof typeof iconMap] || Package
                   return (
-                    <Card key={product.id} className="border-border hover:shadow-lg transition-shadow">
-                      <CardContent className="p-6 space-y-4">
+                    <Card key={product.id} className="border-border hover:shadow-lg transition-shadow h-full">
+                      <CardContent className="p-6 h-full flex flex-col gap-4">
                         {product.imageUrl ? (
                           <img
                             src={product.imageUrl}
@@ -89,9 +89,9 @@ export default async function ProductsPage() {
                             <span className="text-muted-foreground">Role-based access support</span>
                           </li>
                         </ul>
-                        <Button asChild variant="outline" className="w-full bg-transparent">
+                        <Button asChild variant="outline" className="w-full bg-transparent mt-auto">
                           <Link href={resolveItemLink(product.linkUrl, "/products")}>
-                            Learn more <ArrowRight className="ml-2 h-4 w-4" />
+                            {product.linkLabel || "Explore product"} <ArrowRight className="ml-2 h-4 w-4" />
                           </Link>
                         </Button>
                       </CardContent>

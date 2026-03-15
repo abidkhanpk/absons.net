@@ -313,6 +313,7 @@ export default async function HomePage() {
                   description: product.description,
                   imageUrl: product.imageUrl,
                   linkUrl: product.linkUrl,
+                  linkLabel: product.linkLabel || "Explore product",
                 }))
               : [
                   {
@@ -321,6 +322,7 @@ export default async function HomePage() {
                     description: "Admissions, attendance, exams, and fee tracking designed for schools and institutions.",
                     imageUrl: "",
                     linkUrl: "/products",
+                    linkLabel: "Explore product",
                   },
                   {
                     id: "fallback-product-2",
@@ -328,6 +330,7 @@ export default async function HomePage() {
                     description: "One place to monitor workflows, team activity, and key performance indicators.",
                     imageUrl: "",
                     linkUrl: "/products",
+                    linkLabel: "Explore product",
                   },
                   {
                     id: "fallback-product-3",
@@ -335,11 +338,12 @@ export default async function HomePage() {
                     description: "Actionable analytics and export-ready reports for leadership and stakeholders.",
                     imageUrl: "",
                     linkUrl: "/products",
+                    linkLabel: "Explore product",
                   },
                 ],
             (product) => (
-              <Card key={product.id} className="border-border hover:shadow-lg transition-shadow">
-                <CardContent className="p-6 space-y-4">
+              <Card key={product.id} className="border-border hover:shadow-lg transition-shadow h-full">
+                <CardContent className="p-6 h-full flex flex-col gap-4">
                   {product.imageUrl ? (
                     <img
                       src={product.imageUrl}
@@ -348,10 +352,10 @@ export default async function HomePage() {
                     />
                   ) : null}
                   <h3 className="text-xl font-semibold">{product.title}</h3>
-                  <p className="text-muted-foreground leading-relaxed">{product.description}</p>
-                  <Button asChild variant="link" className="p-0">
+                  <p className="text-muted-foreground leading-relaxed flex-1">{product.description}</p>
+                  <Button asChild variant="link" className="p-0 mt-auto self-start">
                     <Link href={resolveItemLink(product.linkUrl, "/products")}>
-                      Explore product <ArrowRight className="ml-2 h-4 w-4" />
+                      {product.linkLabel || "Explore product"} <ArrowRight className="ml-2 h-4 w-4" />
                     </Link>
                   </Button>
                 </CardContent>

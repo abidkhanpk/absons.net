@@ -18,7 +18,7 @@ export async function POST(request: Request) {
 
   try {
     const body = await request.json()
-    const { title, description, icon, image_url, link_url, is_active, display_order } = body
+    const { title, description, icon, image_url, link_url, link_label, is_active, display_order } = body
     if (!title || !description) {
       return NextResponse.json({ error: "Missing required fields" }, { status: 400 })
     }
@@ -31,6 +31,7 @@ export async function POST(request: Request) {
           icon,
           imageUrl: image_url || null,
           linkUrl: link_url || null,
+          linkLabel: link_label || null,
           isActive: is_active ?? true,
           displayOrder: Number(display_order) || 0,
         },
@@ -49,7 +50,7 @@ export async function PUT(request: Request) {
 
   try {
     const body = await request.json()
-    const { id, title, description, icon, image_url, link_url, is_active, display_order } = body
+    const { id, title, description, icon, image_url, link_url, link_label, is_active, display_order } = body
     if (!id) return NextResponse.json({ error: "Product id is required" }, { status: 400 })
 
     await withRls(session!.userId, (tx) =>
@@ -61,6 +62,7 @@ export async function PUT(request: Request) {
           icon,
           imageUrl: image_url || null,
           linkUrl: link_url || null,
+          linkLabel: link_label || null,
           isActive: is_active ?? true,
           displayOrder: Number(display_order) || 0,
         },
