@@ -1,7 +1,6 @@
 "use client"
 
 import { useEffect } from "react"
-import { Button } from "@/components/ui/button"
 import { RotateCw } from "lucide-react"
 
 export default function GlobalError({
@@ -24,17 +23,14 @@ export default function GlobalError({
   }, [error])
 
   return (
-    <main className="min-h-screen flex items-center justify-center px-4">
-      <div className="max-w-xl w-full rounded-lg border border-border bg-card p-8 text-center space-y-4">
-        <h1 className="text-2xl font-bold">Database connection problem</h1>
-        <p className="text-muted-foreground">We are unable to load the latest data right now. Please retry after some time.</p>
-        <Button
-          onClick={handleRetry}
-          className="inline-flex items-center gap-2 bg-gradient-to-r from-primary to-accent text-primary-foreground shadow-md hover:opacity-95"
-        >
+    <main className="db-error-page">
+      <div className="db-error-card">
+        <h1 className="db-error-title">Database connection problem</h1>
+        <p className="db-error-subtitle">We are unable to load the latest data right now. Please retry after some time.</p>
+        <button onClick={handleRetry} className="retry-button" type="button">
           <RotateCw className="h-4 w-4" />
           Retry Now
-        </Button>
+        </button>
       </div>
     </main>
   )
