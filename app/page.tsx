@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import Link from "next/link"
 import { Fragment, type ReactNode } from "react"
-import { GraduationCap, BookOpen, School, Award, Activity, Package, ArrowRight, Star, Check } from "lucide-react"
+import { GraduationCap, BookOpen, School, Award, Activity, Package, ArrowRight, Star, Check, Users } from "lucide-react"
 import { prisma } from "@/lib/prisma"
 import { getSiteSettings } from "@/lib/site-settings"
 import { HeroSlider } from "@/components/hero-slider"
@@ -37,9 +37,10 @@ const iconMap = {
   Award,
   Activity,
   Package,
+  Users,
 }
 
-type HomeSectionId = "services" | "products" | "pricing" | "training" | "testimonials" | "why-choose"
+type HomeSectionId = "services" | "products" | "pricing" | "training" | "testimonials" | "who-we-serve" | "why-choose"
 
 export default async function HomePage() {
   const resolveItemLink = (link: string | null | undefined, fallback: string) =>
@@ -70,6 +71,12 @@ export default async function HomePage() {
       take: 6,
     })
   const pricingPlans = await prisma.pricingPlan
+    .findMany({
+      where: { isActive: true },
+      orderBy: { displayOrder: "asc" },
+      take: 6,
+    })
+  const whoWeServeItems = await prisma.whoWeServe
     .findMany({
       where: { isActive: true },
       orderBy: { displayOrder: "asc" },
@@ -128,6 +135,15 @@ export default async function HomePage() {
     testimonials: {
       title: "What Our Clients Say",
       subtitle: "Trusted by institutions and organizations across the region",
+      itemsLayout: "grid",
+      mobileLayout: "match",
+      scrollSpeed: 30,
+      pauseOnHover: true,
+      dragEnabled: true,
+    },
+    "who-we-serve": {
+      title: "Who We Serve",
+      subtitle: "Built for institutions, teams, and organizations that need dependable digital operations.",
       itemsLayout: "grid",
       mobileLayout: "match",
       scrollSpeed: 30,
@@ -450,6 +466,39 @@ export default async function HomePage() {
                 </Card>
               ),
               (testimonial) => testimonial.id,
+            )}
+          </div>
+        </section>
+      ) : null,
+    "who-we-serve":
+      whoWeServeItems && whoWeServeItems.length > 0 ? (
+        <section className="py-20 bg-muted/30">
+          <div className="container mx-auto px-4 lg:px-8">
+            <div className="text-center mb-12">
+              <h2 className="text-3xl md:text-4xl font-bold mb-4">{getSectionConfig("who-we-serve").title}</h2>
+              <p className="text-lg text-muted-foreground max-w-2xl mx-auto text-pretty leading-relaxed">
+                {getSectionConfig("who-we-serve").subtitle}
+              </p>
+            </div>
+
+            {renderSectionItems(
+              "who-we-serve",
+              whoWeServeItems,
+              (segment) => {
+                const SegmentIcon = iconMap[segment.icon as keyof typeof iconMap] || Users
+                return (
+                  <Card key={segment.id} className="border-border hover:shadow-lg transition-shadow">
+                    <CardContent className="p-6 space-y-4">
+                      <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-primary/10 text-primary">
+                        <SegmentIcon className="h-6 w-6" />
+                      </div>
+                      <h3 className="text-xl font-semibold">{segment.title}</h3>
+                      <p className="text-muted-foreground leading-relaxed">{segment.description}</p>
+                    </CardContent>
+                  </Card>
+                )
+              },
+              (segment) => segment.id,
             )}
           </div>
         </section>

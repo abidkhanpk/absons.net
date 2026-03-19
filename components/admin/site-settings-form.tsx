@@ -117,7 +117,7 @@ type NavItem = {
 }
 
 type HomeSection = {
-  id: "services" | "products" | "pricing" | "training" | "testimonials" | "why-choose"
+  id: "services" | "products" | "pricing" | "training" | "testimonials" | "who-we-serve" | "why-choose"
   enabled: boolean
   title?: string
   subtitle?: string
@@ -323,6 +323,15 @@ function safeParseHomeSections(
       pauseOnHover: true,
       dragEnabled: true,
     },
+    "who-we-serve": {
+      title: "Who We Serve",
+      subtitle: "Built for institutions, teams, and organizations that need dependable digital operations.",
+      itemsLayout: "grid",
+      mobileLayout: "match",
+      scrollSpeed: 30,
+      pauseOnHover: true,
+      dragEnabled: true,
+    },
     "why-choose": {
       title: "Why Choose Us",
       subtitle: "Trusted by educational institutions and organizations across Pakistan",
@@ -339,6 +348,7 @@ function safeParseHomeSections(
     { id: "pricing", enabled: fallback.pricing, ...defaultMeta.pricing },
     { id: "training", enabled: fallback.training, ...defaultMeta.training },
     { id: "testimonials", enabled: fallback.testimonials, ...defaultMeta.testimonials },
+    { id: "who-we-serve", enabled: fallback["who-we-serve"], ...defaultMeta["who-we-serve"] },
     { id: "why-choose", enabled: fallback["why-choose"], ...defaultMeta["why-choose"] },
   ]
 
@@ -350,7 +360,15 @@ function safeParseHomeSections(
     if (!Array.isArray(parsed)) {
       return defaultHomeSections
     }
-    const allowed: HomeSection["id"][] = ["services", "products", "pricing", "training", "testimonials", "why-choose"]
+    const allowed: HomeSection["id"][] = [
+      "services",
+      "products",
+      "pricing",
+      "training",
+      "testimonials",
+      "who-we-serve",
+      "why-choose",
+    ]
     const normalized: HomeSection[] = []
     const seen = new Set<string>()
     parsed.forEach((entry) => {
@@ -460,6 +478,7 @@ export function SiteSettingsForm({ initial, pages }: { initial: SiteSettings; pa
     pricing: true,
     training: initial.show_training ?? true,
     testimonials: initial.show_testimonials ?? true,
+    "who-we-serve": true,
     "why-choose": true,
   }
   const defaultWhyChooseItems: WhyChooseItem[] = [
@@ -1069,6 +1088,8 @@ export function SiteSettingsForm({ initial, pages }: { initial: SiteSettings; pa
                       ? "Training"
                       : section.id === "testimonials"
                         ? "Testimonials"
+                        : section.id === "who-we-serve"
+                          ? "Who We Serve"
                         : "Why Choose Us"
                 return (
                   <div

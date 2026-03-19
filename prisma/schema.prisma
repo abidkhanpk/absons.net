@@ -127,6 +127,19 @@ model Product {
   @@map("products")
 }
 
+model WhoWeServe {
+  id           String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  title        String
+  description  String
+  icon         String?
+  isActive     Boolean  @default(true) @map("is_active")
+  displayOrder Int      @default(0) @map("display_order")
+  createdAt    DateTime @default(now()) @db.Timestamptz(6) @map("created_at")
+  updatedAt    DateTime @default(now()) @db.Timestamptz(6) @map("updated_at")
+
+  @@map("who_we_serve")
+}
+
 model PricingPlan {
   id           String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   name         String
