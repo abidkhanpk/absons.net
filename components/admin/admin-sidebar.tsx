@@ -3,6 +3,7 @@
 import Link from "next/link"
 import { usePathname, useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
+import type { LucideIcon } from "lucide-react"
 import {
   LayoutDashboard,
   FileText,
@@ -25,21 +26,46 @@ import {
 } from "lucide-react"
 import { useState } from "react"
 
-const navItems = [
+type HomeSectionNavId = "services" | "products" | "pricing" | "training" | "testimonials" | "who-we-serve" | "why-choose"
+
+type SidebarItem = {
+  href: string
+  label: string
+  icon: LucideIcon
+  roles: string[]
+}
+
+const sectionNavMeta: Record<HomeSectionNavId, SidebarItem> = {
+  services: { href: "/admin/services", label: "Services", icon: Briefcase, roles: ["admin", "super_admin"] },
+  products: { href: "/admin/products", label: "Products", icon: Package, roles: ["admin", "super_admin"] },
+  pricing: { href: "/admin/pricing", label: "Pricing", icon: BadgeDollarSign, roles: ["admin", "super_admin"] },
+  training: { href: "/admin/training", label: "Training", icon: GraduationCap, roles: ["admin", "super_admin"] },
+  testimonials: { href: "/admin/testimonials", label: "Testimonials", icon: MessageSquare, roles: ["admin", "super_admin"] },
+  "who-we-serve": { href: "/admin/who-we-serve", label: "Who We Serve", icon: Building2, roles: ["admin", "super_admin"] },
+  "why-choose": { href: "/admin/why-choose", label: "Why Choose Us", icon: Star, roles: ["super_admin"] },
+}
+
+const baseNavBeforeSections: SidebarItem[] = [
   { href: "/admin", label: "Dashboard", icon: LayoutDashboard, roles: ["admin", "super_admin"] },
   { href: "/admin/pages", label: "Pages", icon: FileStack, roles: ["editor", "admin", "super_admin"] },
   { href: "/admin/blog", label: "Blog Posts", icon: FileText, roles: ["editor", "admin", "super_admin"] },
-  { href: "/admin/services", label: "Services", icon: Briefcase, roles: ["admin", "super_admin"] },
-  { href: "/admin/products", label: "Products", icon: Package, roles: ["admin", "super_admin"] },
-  { href: "/admin/pricing", label: "Pricing", icon: BadgeDollarSign, roles: ["admin", "super_admin"] },
-  { href: "/admin/training", label: "Training", icon: GraduationCap, roles: ["admin", "super_admin"] },
-  { href: "/admin/testimonials", label: "Testimonials", icon: MessageSquare, roles: ["admin", "super_admin"] },
-  { href: "/admin/who-we-serve", label: "Who We Serve", icon: Building2, roles: ["admin", "super_admin"] },
-  { href: "/admin/why-choose", label: "Why Choose Us", icon: Star, roles: ["super_admin"] },
+]
+
+const baseNavAfterSections: SidebarItem[] = [
   { href: "/admin/inquiries", label: "Inquiries", icon: Mail, roles: ["admin", "super_admin"] },
   { href: "/admin/approvals", label: "Approvals", icon: BadgeCheck, roles: ["admin", "super_admin"] },
   { href: "/admin/settings", label: "Settings", icon: Settings, roles: ["super_admin"] },
   { href: "/admin/users", label: "Users", icon: Users, roles: ["admin", "super_admin"] },
+]
+
+const defaultSectionNavOrder: HomeSectionNavId[] = [
+  "services",
+  "products",
+  "pricing",
+  "training",
+  "testimonials",
+  "who-we-serve",
+  "why-choose",
 ]
 
 export function AdminSidebar({
@@ -48,17 +74,26 @@ export function AdminSidebar({
   rejectedBlogCount = 0,
   rejectedPageCount = 0,
   siteTitle,
+  homeSections = [],
 }: {
   user: { id: string; email: string; role: string }
   pendingApprovals?: number
   rejectedBlogCount?: number
   rejectedPageCount?: number
   siteTitle?: string | null
+  homeSections?: Array<{ id: HomeSectionNavId; enabled: boolean }>
 }) {
   const pathname = usePathname()
   const router = useRouter()
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const role = user.role
+
+  const orderedSectionNavItems = (() => {
+    const configuredOrder = homeSections.map((section) => section.id)
+    const fullOrder = [...configuredOrder, ...defaultSectionNavOrder.filter((id) => !configuredOrder.includes(id))]
+    return fullOrder.map((id) => sectionNavMeta[id])
+  })()
+  const navItems = [...baseNavBeforeSections, ...orderedSectionNavItems, ...baseNavAfterSections]
 
   const handleLogout = async () => {
     await fetch("/api/auth/logout", { method: "POST" })

@@ -808,6 +808,21 @@ export function SiteSettingsForm({ initial, pages }: { initial: SiteSettings; pa
     }))
   }
 
+  const getHomeSectionLabel = (id: HomeSection["id"]) =>
+    id === "services"
+      ? "Services"
+      : id === "products"
+        ? "Products"
+        : id === "pricing"
+          ? "Pricing"
+          : id === "training"
+            ? "Training"
+            : id === "testimonials"
+              ? "Testimonials"
+              : id === "who-we-serve"
+                ? "Who We Serve"
+                : "Why Choose Us"
+
   const addPageToMenu = (pageId: string, target: "header" | "footer") => {
     const page = pages.find((entry) => entry.id === pageId)
     if (!page) return
@@ -1075,28 +1090,16 @@ export function SiteSettingsForm({ initial, pages }: { initial: SiteSettings; pa
         <TabsContent value="home-sections" className="space-y-6">
           <div className="space-y-2">
             <Label className="font-semibold">Home Sections</Label>
-            <div className="space-y-2 pt-1">
+            <Accordion type="multiple" className="space-y-2 pt-1">
               {formData.homeSections.map((section, index) => {
-                const label =
-                  section.id === "services"
-                    ? "Services"
-                    : section.id === "products"
-                      ? "Products"
-                      : section.id === "pricing"
-                        ? "Pricing"
-                    : section.id === "training"
-                      ? "Training"
-                      : section.id === "testimonials"
-                        ? "Testimonials"
-                        : section.id === "who-we-serve"
-                          ? "Who We Serve"
-                        : "Why Choose Us"
+                const label = getHomeSectionLabel(section.id)
                 return (
-                  <div
+                  <AccordionItem
                     key={section.id}
-                    className="space-y-3 rounded-md border border-border/60 bg-muted/40 px-3 py-3 md:rounded-none md:border-0 md:bg-transparent md:px-0"
+                    value={`home-section-${section.id}`}
+                    className="rounded-md border border-border/60 bg-muted/40 px-3 py-1"
                   >
-                    <div className="flex items-center justify-between">
+                    <div className="flex items-center justify-between gap-3 py-2">
                       <div className="flex items-center gap-3">
                         <Switch
                           id={`home-section-${section.id}`}
@@ -1128,108 +1131,116 @@ export function SiteSettingsForm({ initial, pages }: { initial: SiteSettings; pa
                         >
                           <ArrowDown className="h-4 w-4" />
                         </Button>
+                        <AccordionTrigger
+                          className="!flex-none !items-center !gap-0 !py-1 !px-2 hover:no-underline"
+                          aria-label={`Toggle ${label} section settings`}
+                        >
+                          <span className="sr-only">Toggle {label} settings</span>
+                        </AccordionTrigger>
                       </div>
                     </div>
-                    <div className="grid gap-3 md:grid-cols-2">
-                      <div className="space-y-1">
-                        <Label htmlFor={`home-section-title-${section.id}`} className="text-xs text-muted-foreground">
-                          Section Title
-                        </Label>
-                        <Input
-                          id={`home-section-title-${section.id}`}
-                          value={section.title || label}
-                          onChange={(e) => updateHomeSectionTitle(section.id, e.target.value)}
-                          placeholder={label}
-                        />
-                      </div>
-                      <div className="space-y-1">
-                        <Label htmlFor={`home-section-subtitle-${section.id}`} className="text-xs text-muted-foreground">
-                          Section Subtitle
-                        </Label>
-                        <Input
-                          id={`home-section-subtitle-${section.id}`}
-                          value={section.subtitle || ""}
-                          onChange={(e) => updateHomeSectionSubtitle(section.id, e.target.value)}
-                          placeholder="Section subtitle"
-                        />
-                      </div>
-                      <div className="space-y-1">
-                        <Label className="text-xs text-muted-foreground">Layout</Label>
-                        <Select
-                          value={section.itemsLayout || "grid"}
-                          onValueChange={(value: "grid" | "scroll") => updateHomeSectionLayout(section.id, value)}
-                        >
-                          <SelectTrigger>
-                            <SelectValue placeholder="Select layout" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="grid">Multi-line grid</SelectItem>
-                            <SelectItem value="scroll">Scrolling loop</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>
-                      <div className="space-y-1">
-                        <Label className="text-xs text-muted-foreground">Mobile Layout</Label>
-                        <Select
-                          value={section.mobileLayout || "match"}
-                          onValueChange={(value: "match" | "grid" | "scroll") =>
-                            updateHomeSectionMobileLayout(section.id, value)
-                          }
-                        >
-                          <SelectTrigger>
-                            <SelectValue placeholder="Select mobile layout" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="match">Same as desktop</SelectItem>
-                            <SelectItem value="grid">Multi-line grid</SelectItem>
-                            <SelectItem value="scroll">Scrolling loop</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>
-                      <div className="space-y-1">
-                        <Label htmlFor={`home-section-scroll-speed-${section.id}`} className="text-xs text-muted-foreground">
-                          Scroll Speed (seconds)
-                        </Label>
-                        <Input
-                          id={`home-section-scroll-speed-${section.id}`}
-                          type="number"
-                          min={5}
-                          max={120}
-                          value={section.scrollSpeed ?? 30}
-                          onChange={(e) => updateHomeSectionScrollSpeed(section.id, Number(e.target.value))}
-                        />
-                      </div>
-                      <div className="space-y-1">
-                        <Label className="text-xs text-muted-foreground">Pause On Hover</Label>
-                        <div className="flex items-center gap-3 rounded-md border border-border/60 bg-background px-3 py-2">
-                          <Switch
-                            id={`home-section-pause-hover-${section.id}`}
-                            checked={section.pauseOnHover ?? true}
-                            onCheckedChange={(checked) => updateHomeSectionPauseOnHover(section.id, checked)}
-                          />
-                          <Label htmlFor={`home-section-pause-hover-${section.id}`} className="text-sm font-normal">
-                            Pause while hovered
+                    <AccordionContent className="pb-3">
+                      <div className="grid gap-3 md:grid-cols-2">
+                        <div className="space-y-1">
+                          <Label htmlFor={`home-section-title-${section.id}`} className="text-xs text-muted-foreground">
+                            Section Title
                           </Label>
+                          <Input
+                            id={`home-section-title-${section.id}`}
+                            value={section.title || label}
+                            onChange={(e) => updateHomeSectionTitle(section.id, e.target.value)}
+                            placeholder={label}
+                          />
+                        </div>
+                        <div className="space-y-1">
+                          <Label htmlFor={`home-section-subtitle-${section.id}`} className="text-xs text-muted-foreground">
+                            Section Subtitle
+                          </Label>
+                          <Input
+                            id={`home-section-subtitle-${section.id}`}
+                            value={section.subtitle || ""}
+                            onChange={(e) => updateHomeSectionSubtitle(section.id, e.target.value)}
+                            placeholder="Section subtitle"
+                          />
+                        </div>
+                        <div className="space-y-1">
+                          <Label className="text-xs text-muted-foreground">Layout</Label>
+                          <Select
+                            value={section.itemsLayout || "grid"}
+                            onValueChange={(value: "grid" | "scroll") => updateHomeSectionLayout(section.id, value)}
+                          >
+                            <SelectTrigger>
+                              <SelectValue placeholder="Select layout" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="grid">Multi-line grid</SelectItem>
+                              <SelectItem value="scroll">Scrolling loop</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                        <div className="space-y-1">
+                          <Label className="text-xs text-muted-foreground">Mobile Layout</Label>
+                          <Select
+                            value={section.mobileLayout || "match"}
+                            onValueChange={(value: "match" | "grid" | "scroll") =>
+                              updateHomeSectionMobileLayout(section.id, value)
+                            }
+                          >
+                            <SelectTrigger>
+                              <SelectValue placeholder="Select mobile layout" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="match">Same as desktop</SelectItem>
+                              <SelectItem value="grid">Multi-line grid</SelectItem>
+                              <SelectItem value="scroll">Scrolling loop</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                        <div className="space-y-1">
+                          <Label htmlFor={`home-section-scroll-speed-${section.id}`} className="text-xs text-muted-foreground">
+                            Scroll Speed (seconds)
+                          </Label>
+                          <Input
+                            id={`home-section-scroll-speed-${section.id}`}
+                            type="number"
+                            min={5}
+                            max={120}
+                            value={section.scrollSpeed ?? 30}
+                            onChange={(e) => updateHomeSectionScrollSpeed(section.id, Number(e.target.value))}
+                          />
+                        </div>
+                        <div className="space-y-1">
+                          <Label className="text-xs text-muted-foreground">Pause On Hover</Label>
+                          <div className="flex items-center gap-3 rounded-md border border-border/60 bg-background px-3 py-2">
+                            <Switch
+                              id={`home-section-pause-hover-${section.id}`}
+                              checked={section.pauseOnHover ?? true}
+                              onCheckedChange={(checked) => updateHomeSectionPauseOnHover(section.id, checked)}
+                            />
+                            <Label htmlFor={`home-section-pause-hover-${section.id}`} className="text-sm font-normal">
+                              Pause while hovered
+                            </Label>
+                          </div>
+                        </div>
+                        <div className="space-y-1">
+                          <Label className="text-xs text-muted-foreground">Drag To Scroll</Label>
+                          <div className="flex items-center gap-3 rounded-md border border-border/60 bg-background px-3 py-2">
+                            <Switch
+                              id={`home-section-drag-enabled-${section.id}`}
+                              checked={section.dragEnabled ?? true}
+                              onCheckedChange={(checked) => updateHomeSectionDragEnabled(section.id, checked)}
+                            />
+                            <Label htmlFor={`home-section-drag-enabled-${section.id}`} className="text-sm font-normal">
+                              Allow mouse/touch dragging
+                            </Label>
+                          </div>
                         </div>
                       </div>
-                      <div className="space-y-1">
-                        <Label className="text-xs text-muted-foreground">Drag To Scroll</Label>
-                        <div className="flex items-center gap-3 rounded-md border border-border/60 bg-background px-3 py-2">
-                          <Switch
-                            id={`home-section-drag-enabled-${section.id}`}
-                            checked={section.dragEnabled ?? true}
-                            onCheckedChange={(checked) => updateHomeSectionDragEnabled(section.id, checked)}
-                          />
-                          <Label htmlFor={`home-section-drag-enabled-${section.id}`} className="text-sm font-normal">
-                            Allow mouse/touch dragging
-                          </Label>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
+                    </AccordionContent>
+                  </AccordionItem>
                 )
               })}
-            </div>
+            </Accordion>
           </div>
         </TabsContent>
 

@@ -58,6 +58,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
         rejectedBlogCount={rejectedBlogCount}
         rejectedPageCount={rejectedPageCount}
         siteTitle={settings.siteTitle}
+        homeSections={settings.homeSections}
       />
       <main className="flex-1 bg-muted/30">{children}</main>
     </div>

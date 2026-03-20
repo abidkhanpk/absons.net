@@ -10,7 +10,7 @@ import { Card, CardContent } from "@/components/ui/card"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Switch } from "@/components/ui/switch"
 import { useRouter } from "next/navigation"
-import { useState } from "react"
+import { useState, useEffect } from "react"
 
 type Testimonial = {
   id: string
@@ -37,6 +37,19 @@ export function TestimonialForm({ testimonial }: { testimonial?: Testimonial }) 
     is_featured: testimonial?.is_featured || false,
     display_order: testimonial?.display_order || 0,
   })
+
+  useEffect(() => {
+    setFormData({
+      client_name: testimonial?.client_name || "",
+      client_company: testimonial?.client_company || "",
+      client_position: testimonial?.client_position || "",
+      content: testimonial?.content || "",
+      rating: testimonial?.rating || 5,
+      avatar_url: testimonial?.avatar_url || "",
+      is_featured: testimonial?.is_featured || false,
+      display_order: testimonial?.display_order || 0,
+    })
+  }, [testimonial])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
