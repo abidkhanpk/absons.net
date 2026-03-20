@@ -28,26 +28,26 @@ export function TestimonialForm({ testimonial }: { testimonial?: Testimonial }) 
   const router = useRouter()
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [formData, setFormData] = useState({
-    client_name: testimonial?.client_name || "",
-    client_company: testimonial?.client_company || "",
-    client_position: testimonial?.client_position || "",
+    client_name: testimonial?.client_name || (testimonial as any)?.clientName || "",
+    client_company: testimonial?.client_company || (testimonial as any)?.clientCompany || "",
+    client_position: testimonial?.client_position || (testimonial as any)?.clientPosition || "",
     content: testimonial?.content || "",
-    rating: testimonial?.rating || 5,
-    avatar_url: testimonial?.avatar_url || "",
-    is_featured: testimonial?.is_featured || false,
-    display_order: testimonial?.display_order || 0,
+    rating: testimonial?.rating || (testimonial as any)?.rating || 5,
+    avatar_url: testimonial?.avatar_url || (testimonial as any)?.avatarUrl || "",
+    is_featured: testimonial?.is_featured || (testimonial as any)?.isFeatured || false,
+    display_order: testimonial?.display_order || (testimonial as any)?.displayOrder || 0,
   })
 
   useEffect(() => {
     setFormData({
-      client_name: testimonial?.client_name || "",
-      client_company: testimonial?.client_company || "",
-      client_position: testimonial?.client_position || "",
+      client_name: testimonial?.client_name || (testimonial as any)?.clientName || "",
+      client_company: testimonial?.client_company || (testimonial as any)?.clientCompany || "",
+      client_position: testimonial?.client_position || (testimonial as any)?.clientPosition || "",
       content: testimonial?.content || "",
-      rating: testimonial?.rating || 5,
-      avatar_url: testimonial?.avatar_url || "",
-      is_featured: testimonial?.is_featured || false,
-      display_order: testimonial?.display_order || 0,
+      rating: testimonial?.rating || (testimonial as any)?.rating || 5,
+      avatar_url: testimonial?.avatar_url || (testimonial as any)?.avatarUrl || "",
+      is_featured: testimonial?.is_featured || (testimonial as any)?.isFeatured || false,
+      display_order: testimonial?.display_order || (testimonial as any)?.displayOrder || 0,
     })
   }, [testimonial])
 
