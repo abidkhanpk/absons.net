@@ -256,7 +256,7 @@ export default async function HomePage() {
               const IconComponent = iconMap[service.icon as keyof typeof iconMap] || Package
               return (
                 <Card key={service.id} className="border-border hover:shadow-lg transition-shadow">
-                  <CardContent className="p-6 space-y-4">
+                  <CardContent className="p-6 space-y-4 min-h-[10rem]">
                     {service.imageUrl ? (
                       <img
                         src={service.imageUrl}
@@ -456,14 +456,19 @@ export default async function HomePage() {
               "testimonials",
               testimonials,
               (testimonial) => (
-                <Card key={testimonial.id} className="border-border">
+                <Card
+                  key={testimonial.id}
+                  className="border-border group overflow-hidden transition-shadow hover:shadow-lg"
+                >
                   <CardContent className="p-6 space-y-4">
                     <div className="flex gap-1">
                       {Array.from({ length: testimonial.rating }).map((_, i) => (
                         <Star key={i} className="h-5 w-5 fill-primary text-primary" />
                       ))}
                     </div>
-                    <p className="text-muted-foreground leading-relaxed italic">"{testimonial.content}"</p>
+                    <div className="max-h-20 overflow-hidden group-hover:max-h-[1000px] transition-all duration-300 ease-in-out">
+                      <p className="text-muted-foreground leading-relaxed italic">"{testimonial.content}"</p>
+                    </div>
                     <div>
                       <p className="font-semibold">{testimonial.clientName}</p>
                       <p className="text-sm text-muted-foreground">
