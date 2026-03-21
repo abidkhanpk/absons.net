@@ -60,6 +60,13 @@ export default function TestimonialSubmitForm() {
         // ignore
       }
 
+      // Notify any listeners (banner) in case layout didn't remount, then navigate back
+      try {
+        window.dispatchEvent(new Event("testimonialSubmitted"))
+      } catch (e) {
+        // ignore
+      }
+
       // Navigate back to the previous page where the visitor came from
       router.back()
     } catch (err: any) {

@@ -447,6 +447,8 @@ export default async function HomePage() {
                     <Link href="/testimonials/submit">Share Your Experience</Link>
                   </Button>
                 </div>
+                {/* placeholder for testimonial submission success banner to appear under the button */}
+                <div id="testimonial-submit-banner-root" />
               </div>
             </div>
 
