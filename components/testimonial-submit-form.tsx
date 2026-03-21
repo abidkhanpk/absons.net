@@ -1,6 +1,7 @@
 "use client"
 
 import React, { useState } from "react"
+import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -9,6 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Card, CardContent } from "@/components/ui/card"
 
 export default function TestimonialSubmitForm() {
+  const router = useRouter()
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [formData, setFormData] = useState({
     client_name: "",
@@ -48,11 +50,18 @@ export default function TestimonialSubmitForm() {
 
       const json = await resp.json().catch(() => ({}))
       if (!resp.ok) throw new Error((json && json.error) || "Failed to submit testimonial")
+      // Save a short success message to sessionStorage so we can show it on the previous page
+      try {
+        sessionStorage.setItem(
+          "testimonialSubmittedMessage",
+          "Thank you — your testimonial was submitted and will appear after admin verification.",
+        )
+      } catch (e) {
+        // ignore
+      }
 
-      setResult(
-        "Thank you — your testimonial was submitted and will appear after admin verification.",
-      )
-      setFormData({ client_name: "", client_company: "", client_position: "", content: "", rating: 5, avatar_url: "", email: "" })
+      // Navigate back to the previous page where the visitor came from
+      router.back()
     } catch (err: any) {
       setResult(err?.message || "Failed to submit testimonial")
     } finally {
@@ -60,14 +69,12 @@ export default function TestimonialSubmitForm() {
     }
   }
 
+  const [agreed, setAgreed] = useState(false)
+
   return (
     <form onSubmit={handleSubmit}>
       <Card className="border-border">
         <CardContent className="p-6 space-y-6">
-          <p className="text-sm text-muted-foreground">
-            Please enter the email you used when coordinating with us. We will verify this before publishing to
-            ensure submissions are genuine.
-          </p>
 
           <div className="space-y-2">
             <Label htmlFor="client_name">Your Name <span className="text-destructive">*</span></Label>
@@ -155,11 +162,28 @@ export default function TestimonialSubmitForm() {
               onChange={(e) => setFormData({ ...formData, email: e.target.value })}
               placeholder="user@example.com"
             />
-            <p className="text-sm text-muted-foreground">Use the email you used to coordinate with our team; submissions are verified before publishing.</p>
+            <p className="text-sm text-muted-foreground">Please enter the email you used when coordinating with us. We will verify this before publishing to ensure submissions are genuine.</p>
+          </div>
+
+          <div className="space-y-2">
+            <div className="flex items-start">
+              <input
+                id="consent"
+                type="checkbox"
+                checked={agreed}
+                onChange={(e) => setAgreed(e.target.checked)}
+                className="mt-1 mr-3 h-4 w-4"
+              />
+              <label htmlFor="consent" className="text-sm text-muted-foreground">
+                By submitting, you agree that we may make minor edits for grammar or to convert Urdu to English so the
+                testimonial displays correctly on the website. We will preserve your main remarks and rating; the
+                testimonial will appear publicly only after verification by our team.
+              </label>
+            </div>
           </div>
 
           <div className="flex gap-3 pt-4">
-            <Button type="submit" disabled={isSubmitting}>{isSubmitting ? "Submitting..." : "Submit Testimonial"}</Button>
+            <Button type="submit" disabled={isSubmitting || !agreed}>{isSubmitting ? "Submitting..." : "Submit Testimonial"}</Button>
           </div>
 
           {result ? <p className="text-sm mt-2">{result}</p> : null}
