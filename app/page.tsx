@@ -11,6 +11,7 @@ import { HeroSlider } from "@/components/hero-slider"
 import { WhyChooseSectionClient } from "@/components/home/why-choose-section-client"
 import { ScrollingLoop } from "@/components/home/scrolling-loop"
 import { buildSeoMetadata } from "@/lib/seo"
+import TestimonialSubmittedBanner from "@/components/testimonial-submitted-banner"
 
 // Ensure the homepage is served dynamically so it can gracefully handle missing data in production
 export const dynamic = "force-dynamic"
@@ -447,8 +448,8 @@ export default async function HomePage() {
                     <Link href="/testimonials/submit">Share Your Experience</Link>
                   </Button>
                 </div>
-                {/* placeholder for testimonial submission success banner to appear under the button */}
-                <div id="testimonial-submit-banner-root" />
+                {/* testimonial submission success banner (client) */}
+                <TestimonialSubmittedBanner />
               </div>
             </div>
 
@@ -467,7 +468,7 @@ export default async function HomePage() {
                       ))}
                     </div>
                     <div className="max-h-20 overflow-hidden group-hover:max-h-[1000px] transition-all duration-300 ease-in-out">
-                      <p className="text-muted-foreground leading-relaxed italic">"{testimonial.content}"</p>
+                      <p className="text-muted-foreground leading-relaxed italic testimonial-clamp">"{testimonial.content}"</p>
                     </div>
                     <div>
                       <p className="font-semibold">{testimonial.clientName}</p>

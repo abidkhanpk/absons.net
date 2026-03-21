@@ -123,3 +123,15 @@
     @apply bg-background text-foreground;
   }
 }
+
+/* Multiline truncate with ellipsis for testimonial cards */
+.testimonial-clamp {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3; /* collapsed to 3 lines */
+  overflow: hidden;
+}
+.group:hover .testimonial-clamp {
+  -webkit-line-clamp: unset; /* remove clamp on hover to show full content */
+  display: block;
+}

@@ -1,7 +1,6 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { createPortal } from "react-dom"
 import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert"
 import { Button } from "@/components/ui/button"
 
@@ -38,8 +37,8 @@ export default function TestimonialSubmittedBanner() {
 
   if (!message || !mounted) return null
 
-  const content = (
-    <div className="mt-4">
+  return (
+    <div className="container mx-auto px-4 lg:px-8 mt-4">
       <Alert>
         <AlertTitle>Thank you — submission received</AlertTitle>
         <AlertDescription>
@@ -53,13 +52,4 @@ export default function TestimonialSubmittedBanner() {
       </Alert>
     </div>
   )
-
-  // Try to render under the Share button placeholder first
-  const target = typeof document !== "undefined" ? document.getElementById("testimonial-submit-banner-root") : null
-  if (target) {
-    return createPortal(content, target)
-  }
-
-  // Fallback: render at top of page container
-  return <div className="container mx-auto px-4 lg:px-8">{content}</div>
 }

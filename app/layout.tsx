@@ -2,7 +2,6 @@ import type React from "react"
 import { Geist, Geist_Mono } from "next/font/google"
 import { Analytics } from "@vercel/analytics/next"
 import { ServiceWorkerReset } from "@/components/service-worker-reset"
-import TestimonialSubmittedBanner from "@/components/testimonial-submitted-banner"
 import { getSiteSettings } from "@/lib/site-settings"
 import { buildSeoMetadata } from "@/lib/seo"
 import "./globals.css"
@@ -94,7 +93,6 @@ async function LayoutWithSettings({ children }: { children: React.ReactNode }) {
       <ServiceWorkerReset />
       {analyticsSnippet ? <div dangerouslySetInnerHTML={{ __html: analyticsSnippet }} /> : null}
       {headerSnippet ? <div dangerouslySetInnerHTML={{ __html: headerSnippet }} /> : null}
-      <TestimonialSubmittedBanner />
       {children}
       {footerSnippet ? <div dangerouslySetInnerHTML={{ __html: footerSnippet }} /> : null}
     </div>
