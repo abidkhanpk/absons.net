@@ -29,6 +29,10 @@ type Testimonial = {
 export function TestimonialForm({ testimonial }: { testimonial?: Testimonial }) {
   const router = useRouter()
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const defaultIsPublished = testimonial
+    ? (testimonial as any)?.is_published ?? (testimonial as any)?.isPublished ?? false
+    : true
+
   const [formData, setFormData] = useState({
     client_name: testimonial?.client_name || (testimonial as any)?.clientName || "",
     client_company: testimonial?.client_company || (testimonial as any)?.clientCompany || "",
@@ -39,10 +43,14 @@ export function TestimonialForm({ testimonial }: { testimonial?: Testimonial }) 
     is_featured: testimonial?.is_featured || (testimonial as any)?.isFeatured || false,
     display_order: testimonial?.display_order || (testimonial as any)?.displayOrder || 0,
     submitter_email: (testimonial as any)?.submitter_email || (testimonial as any)?.submitterEmail || "",
-    is_published: (testimonial as any)?.is_published || (testimonial as any)?.isPublished || true,
+    is_published: defaultIsPublished,
   })
 
   useEffect(() => {
+    const published = testimonial
+      ? (testimonial as any)?.is_published ?? (testimonial as any)?.isPublished ?? false
+      : true
+
     setFormData({
       client_name: testimonial?.client_name || (testimonial as any)?.clientName || "",
       client_company: testimonial?.client_company || (testimonial as any)?.clientCompany || "",
@@ -53,7 +61,7 @@ export function TestimonialForm({ testimonial }: { testimonial?: Testimonial }) 
       is_featured: testimonial?.is_featured || (testimonial as any)?.isFeatured || false,
       display_order: testimonial?.display_order || (testimonial as any)?.displayOrder || 0,
       submitter_email: (testimonial as any)?.submitter_email || (testimonial as any)?.submitterEmail || "",
-      is_published: (testimonial as any)?.is_published || (testimonial as any)?.isPublished || true,
+      is_published: published,
     })
   }, [testimonial])
 
