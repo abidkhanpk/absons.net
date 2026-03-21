@@ -22,6 +22,8 @@ type Testimonial = {
   avatar_url?: string
   is_featured: boolean
   display_order: number
+  submitter_email?: string
+  is_published?: boolean
 }
 
 export function TestimonialForm({ testimonial }: { testimonial?: Testimonial }) {
@@ -36,6 +38,8 @@ export function TestimonialForm({ testimonial }: { testimonial?: Testimonial }) 
     avatar_url: testimonial?.avatar_url || (testimonial as any)?.avatarUrl || "",
     is_featured: testimonial?.is_featured || (testimonial as any)?.isFeatured || false,
     display_order: testimonial?.display_order || (testimonial as any)?.displayOrder || 0,
+    submitter_email: (testimonial as any)?.submitter_email || (testimonial as any)?.submitterEmail || "",
+    is_published: (testimonial as any)?.is_published || (testimonial as any)?.isPublished || true,
   })
 
   useEffect(() => {
@@ -48,6 +52,8 @@ export function TestimonialForm({ testimonial }: { testimonial?: Testimonial }) 
       avatar_url: testimonial?.avatar_url || (testimonial as any)?.avatarUrl || "",
       is_featured: testimonial?.is_featured || (testimonial as any)?.isFeatured || false,
       display_order: testimonial?.display_order || (testimonial as any)?.displayOrder || 0,
+      submitter_email: (testimonial as any)?.submitter_email || (testimonial as any)?.submitterEmail || "",
+      is_published: (testimonial as any)?.is_published || (testimonial as any)?.isPublished || true,
     })
   }, [testimonial])
 
@@ -169,6 +175,16 @@ export function TestimonialForm({ testimonial }: { testimonial?: Testimonial }) 
             />
           </div>
 
+          <div className="space-y-2">
+            <Label htmlFor="submitter_email">Submitter Email</Label>
+            <Input
+              id="submitter_email"
+              value={formData.submitter_email}
+              onChange={(e) => setFormData({ ...formData, submitter_email: e.target.value })}
+              placeholder="user@example.com"
+            />
+          </div>
+
           <div className="flex items-center space-x-2">
             <Switch
               id="is_featured"
@@ -176,6 +192,15 @@ export function TestimonialForm({ testimonial }: { testimonial?: Testimonial }) 
               onCheckedChange={(checked) => setFormData({ ...formData, is_featured: checked })}
             />
             <Label htmlFor="is_featured">Feature on homepage</Label>
+          </div>
+
+          <div className="flex items-center space-x-2">
+            <Switch
+              id="is_published"
+              checked={formData.is_published}
+              onCheckedChange={(checked) => setFormData({ ...formData, is_published: checked })}
+            />
+            <Label htmlFor="is_published">Published (visible to public)</Label>
           </div>
 
           <div className="flex gap-3 pt-4">

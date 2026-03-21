@@ -55,7 +55,7 @@ export default async function HomePage() {
 
   const testimonials = await prisma.testimonial
     .findMany({
-      where: { isFeatured: true },
+      where: { isFeatured: true, isPublished: true },
       take: 3,
     })
   const trainings = await prisma.trainingCourse
@@ -441,6 +441,13 @@ export default async function HomePage() {
               <p className="text-lg text-muted-foreground max-w-2xl mx-auto text-pretty leading-relaxed">
                 {getSectionConfig("testimonials").subtitle}
               </p>
+              <div className="mt-6">
+                <div className="text-center">
+                  <Button asChild variant="outline">
+                    <Link href="/testimonials/submit">Share Your Experience</Link>
+                  </Button>
+                </div>
+              </div>
             </div>
 
             {renderSectionItems(

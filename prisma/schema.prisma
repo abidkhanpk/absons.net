@@ -163,6 +163,8 @@ model Testimonial {
   rating         Int
   avatarUrl      String?  @map("avatar_url")
   isFeatured     Boolean  @default(false) @map("is_featured")
+  submitterEmail String?  @map("submitter_email")
+  isPublished    Boolean  @default(true) @map("is_published")
   displayOrder   Int      @default(0) @map("display_order")
   createdAt      DateTime @default(now()) @db.Timestamptz(6) @map("created_at")
   updatedAt      DateTime @default(now()) @db.Timestamptz(6) @map("updated_at")
