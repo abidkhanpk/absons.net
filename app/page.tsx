@@ -2,6 +2,7 @@ import { Header } from "@/components/header"
 import { Footer } from "@/components/footer"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
+import { Badge } from "@/components/ui/badge"
 import Link from "next/link"
 import { Fragment, type ReactNode } from "react"
 import { GraduationCap, BookOpen, School, Award, Activity, Package, ArrowRight, Star, Check, Users } from "lucide-react"
@@ -310,6 +311,8 @@ export default async function HomePage() {
               imageUrl: product.imageUrl,
               linkUrl: product.linkUrl,
               linkLabel: product.linkLabel || "Explore product",
+              isFeatured: product.isFeatured,
+              tags: product.tags,
             })),
             (product) => (
               <Card key={product.id} className="border-border hover:shadow-lg transition-shadow h-full">
@@ -321,6 +324,14 @@ export default async function HomePage() {
                       className="w-full h-44 object-cover rounded-md border border-border/60"
                     />
                   ) : null}
+                  <div className="flex flex-wrap items-center gap-2">
+                    {product.isFeatured ? <Badge>Featured</Badge> : null}
+                    {product.tags.slice(0, 2).map((tag) => (
+                      <Badge key={`${product.id}-${tag}`} variant="secondary">
+                        {tag}
+                      </Badge>
+                    ))}
+                  </div>
                   <h3 className="text-xl font-semibold">{product.title}</h3>
                   <p className="text-muted-foreground leading-relaxed flex-1">{product.description}</p>
                   <Button asChild variant="link" className="p-0 mt-auto self-start">

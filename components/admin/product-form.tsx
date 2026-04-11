@@ -19,6 +19,8 @@ type Product = {
   imageUrl?: string | null
   linkUrl?: string | null
   linkLabel?: string | null
+  isFeatured?: boolean
+  tags?: string[]
   isActive: boolean
   displayOrder: number
 }
@@ -33,6 +35,8 @@ export function ProductForm({ product }: { product?: Product }) {
     image_url: product?.imageUrl || "",
     link_url: product?.linkUrl || "",
     link_label: product?.linkLabel || "Explore product",
+    is_featured: product?.isFeatured ?? false,
+    tags: Array.isArray(product?.tags) ? product.tags.join(", ") : "",
     is_active: product?.isActive !== undefined ? product.isActive : true,
     display_order: product?.displayOrder ?? 0,
   })
@@ -147,6 +151,26 @@ export function ProductForm({ product }: { product?: Product }) {
               onChange={(e) => setFormData({ ...formData, link_label: e.target.value })}
               placeholder="Explore product"
             />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="tags">Tags</Label>
+            <Input
+              id="tags"
+              value={formData.tags}
+              onChange={(e) => setFormData({ ...formData, tags: e.target.value })}
+              placeholder="Workflow, ERP, Education"
+            />
+            <p className="text-xs text-muted-foreground">Comma-separated tags used for product labeling and filtering.</p>
+          </div>
+
+          <div className="flex items-center space-x-2">
+            <Switch
+              id="is_featured"
+              checked={formData.is_featured}
+              onCheckedChange={(checked) => setFormData({ ...formData, is_featured: checked })}
+            />
+            <Label htmlFor="is_featured">Featured (show badge on website)</Label>
           </div>
 
           <div className="flex items-center space-x-2">

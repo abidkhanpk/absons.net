@@ -2,6 +2,7 @@ import { Header } from "@/components/header"
 import { Footer } from "@/components/footer"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
+import { Badge } from "@/components/ui/badge"
 import Link from "next/link"
 import { ArrowRight, Package, CheckCircle2, GraduationCap, BookOpen, School, Award, Activity } from "lucide-react"
 import { prisma } from "@/lib/prisma"
@@ -73,6 +74,14 @@ export default async function ProductsPage() {
                             <IconComponent className="h-6 w-6" />
                           </div>
                         )}
+                        <div className="flex flex-wrap items-center gap-2">
+                          {product.isFeatured ? <Badge>Featured</Badge> : null}
+                          {product.tags.slice(0, 3).map((tag) => (
+                            <Badge key={`${product.id}-${tag}`} variant="secondary">
+                              {tag}
+                            </Badge>
+                          ))}
+                        </div>
                         <h3 className="text-xl font-semibold">{product.title}</h3>
                         <p className="text-muted-foreground leading-relaxed">{product.description}</p>
                         <ul className="space-y-2">

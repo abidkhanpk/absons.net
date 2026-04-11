@@ -47,11 +47,21 @@ export default async function ProductsManagementPage() {
                   <div className="flex-1 space-y-2">
                     <div className="flex items-center gap-2">
                       <h3 className="text-xl font-semibold">{product.title}</h3>
+                      {product.isFeatured ? <Badge variant="outline">Featured</Badge> : null}
                       <Badge variant={product.isActive ? "default" : "secondary"}>
                         {product.isActive ? "Active" : "Inactive"}
                       </Badge>
                     </div>
                     <p className="text-muted-foreground line-clamp-2">{product.description}</p>
+                    {product.tags.length > 0 ? (
+                      <div className="flex flex-wrap gap-2">
+                        {product.tags.map((tag) => (
+                          <Badge key={`${product.id}-${tag}`} variant="secondary">
+                            {tag}
+                          </Badge>
+                        ))}
+                      </div>
+                    ) : null}
                     <p className="text-sm text-muted-foreground">Display Order: {product.displayOrder}</p>
                   </div>
                   <div className="flex items-center gap-2">

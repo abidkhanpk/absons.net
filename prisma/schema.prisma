@@ -119,6 +119,8 @@ model Product {
   imageUrl     String?  @map("image_url")
   linkUrl      String?  @map("link_url")
   linkLabel    String?  @map("link_label")
+  isFeatured   Boolean  @default(false) @map("is_featured")
+  tags         String[] @default([])
   isActive     Boolean  @default(true) @map("is_active")
   displayOrder Int      @default(0) @map("display_order")
   createdAt    DateTime @default(now()) @db.Timestamptz(6) @map("created_at")

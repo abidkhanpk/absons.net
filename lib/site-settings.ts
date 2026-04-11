@@ -799,6 +799,7 @@ export async function getSiteSettings(): Promise<SiteSettings> {
     }
   } catch (error) {
     if (isDatabaseConnectionError(error)) {
+      console.error("Site settings DB connection error:", error)
       throw new DatabaseConnectionError()
     }
     console.error("Failed to load site settings, using defaults:", error)

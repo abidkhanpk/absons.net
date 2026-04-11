@@ -18,7 +18,18 @@ export async function POST(request: Request) {
 
   try {
     const body = await request.json()
-    const { title, description, icon, image_url, link_url, link_label, is_active, display_order } = body
+    const { title, description, icon, image_url, link_url, link_label, is_featured, tags, is_active, display_order } = body
+    const normalizedTags = Array.isArray(tags)
+      ? tags
+          .map((tag: unknown) => String(tag || "").trim())
+          .filter((tag: string) => tag.length > 0)
+      : typeof tags === "string"
+        ? tags
+            .split(",")
+            .map((tag) => tag.trim())
+            .filter((tag) => tag.length > 0)
+        : []
+
     if (!title || !description) {
       return NextResponse.json({ error: "Missing required fields" }, { status: 400 })
     }
@@ -32,6 +43,8 @@ export async function POST(request: Request) {
           imageUrl: image_url || null,
           linkUrl: link_url || null,
           linkLabel: link_label || null,
+          isFeatured: is_featured ?? false,
+          tags: Array.from(new Set(normalizedTags)),
           isActive: is_active ?? true,
           displayOrder: Number(display_order) || 0,
         },
@@ -50,7 +63,18 @@ export async function PUT(request: Request) {
 
   try {
     const body = await request.json()
-    const { id, title, description, icon, image_url, link_url, link_label, is_active, display_order } = body
+    const { id, title, description, icon, image_url, link_url, link_label, is_featured, tags, is_active, display_order } = body
+    const normalizedTags = Array.isArray(tags)
+      ? tags
+          .map((tag: unknown) => String(tag || "").trim())
+          .filter((tag: string) => tag.length > 0)
+      : typeof tags === "string"
+        ? tags
+            .split(",")
+            .map((tag) => tag.trim())
+            .filter((tag) => tag.length > 0)
+        : []
+
     if (!id) return NextResponse.json({ error: "Product id is required" }, { status: 400 })
 
     await withRls(session!.userId, (tx) =>
@@ -63,6 +87,8 @@ export async function PUT(request: Request) {
           imageUrl: image_url || null,
           linkUrl: link_url || null,
           linkLabel: link_label || null,
+          isFeatured: is_featured ?? false,
+          tags: Array.from(new Set(normalizedTags)),
           isActive: is_active ?? true,
           displayOrder: Number(display_order) || 0,
         },
