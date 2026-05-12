@@ -3,19 +3,11 @@ import { Footer } from "@/components/footer"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
-import { GraduationCap, BookOpen, School, Award, Activity, Package, ArrowRight, CheckCircle2 } from "lucide-react"
+import { Package, ArrowRight, CheckCircle2 } from "lucide-react"
 import { prisma } from "@/lib/prisma"
 import { getSiteSettings } from "@/lib/site-settings"
 import { buildSeoMetadata } from "@/lib/seo"
-
-const iconMap = {
-  GraduationCap,
-  BookOpen,
-  School,
-  Award,
-  Activity,
-  Package,
-}
+import { contentIconMap } from "@/lib/content-icons"
 
 export async function generateMetadata() {
   const settings = await getSiteSettings()
@@ -73,7 +65,7 @@ export default async function ServicesPage() {
 
               <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {educationServices.map((service) => {
-                  const IconComponent = iconMap[service.icon as keyof typeof iconMap] || Package
+                  const IconComponent = contentIconMap[service.icon as keyof typeof contentIconMap] || Package
                   return (
                     <Card key={service.id} className="border-border hover:shadow-lg transition-shadow">
                       <CardContent className="p-6 space-y-4">
@@ -131,7 +123,7 @@ export default async function ServicesPage() {
 
               <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {trainingServices.map((service) => {
-                  const IconComponent = iconMap[service.icon as keyof typeof iconMap] || Package
+                  const IconComponent = contentIconMap[service.icon as keyof typeof contentIconMap] || Package
                   return (
                     <Card key={service.id} className="border-border hover:shadow-lg transition-shadow">
                       <CardContent className="p-6 space-y-4">
@@ -189,7 +181,7 @@ export default async function ServicesPage() {
 
               <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {supplyServices.map((service) => {
-                  const IconComponent = iconMap[service.icon as keyof typeof iconMap] || Package
+                  const IconComponent = contentIconMap[service.icon as keyof typeof contentIconMap] || Package
                   return (
                     <Card key={service.id} className="border-border hover:shadow-lg transition-shadow">
                       <CardContent className="p-6 space-y-4">

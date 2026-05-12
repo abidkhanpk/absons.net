@@ -8,6 +8,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { Card, CardContent } from "@/components/ui/card"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Switch } from "@/components/ui/switch"
+import { CONTENT_ICON_OPTIONS } from "@/lib/content-icons"
 import { useRouter } from "next/navigation"
 import { useState } from "react"
 
@@ -100,12 +101,11 @@ export function ProductForm({ product }: { product?: Product }) {
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="GraduationCap">GraduationCap</SelectItem>
-                  <SelectItem value="BookOpen">BookOpen</SelectItem>
-                  <SelectItem value="School">School</SelectItem>
-                  <SelectItem value="Award">Award</SelectItem>
-                  <SelectItem value="Activity">Activity</SelectItem>
-                  <SelectItem value="Package">Package</SelectItem>
+                  {CONTENT_ICON_OPTIONS.map((iconName) => (
+                    <SelectItem key={iconName} value={iconName}>
+                      {iconName}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </div>

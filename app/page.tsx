@@ -5,7 +5,7 @@ import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import Link from "next/link"
 import { Fragment, type ReactNode } from "react"
-import { GraduationCap, BookOpen, School, Award, Activity, Package, ArrowRight, Star, Check, Users } from "lucide-react"
+import { ArrowRight, Star, Check, Package, Users } from "lucide-react"
 import { prisma } from "@/lib/prisma"
 import { getSiteSettings } from "@/lib/site-settings"
 import { HeroSlider } from "@/components/hero-slider"
@@ -13,6 +13,7 @@ import { WhyChooseSectionClient } from "@/components/home/why-choose-section-cli
 import { ScrollingLoop } from "@/components/home/scrolling-loop"
 import { buildSeoMetadata } from "@/lib/seo"
 import TestimonialSubmittedBanner from "@/components/testimonial-submitted-banner"
+import { contentIconMap } from "@/lib/content-icons"
 
 // Ensure the homepage is served dynamically so it can gracefully handle missing data in production
 export const dynamic = "force-dynamic"
@@ -30,16 +31,6 @@ export async function generateMetadata() {
     noIndex: override.noIndex,
     noFollow: override.noFollow,
   })
-}
-
-const iconMap = {
-  GraduationCap,
-  BookOpen,
-  School,
-  Award,
-  Activity,
-  Package,
-  Users,
 }
 
 type HomeSectionId = "services" | "products" | "pricing" | "training" | "testimonials" | "who-we-serve" | "why-choose"
@@ -255,7 +246,7 @@ export default async function HomePage() {
             "services",
             services || [],
             (service) => {
-              const IconComponent = iconMap[service.icon as keyof typeof iconMap] || Package
+              const IconComponent = contentIconMap[service.icon as keyof typeof contentIconMap] || Package
               return (
                 <Card key={service.id} className="border-border hover:shadow-lg transition-shadow">
                   <CardContent className="p-6 space-y-4 min-h-[10rem]">
@@ -511,7 +502,7 @@ export default async function HomePage() {
               "who-we-serve",
               whoWeServeItems,
               (segment) => {
-                const SegmentIcon = iconMap[segment.icon as keyof typeof iconMap] || Users
+                const SegmentIcon = contentIconMap[segment.icon as keyof typeof contentIconMap] || Users
                 return (
                   <Card key={segment.id} className="border-border hover:shadow-lg transition-shadow">
                     <CardContent className="p-6 space-y-4">

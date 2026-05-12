@@ -4,19 +4,11 @@ import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import Link from "next/link"
-import { ArrowRight, Package, CheckCircle2, GraduationCap, BookOpen, School, Award, Activity } from "lucide-react"
+import { ArrowRight, Package, CheckCircle2 } from "lucide-react"
 import { prisma } from "@/lib/prisma"
 import { getSiteSettings } from "@/lib/site-settings"
 import { buildSeoMetadata } from "@/lib/seo"
-
-const iconMap = {
-  GraduationCap,
-  BookOpen,
-  School,
-  Award,
-  Activity,
-  Package,
-}
+import { contentIconMap } from "@/lib/content-icons"
 
 export async function generateMetadata() {
   const settings = await getSiteSettings()
@@ -59,7 +51,7 @@ export default async function ProductsPage() {
             {products.length > 0 ? (
               <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {products.map((product) => {
-                  const IconComponent = iconMap[product.icon as keyof typeof iconMap] || Package
+                  const IconComponent = contentIconMap[product.icon as keyof typeof contentIconMap] || Package
                   return (
                     <Card key={product.id} className="border-border hover:shadow-lg transition-shadow h-full">
                       <CardContent className="p-6 h-full flex flex-col gap-4">
