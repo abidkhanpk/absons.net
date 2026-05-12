@@ -7,6 +7,7 @@ import { notFound } from "next/navigation"
 import { prisma } from "@/lib/prisma"
 import { getSiteSettings } from "@/lib/site-settings"
 import { buildSeoMetadata } from "@/lib/seo"
+import { resolveAssetUrl } from "@/lib/asset-url"
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params
@@ -64,7 +65,7 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
               {post.featuredImage && (
                 <div className="w-full h-96 bg-muted rounded-lg overflow-hidden mb-8">
                   <img
-                    src={post.featuredImage || "/placeholder.svg"}
+                    src={resolveAssetUrl(post.featuredImage) || "/placeholder.svg"}
                     alt={post.title}
                     className="w-full h-full object-cover"
                   />

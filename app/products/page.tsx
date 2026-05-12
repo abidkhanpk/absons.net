@@ -9,6 +9,7 @@ import { prisma } from "@/lib/prisma"
 import { getSiteSettings } from "@/lib/site-settings"
 import { buildSeoMetadata } from "@/lib/seo"
 import { contentIconMap } from "@/lib/content-icons"
+import { resolveAssetUrl } from "@/lib/asset-url"
 
 export async function generateMetadata() {
   const settings = await getSiteSettings()
@@ -57,7 +58,7 @@ export default async function ProductsPage() {
                       <CardContent className="p-6 h-full flex flex-col gap-4">
                         {product.imageUrl ? (
                           <img
-                            src={product.imageUrl}
+                            src={resolveAssetUrl(product.imageUrl)}
                             alt={product.title}
                             className="w-full h-44 object-cover rounded-md border border-border/60"
                           />

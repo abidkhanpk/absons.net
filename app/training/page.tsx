@@ -8,6 +8,7 @@ import { Award, Clock, TrendingUp, CheckCircle2 } from "lucide-react"
 import { prisma } from "@/lib/prisma"
 import { getSiteSettings } from "@/lib/site-settings"
 import { buildSeoMetadata } from "@/lib/seo"
+import { resolveAssetUrl } from "@/lib/asset-url"
 
 export async function generateMetadata() {
   const settings = await getSiteSettings()
@@ -89,7 +90,7 @@ export default async function TrainingPage() {
                       <div className="md:col-span-3 space-y-4">
                         {course.featuredImage ? (
                           <img
-                            src={course.featuredImage}
+                            src={resolveAssetUrl(course.featuredImage)}
                             alt={course.title}
                             className="w-full h-52 object-cover rounded-md border border-border/60"
                           />

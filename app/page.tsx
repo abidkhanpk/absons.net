@@ -14,6 +14,7 @@ import { ScrollingLoop } from "@/components/home/scrolling-loop"
 import { buildSeoMetadata } from "@/lib/seo"
 import TestimonialSubmittedBanner from "@/components/testimonial-submitted-banner"
 import { contentIconMap } from "@/lib/content-icons"
+import { resolveAssetUrl } from "@/lib/asset-url"
 
 // Ensure the homepage is served dynamically so it can gracefully handle missing data in production
 export const dynamic = "force-dynamic"
@@ -252,7 +253,7 @@ export default async function HomePage() {
                   <CardContent className="p-6 space-y-4 min-h-[10rem]">
                     {service.imageUrl ? (
                       <img
-                        src={service.imageUrl}
+                        src={resolveAssetUrl(service.imageUrl)}
                         alt={service.title}
                         className="w-full h-44 object-cover rounded-md border border-border/60"
                       />
@@ -310,7 +311,7 @@ export default async function HomePage() {
                 <CardContent className="p-6 h-full flex flex-col gap-4">
                   {product.imageUrl ? (
                     <img
-                      src={product.imageUrl}
+                      src={resolveAssetUrl(product.imageUrl)}
                       alt={product.title}
                       className="w-full h-44 object-cover rounded-md border border-border/60"
                     />
@@ -406,7 +407,7 @@ export default async function HomePage() {
                   <CardContent className="p-6 space-y-4">
                     {course.featuredImage ? (
                       <img
-                        src={course.featuredImage}
+                        src={resolveAssetUrl(course.featuredImage)}
                         alt={course.title}
                         className="w-full h-44 object-cover rounded-md border border-border/60"
                       />

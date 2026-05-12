@@ -1,10 +1,8 @@
 import { NextResponse } from "next/server"
-import { promises as fs } from "fs"
-import path from "path"
-import { put } from "@vercel/blob"
 import { getSession } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
 import sharp from "sharp"
+import { saveAsset } from "@/lib/asset-storage"
 
 export async function POST(request: Request) {
   try {
@@ -44,23 +42,13 @@ export async function POST(request: Request) {
       outputName = `${base || "favicon"}-32x32.png`
     }
 
-    const blobToken = process.env.BLOB_READ_WRITE_TOKEN
-    const fileName = `${kind === "favicon" ? "favicons" : "logos"}/${Date.now()}-${outputName}`
-
-    // If a Vercel Blob token exists, use Blob storage (production-safe)
-    if (blobToken) {
-      const blob = await put(fileName, outputBuffer, { access: "public", token: blobToken, contentType: outputMime })
-      return NextResponse.json({ url: blob.url })
-    }
-
-    // Fallback for local/dev: write to public/uploads (not persistent in serverless)
-    const uploadsDir = path.join(process.cwd(), "public", "uploads")
-    await fs.mkdir(uploadsDir, { recursive: true })
-    const localFileName = `${Date.now()}-${outputName}`
-    const localPath = path.join(uploadsDir, localFileName)
-    await fs.writeFile(localPath, outputBuffer)
-    const url = `/uploads/${localFileName}`
-    return NextResponse.json({ url })
+    const stored = await saveAsset({
+      buffer: outputBuffer,
+      contentType: outputMime,
+      assetType: kind === "favicon" ? "favicons" : "logos",
+      fileName: outputName,
+    })
+    return NextResponse.json({ url: stored.url, key: stored.key, provider: stored.provider })
   } catch (error) {
     console.error("Logo upload error:", error)
     return NextResponse.json({ error: "Failed to upload logo" }, { status: 500 })

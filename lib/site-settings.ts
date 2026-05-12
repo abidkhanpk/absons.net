@@ -1,5 +1,6 @@
 import { prisma } from "./prisma"
 import { DatabaseConnectionError, isDatabaseConnectionError } from "./prisma"
+import { resolveAssetUrl } from "./asset-url"
 
 export type SiteSettings = {
   siteTitle: string
@@ -115,7 +116,7 @@ export type StaticSeoSettings = Record<
 const defaultSettings: SiteSettings = {
   siteTitle: "Site",
   logoUrl: "/uploads/default-logo.png",
-  faviconUrl: "/uploads/default-icon-light-32x32.png",
+  faviconUrl: "absons/uploads/favicons/default-icon-light-32x32.png",
   navAlignment: "left",
   navLoginText: "Login",
   navCtaText: "Get Started",
@@ -375,7 +376,7 @@ function resolveLogoUrl(logoUrl: string | null | undefined) {
     return defaultSettings.logoUrl
   }
 
-  return logoUrl
+  return resolveAssetUrl(logoUrl) || defaultSettings.logoUrl
 }
 
 function resolveFaviconUrl(faviconUrl: string | null | undefined) {
@@ -387,7 +388,7 @@ function resolveFaviconUrl(faviconUrl: string | null | undefined) {
     return defaultSettings.faviconUrl
   }
 
-  return faviconUrl
+  return resolveAssetUrl(faviconUrl) || defaultSettings.faviconUrl
 }
 
 function parseHeroSlides(raw: string | null | undefined): HeroSlide[] {

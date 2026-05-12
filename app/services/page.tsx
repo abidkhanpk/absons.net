@@ -8,6 +8,7 @@ import { prisma } from "@/lib/prisma"
 import { getSiteSettings } from "@/lib/site-settings"
 import { buildSeoMetadata } from "@/lib/seo"
 import { contentIconMap } from "@/lib/content-icons"
+import { resolveAssetUrl } from "@/lib/asset-url"
 
 export async function generateMetadata() {
   const settings = await getSiteSettings()
@@ -71,7 +72,7 @@ export default async function ServicesPage() {
                       <CardContent className="p-6 space-y-4">
                         {service.imageUrl ? (
                           <img
-                            src={service.imageUrl}
+                            src={resolveAssetUrl(service.imageUrl)}
                             alt={service.title}
                             className="w-full h-44 object-cover rounded-md border border-border/60"
                           />
@@ -129,7 +130,7 @@ export default async function ServicesPage() {
                       <CardContent className="p-6 space-y-4">
                         {service.imageUrl ? (
                           <img
-                            src={service.imageUrl}
+                            src={resolveAssetUrl(service.imageUrl)}
                             alt={service.title}
                             className="w-full h-44 object-cover rounded-md border border-border/60"
                           />
@@ -187,7 +188,7 @@ export default async function ServicesPage() {
                       <CardContent className="p-6 space-y-4">
                         {service.imageUrl ? (
                           <img
-                            src={service.imageUrl}
+                            src={resolveAssetUrl(service.imageUrl)}
                             alt={service.title}
                             className="w-full h-44 object-cover rounded-md border border-border/60"
                           />

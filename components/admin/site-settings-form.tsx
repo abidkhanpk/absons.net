@@ -903,10 +903,10 @@ export function SiteSettingsForm({ initial, pages }: { initial: SiteSettings; pa
         body: formDataUpload,
       })
       const data = await res.json().catch(() => ({}))
-      if (!res.ok || !data?.url) {
+      if (!res.ok || (!data?.key && !data?.url)) {
         throw new Error(data.error || "Upload failed")
       }
-      setFormData((prev) => ({ ...prev, [target]: data.url }))
+      setFormData((prev) => ({ ...prev, [target]: data.key || data.url }))
       setSuccess(true)
     } catch (err) {
       setError(err instanceof Error ? err.message : "Upload failed")

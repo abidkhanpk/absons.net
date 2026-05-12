@@ -9,6 +9,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { Card, CardContent } from "@/components/ui/card"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Switch } from "@/components/ui/switch"
+import { ImageUrlUploadField } from "@/components/admin/image-url-upload-field"
 import { useRouter } from "next/navigation"
 import { useState, useEffect } from "react"
 
@@ -173,15 +174,14 @@ export function TestimonialForm({ testimonial }: { testimonial?: Testimonial }) 
             </div>
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="avatar_url">Avatar URL</Label>
-            <Input
-              id="avatar_url"
-              value={formData.avatar_url}
-              onChange={(e) => setFormData({ ...formData, avatar_url: e.target.value })}
-              placeholder="https://example.com/avatar.jpg"
-            />
-          </div>
+          <ImageUrlUploadField
+            id="avatar_url"
+            label="Avatar URL"
+            value={formData.avatar_url}
+            onChange={(value) => setFormData({ ...formData, avatar_url: value })}
+            placeholder="https://example.com/avatar.jpg"
+            folder="testimonials"
+          />
 
           <div className="space-y-2">
             <Label htmlFor="submitter_email">Submitter Email</Label>

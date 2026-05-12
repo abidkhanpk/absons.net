@@ -11,6 +11,7 @@ import { useRouter } from "next/navigation"
 import { useState } from "react"
 import { Switch } from "@/components/ui/switch"
 import { RichTextEditor } from "@/components/admin/rich-text-editor"
+import { ImageUrlUploadField } from "@/components/admin/image-url-upload-field"
 
 type BlogPost = {
   id: string
@@ -184,15 +185,13 @@ export function BlogForm({
             <RichTextEditor content={formData.content} onChange={(content) => setFormData({ ...formData, content })} />
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="featured_image">Featured Image URL</Label>
-            <Input
-              id="featured_image"
-              value={formData.featured_image}
-              onChange={(e) => setFormData({ ...formData, featured_image: e.target.value })}
-              placeholder="https://example.com/image.jpg"
-            />
-          </div>
+          <ImageUrlUploadField
+            id="featured_image"
+            label="Featured Image URL"
+            value={formData.featured_image}
+            onChange={(value) => setFormData({ ...formData, featured_image: value })}
+            folder="blog"
+          />
 
           <div className="space-y-4">
             <div>
@@ -229,12 +228,13 @@ export function BlogForm({
             </div>
             <div className="grid gap-4 md:grid-cols-2">
               <div className="space-y-2">
-                <Label htmlFor="seoOgImage">SEO OG Image URL</Label>
-                <Input
+                <ImageUrlUploadField
                   id="seoOgImage"
+                  label="SEO OG Image URL"
                   value={formData.seoOgImage}
-                  onChange={(e) => setFormData({ ...formData, seoOgImage: e.target.value })}
+                  onChange={(value) => setFormData({ ...formData, seoOgImage: value })}
                   placeholder="https://example.com/og-image.jpg"
+                  folder="seo"
                 />
               </div>
               <div className="space-y-2">

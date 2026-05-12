@@ -1,5 +1,6 @@
 import type { Metadata } from "next"
 import type { SiteSettings } from "@/lib/site-settings"
+import { resolveAssetUrl } from "@/lib/asset-url"
 
 type SeoOverrides = {
   title?: string
@@ -31,7 +32,7 @@ export function buildSeoMetadata(settings: SiteSettings, overrides: SeoOverrides
   const resolvedTitle = applyTitleTemplate(baseTitle, settings.seoTitleTemplate || "", fallbackSiteTitle)
   const description = (overrides.description ?? settings.seoDefaultDescription)?.trim() || undefined
   const keywords = (overrides.keywords ?? settings.seoDefaultKeywords)?.trim() || undefined
-  const ogImage = (overrides.ogImage ?? settings.seoDefaultOgImage)?.trim() || undefined
+  const ogImage = resolveAssetUrl((overrides.ogImage ?? settings.seoDefaultOgImage)?.trim() || undefined)
   const canonical = overrides.canonical?.trim() || undefined
 
   const noIndex = !settings.allowIndexing || Boolean(overrides.noIndex)

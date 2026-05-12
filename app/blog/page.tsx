@@ -7,6 +7,7 @@ import { Calendar, Clock, ArrowRight } from "lucide-react"
 import { prisma } from "@/lib/prisma"
 import { getSiteSettings } from "@/lib/site-settings"
 import { buildSeoMetadata } from "@/lib/seo"
+import { resolveAssetUrl } from "@/lib/asset-url"
 
 export async function generateMetadata() {
   const settings = await getSiteSettings()
@@ -60,7 +61,7 @@ export default async function BlogPage() {
                       {post.featuredImage && (
                         <div className="w-full h-48 bg-muted rounded-lg overflow-hidden">
                           <img
-                            src={post.featuredImage || "/placeholder.svg"}
+                            src={resolveAssetUrl(post.featuredImage) || "/placeholder.svg"}
                             alt={post.title}
                             className="w-full h-full object-cover"
                           />

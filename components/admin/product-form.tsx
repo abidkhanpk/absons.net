@@ -9,6 +9,7 @@ import { Card, CardContent } from "@/components/ui/card"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Switch } from "@/components/ui/switch"
 import { CONTENT_ICON_OPTIONS } from "@/lib/content-icons"
+import { ImageUrlUploadField } from "@/components/admin/image-url-upload-field"
 import { useRouter } from "next/navigation"
 import { useState } from "react"
 
@@ -122,15 +123,13 @@ export function ProductForm({ product }: { product?: Product }) {
           </div>
 
           <div className="grid md:grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="image_url">Custom Image URL</Label>
-              <Input
-                id="image_url"
-                value={formData.image_url}
-                onChange={(e) => setFormData({ ...formData, image_url: e.target.value })}
-                placeholder="https://example.com/image.jpg"
-              />
-            </div>
+            <ImageUrlUploadField
+              id="image_url"
+              label="Custom Image URL"
+              value={formData.image_url}
+              onChange={(value) => setFormData({ ...formData, image_url: value })}
+              folder="products"
+            />
             <div className="space-y-2">
               <Label htmlFor="link_url">Custom Link URL</Label>
               <Input

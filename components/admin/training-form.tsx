@@ -9,6 +9,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { Card, CardContent } from "@/components/ui/card"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Switch } from "@/components/ui/switch"
+import { ImageUrlUploadField } from "@/components/admin/image-url-upload-field"
 import { useRouter } from "next/navigation"
 import { useState } from "react"
 
@@ -146,15 +147,13 @@ export function TrainingForm({ course }: { course?: TrainingCourse }) {
           </div>
 
           <div className="grid md:grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="featured_image">Custom Image URL</Label>
-              <Input
-                id="featured_image"
-                value={formData.featured_image}
-                onChange={(e) => setFormData({ ...formData, featured_image: e.target.value })}
-                placeholder="https://example.com/image.jpg"
-              />
-            </div>
+            <ImageUrlUploadField
+              id="featured_image"
+              label="Custom Image URL"
+              value={formData.featured_image}
+              onChange={(value) => setFormData({ ...formData, featured_image: value })}
+              folder="training"
+            />
             <div className="space-y-2">
               <Label htmlFor="link_url">Custom Link URL</Label>
               <Input

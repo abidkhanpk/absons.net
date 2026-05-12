@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button"
 import { Menu, X, Lock } from "lucide-react"
 import { useMemo, useState } from "react"
 import type { SiteSettings } from "@/lib/site-settings"
+import { resolveAssetUrl } from "@/lib/asset-url"
 
 type HeaderProps = {
   settings: SiteSettings
@@ -38,7 +39,7 @@ export function Header({ settings }: HeaderProps) {
               {settings.logoUrl && !logoFailed ? (
                 // eslint-disable-next-line @next/next/no-img-element
                 <img
-                  src={settings.logoUrl}
+                  src={resolveAssetUrl(settings.logoUrl)}
                   alt={settings.siteTitle}
                   width={settings.logoWidth || 40}
                   height={settings.logoHeight || 40}

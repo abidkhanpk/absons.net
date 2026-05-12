@@ -4,11 +4,12 @@ import { Analytics } from "@vercel/analytics/next"
 import { ServiceWorkerReset } from "@/components/service-worker-reset"
 import { getSiteSettings } from "@/lib/site-settings"
 import { buildSeoMetadata } from "@/lib/seo"
+import { resolveAssetUrl } from "@/lib/asset-url"
 import "./globals.css"
 
-const DEFAULT_FAVICON = "/uploads/default-icon-light-32x32.png"
-const DARK_FAVICON = "/uploads/default-icon-dark-32x32.png"
-const SVG_FAVICON = "/uploads/default-icon.svg"
+const DEFAULT_FAVICON = "absons/uploads/favicons/default-icon-light-32x32.png"
+const DARK_FAVICON = "absons/uploads/favicons/default-icon-dark-32x32.png"
+const SVG_FAVICON = "absons/uploads/favicons/default-icon.svg"
 
 const _geist = Geist({ subsets: ["latin"] })
 const _geistMono = Geist_Mono({ subsets: ["latin"] })
@@ -18,7 +19,7 @@ export const dynamic = "force-dynamic"
 export const revalidate = 0
 
 function iconMeta(url: string | null | undefined) {
-  const safeUrl = url || DEFAULT_FAVICON
+  const safeUrl = resolveAssetUrl(url || DEFAULT_FAVICON) || resolveAssetUrl(DEFAULT_FAVICON) || `/${DEFAULT_FAVICON}`
   const lower = safeUrl.toLowerCase()
   const isPng = lower.includes(".png")
   const isIco = lower.includes(".ico")

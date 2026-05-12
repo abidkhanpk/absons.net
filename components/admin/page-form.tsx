@@ -11,6 +11,7 @@ import { Card, CardContent } from "@/components/ui/card"
 import { Switch } from "@/components/ui/switch"
 import { RichTextEditor } from "@/components/admin/rich-text-editor"
 import { Textarea } from "@/components/ui/textarea"
+import { ImageUrlUploadField } from "@/components/admin/image-url-upload-field"
 
 type PageRecord = {
   id: string
@@ -193,12 +194,13 @@ export function PageForm({
             </div>
             <div className="grid gap-4 md:grid-cols-2">
               <div className="space-y-2">
-                <Label htmlFor="seoOgImage">SEO OG Image URL</Label>
-                <Input
+                <ImageUrlUploadField
                   id="seoOgImage"
+                  label="SEO OG Image URL"
                   value={formData.seoOgImage}
-                  onChange={(e) => setFormData({ ...formData, seoOgImage: e.target.value })}
+                  onChange={(value) => setFormData({ ...formData, seoOgImage: value })}
                   placeholder="https://example.com/og-image.jpg"
+                  folder="seo"
                 />
               </div>
               <div className="space-y-2">
