@@ -1906,22 +1906,31 @@ export function SiteSettingsForm({ initial, pages }: { initial: SiteSettings; pa
                 </Label>
               </div>
             </div>
-            <div className="space-y-2">
-              <Label>Layout Width</Label>
-              <Select
-                value={formData.layoutMode}
-                onValueChange={(value: "full" | "container") => setFormData({ ...formData, layoutMode: value })}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select layout" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="full">Full width</SelectItem>
-                  <SelectItem value="container">Container</SelectItem>
-                </SelectContent>
-              </Select>
-              {formData.layoutMode === "container" && (
-                <div className="pt-2">
+          </div>
+
+          <div className="space-y-3 rounded-md border border-border/60 bg-muted/30 p-4">
+            <div>
+              <Label className="font-semibold">Page Layout</Label>
+              <p className="text-xs text-muted-foreground">Global website container width settings.</p>
+            </div>
+            <div className="grid gap-4 md:grid-cols-2">
+              <div className="space-y-2">
+                <Label>Layout Width</Label>
+                <Select
+                  value={formData.layoutMode}
+                  onValueChange={(value: "full" | "container") => setFormData({ ...formData, layoutMode: value })}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select layout" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="full">Full width</SelectItem>
+                    <SelectItem value="container">Container</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              {formData.layoutMode === "container" ? (
+                <div className="space-y-2">
                   <Label htmlFor="layoutWidth">Container width (% of page)</Label>
                   <Input
                     id="layoutWidth"
@@ -1932,7 +1941,7 @@ export function SiteSettingsForm({ initial, pages }: { initial: SiteSettings; pa
                     onChange={(e) => setFormData({ ...formData, layoutWidth: Number(e.target.value) })}
                   />
                 </div>
-              )}
+              ) : null}
             </div>
           </div>
         </TabsContent>
