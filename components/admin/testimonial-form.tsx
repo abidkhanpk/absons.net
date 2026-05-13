@@ -103,7 +103,7 @@ export function TestimonialForm({ testimonial }: { testimonial?: Testimonial }) 
               required
               value={formData.client_name}
               onChange={(e) => setFormData({ ...formData, client_name: e.target.value })}
-              placeholder="John Doe"
+              placeholder="Muhammad Abdullah"
             />
           </div>
 
