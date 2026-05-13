@@ -49,7 +49,7 @@ export default async function HomePage() {
 
   const testimonials = await prisma.testimonial
     .findMany({
-      where: { isFeatured: true, isPublished: true },
+      where: { isPublished: true },
       take: 3,
     })
   const trainings = await prisma.trainingCourse

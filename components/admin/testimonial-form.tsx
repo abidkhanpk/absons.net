@@ -21,7 +21,6 @@ type Testimonial = {
   content: string
   rating: number
   avatar_url?: string
-  is_featured: boolean
   display_order: number
   submitter_email?: string
   is_published?: boolean
@@ -41,7 +40,6 @@ export function TestimonialForm({ testimonial }: { testimonial?: Testimonial }) 
     content: testimonial?.content || "",
     rating: testimonial?.rating || (testimonial as any)?.rating || 5,
     avatar_url: testimonial?.avatar_url || (testimonial as any)?.avatarUrl || "",
-    is_featured: testimonial?.is_featured || (testimonial as any)?.isFeatured || false,
     display_order: testimonial?.display_order || (testimonial as any)?.displayOrder || 0,
     submitter_email: (testimonial as any)?.submitter_email || (testimonial as any)?.submitterEmail || "",
     is_published: defaultIsPublished,
@@ -59,7 +57,6 @@ export function TestimonialForm({ testimonial }: { testimonial?: Testimonial }) 
       content: testimonial?.content || "",
       rating: testimonial?.rating || (testimonial as any)?.rating || 5,
       avatar_url: testimonial?.avatar_url || (testimonial as any)?.avatarUrl || "",
-      is_featured: testimonial?.is_featured || (testimonial as any)?.isFeatured || false,
       display_order: testimonial?.display_order || (testimonial as any)?.displayOrder || 0,
       submitter_email: (testimonial as any)?.submitter_email || (testimonial as any)?.submitterEmail || "",
       is_published: published,
@@ -191,15 +188,6 @@ export function TestimonialForm({ testimonial }: { testimonial?: Testimonial }) 
               onChange={(e) => setFormData({ ...formData, submitter_email: e.target.value })}
               placeholder="user@example.com"
             />
-          </div>
-
-          <div className="flex items-center space-x-2">
-            <Switch
-              id="is_featured"
-              checked={formData.is_featured}
-              onCheckedChange={(checked) => setFormData({ ...formData, is_featured: checked })}
-            />
-            <Label htmlFor="is_featured">Feature on homepage</Label>
           </div>
 
           <div className="flex items-center space-x-2">

@@ -18,7 +18,7 @@ export async function POST(request: Request) {
 
   try {
     const body = await request.json()
-    const { client_name, client_company, client_position, content, rating, avatar_url, is_featured, display_order, submitter_email, is_published } = body
+    const { client_name, client_company, client_position, content, rating, avatar_url, display_order, submitter_email, is_published } = body
     if (!client_name || !content || !rating) {
       return NextResponse.json({ error: "Missing required fields" }, { status: 400 })
     }
@@ -32,7 +32,7 @@ export async function POST(request: Request) {
           content,
           rating: Number(rating),
           avatarUrl: avatar_url,
-          isFeatured: Boolean(is_featured),
+          isFeatured: false,
           displayOrder: Number(display_order) || 0,
           submitterEmail: submitter_email || null,
           isPublished: typeof is_published === "boolean" ? is_published : true,
@@ -53,7 +53,7 @@ export async function PUT(request: Request) {
 
   try {
     const body = await request.json()
-    const { id, client_name, client_company, client_position, content, rating, avatar_url, is_featured, display_order, submitter_email, is_published } =
+    const { id, client_name, client_company, client_position, content, rating, avatar_url, display_order, submitter_email, is_published } =
       body
     if (!id) return NextResponse.json({ error: "Testimonial id is required" }, { status: 400 })
 
@@ -67,7 +67,7 @@ export async function PUT(request: Request) {
           content,
           rating: Number(rating),
           avatarUrl: avatar_url,
-          isFeatured: Boolean(is_featured),
+          isFeatured: false,
           displayOrder: Number(display_order) || 0,
           submitterEmail: submitter_email || null,
           isPublished: typeof is_published === "boolean" ? is_published : true,
