@@ -34,7 +34,7 @@ export async function generateMetadata() {
   })
 }
 
-type HomeSectionId = "services" | "products" | "pricing" | "training" | "testimonials" | "who-we-serve" | "why-choose"
+type HomeSectionId = "services" | "products" | "pricing" | "training" | "departments" | "testimonials" | "who-we-serve" | "why-choose"
 
 export default async function HomePage() {
   const resolveItemLink = (link: string | null | undefined, fallback: string) =>
@@ -59,6 +59,12 @@ export default async function HomePage() {
       take: 3,
     })
   const products = await prisma.product
+    .findMany({
+      where: { isActive: true },
+      orderBy: { displayOrder: "asc" },
+      take: 6,
+    })
+  const departments = await prisma.department
     .findMany({
       where: { isActive: true },
       orderBy: { displayOrder: "asc" },
@@ -120,6 +126,15 @@ export default async function HomePage() {
     training: {
       title: "Training Programs",
       subtitle: "Vibration analysis training aligned with Mobius Institute standards.",
+      itemsLayout: "grid",
+      mobileLayout: "match",
+      scrollSpeed: 30,
+      pauseOnHover: true,
+      dragEnabled: true,
+    },
+    departments: {
+      title: "Departments",
+      subtitle: "Explore our specialized departments and their core capabilities.",
       itemsLayout: "grid",
       mobileLayout: "match",
       scrollSpeed: 30,
@@ -431,6 +446,58 @@ export default async function HomePage() {
             <div className="text-center mt-8">
               <Button asChild variant="outline" size="lg">
                 <Link href="/training">View All Training</Link>
+              </Button>
+            </div>
+          </div>
+        </section>
+      ) : null,
+    departments:
+      departments && departments.length > 0 ? (
+        <section className="py-20 bg-background">
+          <div className="container mx-auto px-4 lg:px-8">
+            <div className="text-center mb-12">
+              <h2 className="text-3xl md:text-4xl font-bold mb-4">{getSectionConfig("departments").title}</h2>
+              <p className="text-lg text-muted-foreground max-w-2xl mx-auto text-pretty leading-relaxed">
+                {getSectionConfig("departments").subtitle}
+              </p>
+            </div>
+
+            {renderSectionItems(
+              "departments",
+              departments,
+              (department) => {
+                const DepartmentIcon = contentIconMap[department.icon as keyof typeof contentIconMap] || Users
+                return (
+                  <Card key={department.id} className="border-border hover:shadow-lg transition-shadow">
+                    <CardContent className="p-6 space-y-4 min-h-[10rem]">
+                      {department.imageUrl ? (
+                        <img
+                          src={resolveAssetUrl(department.imageUrl)}
+                          alt={department.title}
+                          className="w-full h-44 object-cover rounded-md border border-border/60"
+                        />
+                      ) : (
+                        <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-primary/10 text-primary">
+                          <DepartmentIcon className="h-6 w-6" />
+                        </div>
+                      )}
+                      <h3 className="text-xl font-semibold">{department.title}</h3>
+                      <p className="text-muted-foreground leading-relaxed">{department.description}</p>
+                      <Button asChild variant="link" className="p-0">
+                        <Link href={resolveItemLink(department.linkUrl, "/departments")}>
+                          {department.linkLabel || "Learn more"} <ArrowRight className="ml-2 h-4 w-4" />
+                        </Link>
+                      </Button>
+                    </CardContent>
+                  </Card>
+                )
+              },
+              (department) => department.id,
+            )}
+
+            <div className="text-center mt-8">
+              <Button asChild variant="outline" size="lg">
+                <Link href="/departments">View All Departments</Link>
               </Button>
             </div>
           </div>

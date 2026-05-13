@@ -64,7 +64,7 @@ export type NavItem = {
 }
 
 export type HomeSection = {
-  id: "services" | "products" | "pricing" | "training" | "testimonials" | "who-we-serve" | "why-choose"
+  id: "services" | "products" | "pricing" | "training" | "departments" | "testimonials" | "who-we-serve" | "why-choose"
   enabled: boolean
   title?: string
   subtitle?: string
@@ -222,6 +222,17 @@ const defaultSettings: SiteSettings = {
       enabled: true,
       title: "Training Programs",
       subtitle: "Vibration analysis training aligned with Mobius Institute standards.",
+      itemsLayout: "grid",
+      mobileLayout: "match",
+      scrollSpeed: 30,
+      pauseOnHover: true,
+      dragEnabled: true,
+    },
+    {
+      id: "departments",
+      enabled: true,
+      title: "Departments",
+      subtitle: "Explore our specialized departments and their core capabilities.",
       itemsLayout: "grid",
       mobileLayout: "match",
       scrollSpeed: 30,
@@ -532,6 +543,15 @@ function parseHomeSections(
       pauseOnHover: true,
       dragEnabled: true,
     },
+    departments: {
+      title: "Departments",
+      subtitle: "Explore our specialized departments and their core capabilities.",
+      itemsLayout: "grid",
+      mobileLayout: "match",
+      scrollSpeed: 30,
+      pauseOnHover: true,
+      dragEnabled: true,
+    },
     testimonials: {
       title: "What Our Clients Say",
       subtitle: "Trusted by institutions and organizations across the region",
@@ -565,6 +585,7 @@ function parseHomeSections(
     { id: "products", enabled: fallback.products, ...defaultMeta.products },
     { id: "pricing", enabled: fallback.pricing, ...defaultMeta.pricing },
     { id: "training", enabled: fallback.training, ...defaultMeta.training },
+    { id: "departments", enabled: fallback.departments, ...defaultMeta.departments },
     { id: "testimonials", enabled: fallback.testimonials, ...defaultMeta.testimonials },
     { id: "who-we-serve", enabled: fallback["who-we-serve"], ...defaultMeta["who-we-serve"] },
     { id: "why-choose", enabled: fallback["why-choose"], ...defaultMeta["why-choose"] },
@@ -580,6 +601,7 @@ function parseHomeSections(
       "products",
       "pricing",
       "training",
+      "departments",
       "testimonials",
       "who-we-serve",
       "why-choose",
@@ -721,6 +743,7 @@ export async function getSiteSettings(): Promise<SiteSettings> {
       products: true,
       pricing: true,
       training: settings.showTraining ?? defaultSettings.showTraining,
+      departments: true,
       testimonials: settings.showTestimonials ?? defaultSettings.showTestimonials,
       "who-we-serve": true,
       "why-choose": true,
@@ -736,6 +759,7 @@ export async function getSiteSettings(): Promise<SiteSettings> {
         products: fallbackHomeVisibility.products,
         pricing: fallbackHomeVisibility.pricing,
         training: fallbackHomeVisibility.training,
+        departments: fallbackHomeVisibility.departments,
         testimonials: fallbackHomeVisibility.testimonials,
         "who-we-serve": fallbackHomeVisibility["who-we-serve"],
         "why-choose": fallbackHomeVisibility["why-choose"],

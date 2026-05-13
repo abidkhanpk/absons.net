@@ -26,7 +26,7 @@ import {
 } from "lucide-react"
 import { useState } from "react"
 
-type HomeSectionNavId = "services" | "products" | "pricing" | "training" | "testimonials" | "who-we-serve" | "why-choose"
+type HomeSectionNavId = "services" | "products" | "pricing" | "training" | "departments" | "testimonials" | "who-we-serve" | "why-choose"
 
 type SidebarItem = {
   href: string
@@ -40,6 +40,7 @@ const sectionNavMeta: Record<HomeSectionNavId, SidebarItem> = {
   products: { href: "/admin/products", label: "Products", icon: Package, roles: ["admin", "super_admin"] },
   pricing: { href: "/admin/pricing", label: "Pricing", icon: BadgeDollarSign, roles: ["admin", "super_admin"] },
   training: { href: "/admin/training", label: "Training", icon: GraduationCap, roles: ["admin", "super_admin"] },
+  departments: { href: "/admin/departments", label: "Departments", icon: Building2, roles: ["admin", "super_admin"] },
   testimonials: { href: "/admin/testimonials", label: "Testimonials", icon: MessageSquare, roles: ["admin", "super_admin"] },
   "who-we-serve": { href: "/admin/who-we-serve", label: "Who We Serve", icon: Building2, roles: ["admin", "super_admin"] },
   "why-choose": { href: "/admin/why-choose", label: "Why Choose Us", icon: Star, roles: ["super_admin"] },
@@ -63,6 +64,7 @@ const defaultSectionNavOrder: HomeSectionNavId[] = [
   "products",
   "pricing",
   "training",
+  "departments",
   "testimonials",
   "who-we-serve",
   "why-choose",

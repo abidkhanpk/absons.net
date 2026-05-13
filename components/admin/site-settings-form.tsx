@@ -117,7 +117,7 @@ type NavItem = {
 }
 
 type HomeSection = {
-  id: "services" | "products" | "pricing" | "training" | "testimonials" | "who-we-serve" | "why-choose"
+  id: "services" | "products" | "pricing" | "training" | "departments" | "testimonials" | "who-we-serve" | "why-choose"
   enabled: boolean
   title?: string
   subtitle?: string
@@ -314,6 +314,15 @@ function safeParseHomeSections(
       pauseOnHover: true,
       dragEnabled: true,
     },
+    departments: {
+      title: "Departments",
+      subtitle: "Explore our specialized departments and their core capabilities.",
+      itemsLayout: "grid",
+      mobileLayout: "match",
+      scrollSpeed: 30,
+      pauseOnHover: true,
+      dragEnabled: true,
+    },
     testimonials: {
       title: "What Our Clients Say",
       subtitle: "Trusted by institutions and organizations across the region",
@@ -347,6 +356,7 @@ function safeParseHomeSections(
     { id: "products", enabled: fallback.products, ...defaultMeta.products },
     { id: "pricing", enabled: fallback.pricing, ...defaultMeta.pricing },
     { id: "training", enabled: fallback.training, ...defaultMeta.training },
+    { id: "departments", enabled: fallback.departments, ...defaultMeta.departments },
     { id: "testimonials", enabled: fallback.testimonials, ...defaultMeta.testimonials },
     { id: "who-we-serve", enabled: fallback["who-we-serve"], ...defaultMeta["who-we-serve"] },
     { id: "why-choose", enabled: fallback["why-choose"], ...defaultMeta["why-choose"] },
@@ -365,6 +375,7 @@ function safeParseHomeSections(
       "products",
       "pricing",
       "training",
+      "departments",
       "testimonials",
       "who-we-serve",
       "why-choose",
@@ -477,6 +488,7 @@ export function SiteSettingsForm({ initial, pages }: { initial: SiteSettings; pa
     products: true,
     pricing: true,
     training: initial.show_training ?? true,
+    departments: true,
     testimonials: initial.show_testimonials ?? true,
     "who-we-serve": true,
     "why-choose": true,
@@ -817,6 +829,8 @@ export function SiteSettingsForm({ initial, pages }: { initial: SiteSettings; pa
           ? "Pricing"
           : id === "training"
             ? "Training"
+            : id === "departments"
+              ? "Departments"
             : id === "testimonials"
               ? "Testimonials"
               : id === "who-we-serve"

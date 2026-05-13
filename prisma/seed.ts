@@ -427,6 +427,42 @@ async function main() {
     })
   }
 
+  const departments = [
+    {
+      id: "a6a0fc8f-07d3-49ff-9180-8f8a3d7f45aa",
+      title: "Software Section",
+      description: "Designs and delivers software products, custom applications, and platform integrations.",
+      icon: "Cpu",
+      imageUrl: "https://images.unsplash.com/photo-1515879218367-8466d910aaa4?auto=format&fit=crop&w=1200&q=80",
+      linkUrl: "/departments",
+      linkLabel: "Learn more",
+      isFeatured: true,
+      isActive: true,
+      displayOrder: 1,
+    },
+    {
+      id: "f4f1e622-47bd-4f05-97d8-b7aa6f0722e8",
+      title: "Engineering Section",
+      description: "Leads technical implementation, system reliability, infrastructure, and deployment quality.",
+      icon: "Wrench",
+      imageUrl: "https://images.unsplash.com/photo-1767719618646-a1dc8ee165cb?auto=format&fit=crop&w=1200&q=80",
+      linkUrl: "/departments",
+      linkLabel: "Learn more",
+      isFeatured: true,
+      isActive: true,
+      displayOrder: 2,
+    },
+  ]
+
+  for (const department of departments) {
+    const { id, ...data } = department
+    await prisma.department.upsert({
+      where: { id },
+      update: data,
+      create: department,
+    })
+  }
+
   const products = [
     {
       id: "d0a4b8c1-9f3e-4d77-bf52-9ec2cfcb56a1",
