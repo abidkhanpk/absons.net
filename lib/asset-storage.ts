@@ -55,7 +55,13 @@ export async function saveAsset({ buffer, contentType, assetType, fileName }: Sa
     if (!publicBaseUrl) {
       throw new Error("ASSET_PUBLIC_BASE_URL is required when using key-based storage with vercel_blob")
     }
-    const blob = await put(key, buffer, { access: "public", token: blobToken, contentType })
+    const blob = await put(key, buffer, {
+      access: "public",
+      token: blobToken,
+      contentType,
+      addRandomSuffix: false,
+      allowOverwrite: true,
+    })
     return { key, url: toPublicUrl(key, publicBaseUrl, blob.url), provider: "vercel_blob" as const }
   }
 

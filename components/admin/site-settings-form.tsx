@@ -1592,7 +1592,7 @@ export function SiteSettingsForm({ initial, pages }: { initial: SiteSettings; pa
 
         <TabsContent value="navigation" className="space-y-6">
           <div className="grid gap-4 md:grid-cols-2">
-            <div className="md:col-span-2">
+            <div className="order-last md:col-span-2">
               <Accordion type="single" collapsible className="space-y-3">
                 <AccordionItem value="header-menu" className="border border-border rounded-lg">
                   <AccordionTrigger className="px-4 py-3 text-sm font-semibold">Header Menu Items</AccordionTrigger>
