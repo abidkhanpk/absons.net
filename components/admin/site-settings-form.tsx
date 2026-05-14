@@ -1255,78 +1255,82 @@ export function SiteSettingsForm({ initial, pages }: { initial: SiteSettings; pa
                             </div>
                           </>
                         ) : null}
-                        <div className="space-y-1">
-                          <Label className="text-xs text-muted-foreground">Layout</Label>
-                          <Select
-                            value={section.itemsLayout || "grid"}
-                            onValueChange={(value: "grid" | "scroll") => updateHomeSectionLayout(section.id, value)}
-                          >
-                            <SelectTrigger>
-                              <SelectValue placeholder="Select layout" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="grid">Multi-line grid</SelectItem>
-                              <SelectItem value="scroll">Scrolling loop</SelectItem>
-                            </SelectContent>
-                          </Select>
-                        </div>
-                        <div className="space-y-1">
-                          <Label className="text-xs text-muted-foreground">Mobile Layout</Label>
-                          <Select
-                            value={section.mobileLayout || "match"}
-                            onValueChange={(value: "match" | "grid" | "scroll") =>
-                              updateHomeSectionMobileLayout(section.id, value)
-                            }
-                          >
-                            <SelectTrigger>
-                              <SelectValue placeholder="Select mobile layout" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="match">Same as desktop</SelectItem>
-                              <SelectItem value="grid">Multi-line grid</SelectItem>
-                              <SelectItem value="scroll">Scrolling loop</SelectItem>
-                            </SelectContent>
-                          </Select>
-                        </div>
-                        <div className="space-y-1">
-                          <Label htmlFor={`home-section-scroll-speed-${section.id}`} className="text-xs text-muted-foreground">
-                            Scroll Speed (seconds)
-                          </Label>
-                          <Input
-                            id={`home-section-scroll-speed-${section.id}`}
-                            type="number"
-                            min={5}
-                            max={120}
-                            value={section.scrollSpeed ?? 30}
-                            onChange={(e) => updateHomeSectionScrollSpeed(section.id, Number(e.target.value))}
-                          />
-                        </div>
-                        <div className="space-y-1">
-                          <Label className="text-xs text-muted-foreground">Pause On Hover</Label>
-                          <div className="flex items-center gap-3 rounded-md border border-border/60 bg-background px-3 py-2">
-                            <Switch
-                              id={`home-section-pause-hover-${section.id}`}
-                              checked={section.pauseOnHover ?? true}
-                              onCheckedChange={(checked) => updateHomeSectionPauseOnHover(section.id, checked)}
-                            />
-                            <Label htmlFor={`home-section-pause-hover-${section.id}`} className="text-sm font-normal">
-                              Pause while hovered
-                            </Label>
-                          </div>
-                        </div>
-                        <div className="space-y-1">
-                          <Label className="text-xs text-muted-foreground">Drag To Scroll</Label>
-                          <div className="flex items-center gap-3 rounded-md border border-border/60 bg-background px-3 py-2">
-                            <Switch
-                              id={`home-section-drag-enabled-${section.id}`}
-                              checked={section.dragEnabled ?? true}
-                              onCheckedChange={(checked) => updateHomeSectionDragEnabled(section.id, checked)}
-                            />
-                            <Label htmlFor={`home-section-drag-enabled-${section.id}`} className="text-sm font-normal">
-                              Allow mouse/touch dragging
-                            </Label>
-                          </div>
-                        </div>
+                        {section.id !== "cta" ? (
+                          <>
+                            <div className="space-y-1">
+                              <Label className="text-xs text-muted-foreground">Layout</Label>
+                              <Select
+                                value={section.itemsLayout || "grid"}
+                                onValueChange={(value: "grid" | "scroll") => updateHomeSectionLayout(section.id, value)}
+                              >
+                                <SelectTrigger>
+                                  <SelectValue placeholder="Select layout" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  <SelectItem value="grid">Multi-line grid</SelectItem>
+                                  <SelectItem value="scroll">Scrolling loop</SelectItem>
+                                </SelectContent>
+                              </Select>
+                            </div>
+                            <div className="space-y-1">
+                              <Label className="text-xs text-muted-foreground">Mobile Layout</Label>
+                              <Select
+                                value={section.mobileLayout || "match"}
+                                onValueChange={(value: "match" | "grid" | "scroll") =>
+                                  updateHomeSectionMobileLayout(section.id, value)
+                                }
+                              >
+                                <SelectTrigger>
+                                  <SelectValue placeholder="Select mobile layout" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  <SelectItem value="match">Same as desktop</SelectItem>
+                                  <SelectItem value="grid">Multi-line grid</SelectItem>
+                                  <SelectItem value="scroll">Scrolling loop</SelectItem>
+                                </SelectContent>
+                              </Select>
+                            </div>
+                            <div className="space-y-1">
+                              <Label htmlFor={`home-section-scroll-speed-${section.id}`} className="text-xs text-muted-foreground">
+                                Scroll Speed (seconds)
+                              </Label>
+                              <Input
+                                id={`home-section-scroll-speed-${section.id}`}
+                                type="number"
+                                min={5}
+                                max={120}
+                                value={section.scrollSpeed ?? 30}
+                                onChange={(e) => updateHomeSectionScrollSpeed(section.id, Number(e.target.value))}
+                              />
+                            </div>
+                            <div className="space-y-1">
+                              <Label className="text-xs text-muted-foreground">Pause On Hover</Label>
+                              <div className="flex items-center gap-3 rounded-md border border-border/60 bg-background px-3 py-2">
+                                <Switch
+                                  id={`home-section-pause-hover-${section.id}`}
+                                  checked={section.pauseOnHover ?? true}
+                                  onCheckedChange={(checked) => updateHomeSectionPauseOnHover(section.id, checked)}
+                                />
+                                <Label htmlFor={`home-section-pause-hover-${section.id}`} className="text-sm font-normal">
+                                  Pause while hovered
+                                </Label>
+                              </div>
+                            </div>
+                            <div className="space-y-1">
+                              <Label className="text-xs text-muted-foreground">Drag To Scroll</Label>
+                              <div className="flex items-center gap-3 rounded-md border border-border/60 bg-background px-3 py-2">
+                                <Switch
+                                  id={`home-section-drag-enabled-${section.id}`}
+                                  checked={section.dragEnabled ?? true}
+                                  onCheckedChange={(checked) => updateHomeSectionDragEnabled(section.id, checked)}
+                                />
+                                <Label htmlFor={`home-section-drag-enabled-${section.id}`} className="text-sm font-normal">
+                                  Allow mouse/touch dragging
+                                </Label>
+                              </div>
+                            </div>
+                          </>
+                        ) : null}
                       </div>
                     </AccordionContent>
                   </AccordionItem>
