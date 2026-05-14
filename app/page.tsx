@@ -34,7 +34,16 @@ export async function generateMetadata() {
   })
 }
 
-type HomeSectionId = "services" | "products" | "pricing" | "training" | "departments" | "testimonials" | "who-we-serve" | "why-choose"
+type HomeSectionId =
+  | "services"
+  | "products"
+  | "pricing"
+  | "training"
+  | "departments"
+  | "testimonials"
+  | "who-we-serve"
+  | "why-choose"
+  | "cta"
 
 export default async function HomePage() {
   const resolveItemLink = (link: string | null | undefined, fallback: string) =>
@@ -165,6 +174,15 @@ export default async function HomePage() {
       itemsLayout: "grid",
       mobileLayout: "match",
       scrollSpeed: siteSettings.whyChooseScrollSpeed || 30,
+      pauseOnHover: true,
+      dragEnabled: true,
+    },
+    cta: {
+      title: "Ready to Transform Your Organization?",
+      subtitle: "Get in touch with us today to discuss how we can help you achieve your goals with our innovative solutions.",
+      itemsLayout: "grid",
+      mobileLayout: "match",
+      scrollSpeed: 30,
       pauseOnHover: true,
       dragEnabled: true,
     },
@@ -600,6 +618,24 @@ export default async function HomePage() {
         dragEnabled={getSectionConfig("why-choose").dragEnabled}
       />
     ),
+    cta: (
+      <section className="py-20 bg-primary text-primary-foreground">
+        <div className="container mx-auto px-4 lg:px-8">
+          <div className="max-w-3xl mx-auto text-center space-y-6">
+            <h2 className="text-3xl md:text-4xl font-bold text-balance">{getSectionConfig("cta").title}</h2>
+            <p className="text-lg text-primary-foreground/90 text-pretty leading-relaxed">
+              {getSectionConfig("cta").subtitle}
+            </p>
+            <Button asChild size="lg" variant="secondary" className="text-base">
+              <Link href={resolveItemLink(sectionConfigMap.get("cta")?.ctaHref, "/contact")}>
+                {sectionConfigMap.get("cta")?.ctaText?.trim() || "Contact Us Today"}
+                <ArrowRight className="ml-2 h-5 w-5" />
+              </Link>
+            </Button>
+          </div>
+        </div>
+      </section>
+    ),
   }
   const orderedHomeSections = siteSettings.homeSections || []
   const enabledHomeSections = orderedHomeSections.filter((section) => section.enabled)
@@ -630,24 +666,6 @@ export default async function HomePage() {
           return <Fragment key={section.id}>{content}</Fragment>
         })}
 
-        {/* CTA Section */}
-        <section className="py-20 bg-primary text-primary-foreground">
-          <div className="container mx-auto px-4 lg:px-8">
-            <div className="max-w-3xl mx-auto text-center space-y-6">
-              <h2 className="text-3xl md:text-4xl font-bold text-balance">Ready to Transform Your Organization?</h2>
-              <p className="text-lg text-primary-foreground/90 text-pretty leading-relaxed">
-                Get in touch with us today to discuss how we can help you achieve your goals with our innovative
-                solutions.
-              </p>
-              <Button asChild size="lg" variant="secondary" className="text-base">
-                <Link href="/contact">
-                  Contact Us Today
-                  <ArrowRight className="ml-2 h-5 w-5" />
-                </Link>
-              </Button>
-            </div>
-          </div>
-        </section>
       </main>
 
       <Footer settings={siteSettings} />

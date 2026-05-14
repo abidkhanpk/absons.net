@@ -117,10 +117,21 @@ type NavItem = {
 }
 
 type HomeSection = {
-  id: "services" | "products" | "pricing" | "training" | "departments" | "testimonials" | "who-we-serve" | "why-choose"
+  id:
+    | "services"
+    | "products"
+    | "pricing"
+    | "training"
+    | "departments"
+    | "testimonials"
+    | "who-we-serve"
+    | "why-choose"
+    | "cta"
   enabled: boolean
   title?: string
   subtitle?: string
+  ctaText?: string
+  ctaHref?: string
   itemsLayout?: "grid" | "scroll"
   mobileLayout?: "match" | "grid" | "scroll"
   scrollSpeed?: number
@@ -350,6 +361,15 @@ function safeParseHomeSections(
       pauseOnHover: true,
       dragEnabled: true,
     },
+    cta: {
+      title: "Ready to Transform Your Organization?",
+      subtitle: "Get in touch with us today to discuss how we can help you achieve your goals with our innovative solutions.",
+      itemsLayout: "grid",
+      mobileLayout: "match",
+      scrollSpeed: 30,
+      pauseOnHover: true,
+      dragEnabled: true,
+    },
   }
   const defaultHomeSections: HomeSection[] = [
     { id: "services", enabled: fallback.services, ...defaultMeta.services },
@@ -360,6 +380,7 @@ function safeParseHomeSections(
     { id: "testimonials", enabled: fallback.testimonials, ...defaultMeta.testimonials },
     { id: "who-we-serve", enabled: fallback["who-we-serve"], ...defaultMeta["who-we-serve"] },
     { id: "why-choose", enabled: fallback["why-choose"], ...defaultMeta["why-choose"] },
+    { id: "cta", enabled: fallback.cta, ctaText: "Contact Us Today", ctaHref: "/contact", ...defaultMeta.cta },
   ]
 
   if (!raw) {
@@ -379,6 +400,7 @@ function safeParseHomeSections(
       "testimonials",
       "who-we-serve",
       "why-choose",
+      "cta",
     ]
     const normalized: HomeSection[] = []
     const seen = new Set<string>()
@@ -398,6 +420,18 @@ function safeParseHomeSections(
           (entry as { subtitle: string }).subtitle.trim()
             ? (entry as { subtitle: string }).subtitle.trim()
             : defaultMeta[id].subtitle,
+        ctaText:
+          typeof (entry as { ctaText?: unknown }).ctaText === "string" && (entry as { ctaText: string }).ctaText.trim()
+            ? (entry as { ctaText: string }).ctaText.trim()
+            : id === "cta"
+              ? "Contact Us Today"
+              : "",
+        ctaHref:
+          typeof (entry as { ctaHref?: unknown }).ctaHref === "string" && (entry as { ctaHref: string }).ctaHref.trim()
+            ? (entry as { ctaHref: string }).ctaHref.trim()
+            : id === "cta"
+              ? "/contact"
+              : "",
         itemsLayout:
           (entry as { itemsLayout?: unknown }).itemsLayout === "scroll"
             ? "scroll"
@@ -492,6 +526,7 @@ export function SiteSettingsForm({ initial, pages }: { initial: SiteSettings; pa
     testimonials: initial.show_testimonials ?? true,
     "who-we-serve": true,
     "why-choose": true,
+    cta: true,
   }
   const defaultWhyChooseItems: WhyChooseItem[] = [
     { title: "Proven Expertise", description: "Years of experience delivering quality solutions", icon: "check" },
@@ -835,6 +870,8 @@ export function SiteSettingsForm({ initial, pages }: { initial: SiteSettings; pa
               ? "Testimonials"
               : id === "who-we-serve"
                 ? "Who We Serve"
+                : id === "cta"
+                  ? "CTA Banner"
                 : "Why Choose Us"
 
   const addPageToMenu = (pageId: string, target: "header" | "footer") => {
@@ -1177,6 +1214,46 @@ export function SiteSettingsForm({ initial, pages }: { initial: SiteSettings; pa
                             placeholder="Section subtitle"
                           />
                         </div>
+                        {section.id === "cta" ? (
+                          <>
+                            <div className="space-y-1">
+                              <Label htmlFor={`home-section-cta-text-${section.id}`} className="text-xs text-muted-foreground">
+                                CTA Button Text
+                              </Label>
+                              <Input
+                                id={`home-section-cta-text-${section.id}`}
+                                value={section.ctaText || "Contact Us Today"}
+                                onChange={(e) =>
+                                  setFormData((prev) => ({
+                                    ...prev,
+                                    homeSections: prev.homeSections.map((item) =>
+                                      item.id === section.id ? { ...item, ctaText: e.target.value } : item,
+                                    ),
+                                  }))
+                                }
+                                placeholder="Contact Us Today"
+                              />
+                            </div>
+                            <div className="space-y-1">
+                              <Label htmlFor={`home-section-cta-href-${section.id}`} className="text-xs text-muted-foreground">
+                                CTA Button Link
+                              </Label>
+                              <Input
+                                id={`home-section-cta-href-${section.id}`}
+                                value={section.ctaHref || "/contact"}
+                                onChange={(e) =>
+                                  setFormData((prev) => ({
+                                    ...prev,
+                                    homeSections: prev.homeSections.map((item) =>
+                                      item.id === section.id ? { ...item, ctaHref: e.target.value } : item,
+                                    ),
+                                  }))
+                                }
+                                placeholder="/contact"
+                              />
+                            </div>
+                          </>
+                        ) : null}
                         <div className="space-y-1">
                           <Label className="text-xs text-muted-foreground">Layout</Label>
                           <Select

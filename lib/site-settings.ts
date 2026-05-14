@@ -64,10 +64,21 @@ export type NavItem = {
 }
 
 export type HomeSection = {
-  id: "services" | "products" | "pricing" | "training" | "departments" | "testimonials" | "who-we-serve" | "why-choose"
+  id:
+    | "services"
+    | "products"
+    | "pricing"
+    | "training"
+    | "departments"
+    | "testimonials"
+    | "who-we-serve"
+    | "why-choose"
+    | "cta"
   enabled: boolean
   title?: string
   subtitle?: string
+  ctaText?: string
+  ctaHref?: string
   itemsLayout?: "grid" | "scroll"
   mobileLayout?: "match" | "grid" | "scroll"
   scrollSpeed?: number
@@ -266,6 +277,19 @@ const defaultSettings: SiteSettings = {
       enabled: true,
       title: "Why Choose Us",
       subtitle: "Trusted by educational institutions and organizations across Pakistan",
+      itemsLayout: "grid",
+      mobileLayout: "match",
+      scrollSpeed: 30,
+      pauseOnHover: true,
+      dragEnabled: true,
+    },
+    {
+      id: "cta",
+      enabled: true,
+      title: "Ready to Transform Your Organization?",
+      subtitle: "Get in touch with us today to discuss how we can help you achieve your goals with our innovative solutions.",
+      ctaText: "Contact Us Today",
+      ctaHref: "/contact",
       itemsLayout: "grid",
       mobileLayout: "match",
       scrollSpeed: 30,
@@ -579,6 +603,15 @@ function parseHomeSections(
       pauseOnHover: true,
       dragEnabled: true,
     },
+    cta: {
+      title: "Ready to Transform Your Organization?",
+      subtitle: "Get in touch with us today to discuss how we can help you achieve your goals with our innovative solutions.",
+      itemsLayout: "grid",
+      mobileLayout: "match",
+      scrollSpeed: 30,
+      pauseOnHover: true,
+      dragEnabled: true,
+    },
   }
   const defaultHomeSections: HomeSection[] = [
     { id: "services", enabled: fallback.services, ...defaultMeta.services },
@@ -589,6 +622,7 @@ function parseHomeSections(
     { id: "testimonials", enabled: fallback.testimonials, ...defaultMeta.testimonials },
     { id: "who-we-serve", enabled: fallback["who-we-serve"], ...defaultMeta["who-we-serve"] },
     { id: "why-choose", enabled: fallback["why-choose"], ...defaultMeta["why-choose"] },
+    { id: "cta", enabled: fallback.cta, ctaText: "Contact Us Today", ctaHref: "/contact", ...defaultMeta.cta },
   ]
 
   try {
@@ -605,6 +639,7 @@ function parseHomeSections(
       "testimonials",
       "who-we-serve",
       "why-choose",
+      "cta",
     ]
     const normalized: HomeSection[] = []
     const seen = new Set<string>()
@@ -625,6 +660,18 @@ function parseHomeSections(
           (entry as { subtitle: string }).subtitle.trim()
             ? (entry as { subtitle: string }).subtitle.trim()
             : defaultMeta[id].subtitle,
+        ctaText:
+          typeof (entry as { ctaText?: unknown }).ctaText === "string" && (entry as { ctaText: string }).ctaText.trim()
+            ? (entry as { ctaText: string }).ctaText.trim()
+            : id === "cta"
+              ? "Contact Us Today"
+              : "",
+        ctaHref:
+          typeof (entry as { ctaHref?: unknown }).ctaHref === "string" && (entry as { ctaHref: string }).ctaHref.trim()
+            ? (entry as { ctaHref: string }).ctaHref.trim()
+            : id === "cta"
+              ? "/contact"
+              : "",
         itemsLayout:
           (entry as { itemsLayout?: unknown }).itemsLayout === "scroll"
             ? "scroll"
@@ -747,6 +794,7 @@ export async function getSiteSettings(): Promise<SiteSettings> {
       testimonials: settings.showTestimonials ?? defaultSettings.showTestimonials,
       "who-we-serve": true,
       "why-choose": true,
+      cta: true,
     }
     const homeSections = parseHomeSections(settings.homeSections, fallbackHomeVisibility)
     const resolvedVisibility = homeSections.reduce(
@@ -763,6 +811,7 @@ export async function getSiteSettings(): Promise<SiteSettings> {
         testimonials: fallbackHomeVisibility.testimonials,
         "who-we-serve": fallbackHomeVisibility["who-we-serve"],
         "why-choose": fallbackHomeVisibility["why-choose"],
+        cta: fallbackHomeVisibility.cta,
       },
     )
 
