@@ -39,8 +39,8 @@ export async function withRls<T>(userId: string | null, fn: (tx: PrismaClient) =
         return fn(tx)
       },
       {
-        timeout: 10000,
-        maxWait: 5000,
+        timeout: 20000,
+        maxWait: 10000,
       },
     )
 

@@ -224,13 +224,14 @@ export default async function HomePage() {
     renderCard: (item: T, index: number) => ReactNode,
     keyForItem: (item: T, index: number) => string,
   ) => {
+    const safeItems = (items || []).filter((item): item is T => Boolean(item))
     const { itemsLayout, mobileLayout, scrollSpeed, pauseOnHover, dragEnabled } = getSectionConfig(sectionId)
     const desktopScroll = itemsLayout === "scroll"
     const mobileResolvedLayout = mobileLayout === "match" ? itemsLayout : mobileLayout
     const mobileScroll = mobileResolvedLayout === "scroll"
 
     const renderScroll = (className: string) => {
-      const scrollingItems = items.length > 1 ? [...items, ...items] : items
+      const scrollingItems = safeItems.length > 1 ? [...safeItems, ...safeItems] : safeItems
       return (
         <ScrollingLoop
           durationSeconds={scrollSpeed || 30}
@@ -248,7 +249,7 @@ export default async function HomePage() {
       )
     }
     const renderGrid = (className: string) => (
-      <div className={className}>{items.map((item, index) => renderCard(item, index))}</div>
+      <div className={className}>{safeItems.map((item, index) => renderCard(item, index))}</div>
     )
 
     if (desktopScroll === mobileScroll) {

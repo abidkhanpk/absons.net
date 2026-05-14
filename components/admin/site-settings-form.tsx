@@ -798,6 +798,7 @@ export function SiteSettingsForm({ initial, pages }: { initial: SiteSettings; pa
   const updateWhyChooseItem = (index: number, updates: Partial<WhyChooseItem>) => {
     setFormData((prev) => {
       const next = [...prev.whyChooseItems]
+      if (!next[index]) return prev
       next[index] = { ...next[index], ...updates }
       return { ...prev, whyChooseItems: next }
     })

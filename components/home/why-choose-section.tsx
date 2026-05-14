@@ -82,10 +82,17 @@ export function WhyChooseSection({
   }, [isMobile, layout, mobileLayout])
   const shouldScroll = effectiveLayout === "scroll" && items.length > visibleCount
   const layoutToRender: "grid" | "scroll" = shouldScroll ? "scroll" : "grid"
+  const safeItems = (items || []).filter(
+    (item): item is WhyChooseItem =>
+      Boolean(item) &&
+      typeof item.title === "string" &&
+      typeof item.description === "string" &&
+      typeof item.icon === "string",
+  )
 
   const renderGrid = () => (
     <div className="why-choose-grid">
-      {items.map((item, index) => {
+      {safeItems.map((item, index) => {
         const Icon = iconMap[item.icon] || CheckCircle2
         return (
           <div key={`${item.title}-${index}`} className="why-choose-grid-tile text-center space-y-3">
@@ -110,7 +117,7 @@ export function WhyChooseSection({
       className="why-choose-scroll"
       trackClassName="why-choose-track"
     >
-      {[...items, ...items].map((item, index) => {
+      {[...safeItems, ...safeItems].map((item, index) => {
         const Icon = iconMap[item.icon] || CheckCircle2
         return (
           <div key={`${item.title}-${index}`} className="why-choose-tile text-center space-y-3">

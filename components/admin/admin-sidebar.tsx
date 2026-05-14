@@ -26,7 +26,15 @@ import {
 } from "lucide-react"
 import { useState } from "react"
 
-type HomeSectionNavId = "services" | "products" | "pricing" | "training" | "departments" | "testimonials" | "who-we-serve" | "why-choose"
+type HomeSectionNavId =
+  | "services"
+  | "products"
+  | "pricing"
+  | "training"
+  | "departments"
+  | "testimonials"
+  | "who-we-serve"
+  | "why-choose"
 
 type SidebarItem = {
   href: string
@@ -93,7 +101,7 @@ export function AdminSidebar({
   const orderedSectionNavItems = (() => {
     const configuredOrder = homeSections.map((section) => section.id)
     const fullOrder = [...configuredOrder, ...defaultSectionNavOrder.filter((id) => !configuredOrder.includes(id))]
-    return fullOrder.map((id) => sectionNavMeta[id])
+    return fullOrder.map((id) => sectionNavMeta[id]).filter((item): item is SidebarItem => Boolean(item))
   })()
   const navItems = [...baseNavBeforeSections, ...orderedSectionNavItems, ...baseNavAfterSections]
 

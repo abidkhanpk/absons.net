@@ -2,6 +2,48 @@ import { NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 import { getSession } from "@/lib/auth"
 
+function normalizeWhyChooseItems(raw: unknown) {
+  if (!Array.isArray(raw)) return undefined
+  const allowedIcons = new Set(["check", "award", "book", "star", "shield", "bolt", "heart", "users", "globe", "sparkles"])
+  const normalized = raw
+    .filter((entry): entry is Record<string, unknown> => Boolean(entry) && typeof entry === "object")
+    .map((entry) => ({
+      title: typeof entry.title === "string" ? entry.title.trim() : "",
+      description: typeof entry.description === "string" ? entry.description.trim() : "",
+      icon: typeof entry.icon === "string" && allowedIcons.has(entry.icon) ? entry.icon : "check",
+    }))
+    .filter((entry) => entry.title && entry.description)
+  return normalized
+}
+
+function normalizeHomeSections(raw: unknown) {
+  if (!Array.isArray(raw)) return undefined
+  const allowed = new Set([
+    "services",
+    "products",
+    "pricing",
+    "training",
+    "departments",
+    "testimonials",
+    "who-we-serve",
+    "why-choose",
+    "cta",
+  ])
+  const seen = new Set<string>()
+  return raw
+    .filter((entry): entry is Record<string, unknown> => Boolean(entry) && typeof entry === "object")
+    .map((entry) => {
+      const id = typeof entry.id === "string" ? entry.id.trim() : ""
+      if (!id || !allowed.has(id) || seen.has(id)) return null
+      seen.add(id)
+      return {
+        ...entry,
+        id,
+      }
+    })
+    .filter((entry): entry is Record<string, unknown> => Boolean(entry))
+}
+
 export async function PUT(request: Request) {
   try {
     const body = await request.json()
@@ -109,11 +151,11 @@ export async function PUT(request: Request) {
         showServices,
         showTraining,
         showTestimonials,
-        homeSections: Array.isArray(homeSections) ? homeSections : undefined,
+        homeSections: normalizeHomeSections(homeSections),
         editorApprovalRequired,
         whyChooseTitle,
         whyChooseSubtitle,
-        whyChooseItems: Array.isArray(whyChooseItems) ? whyChooseItems : undefined,
+        whyChooseItems: normalizeWhyChooseItems(whyChooseItems),
         whyChooseLayout,
         whyChooseMobileLayout,
         whyChooseScrollSpeed,
