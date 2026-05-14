@@ -1142,7 +1142,7 @@ export function SiteSettingsForm({ initial, pages }: { initial: SiteSettings; pa
         <TabsContent value="home-sections" className="space-y-6">
           <div className="space-y-2">
             <Label className="font-semibold">Home Sections</Label>
-            <Accordion type="multiple" className="space-y-2 pt-1">
+            <Accordion type="single" collapsible className="space-y-2 pt-1">
               {formData.homeSections.map((section, index) => {
                 const label = getHomeSectionLabel(section.id)
                 return (
