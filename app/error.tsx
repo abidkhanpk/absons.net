@@ -3,6 +3,16 @@
 import { useEffect } from "react"
 import { RotateCw } from "lucide-react"
 
+function toError(value: unknown): Error {
+  if (value instanceof Error) return value
+  if (typeof value === "string") return new Error(value)
+  try {
+    return new Error(JSON.stringify(value))
+  } catch {
+    return new Error(String(value))
+  }
+}
+
 export default function GlobalError({
   error,
   reset,
@@ -19,7 +29,8 @@ export default function GlobalError({
   }
 
   useEffect(() => {
-    console.error(error)
+    const normalized = toError(error)
+    console.error("Unhandled route error:", normalized)
   }, [error])
 
   return (
