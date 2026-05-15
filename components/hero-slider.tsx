@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useMemo, useState } from "react"
+import { useEffect, useMemo, useRef, useState } from "react"
 import { Button } from "@/components/ui/button"
 import { ArrowRight, ArrowLeft, ArrowRight as ArrowRightIcon } from "lucide-react"
 import Link from "next/link"
@@ -17,6 +17,9 @@ type HeroSliderProps = {
 export function HeroSlider({ slides, mode, staticIndex, autoplaySeconds, height }: HeroSliderProps) {
   const safeSlides = useMemo(() => (slides && slides.length > 0 ? slides : []), [slides])
   const [active, setActive] = useState(0)
+  const [compactMode, setCompactMode] = useState(false)
+  const frameRef = useRef<HTMLDivElement | null>(null)
+  const contentRef = useRef<HTMLDivElement | null>(null)
 
   useEffect(() => {
     if (mode !== "parallax" || safeSlides.length <= 1) return
@@ -38,6 +41,7 @@ export function HeroSlider({ slides, mode, staticIndex, autoplaySeconds, height 
     mode === "static" ? safeSlides[Math.min(Math.max(staticIndex || 0, 0), safeSlides.length - 1)] : safeSlides[active]
 
   const heightValue = `${Math.max(360, height || 560)}px`
+  const heroFrameHeight = `calc(${heightValue} + var(--mobile-sticky-header-h, 0px))`
   const layout = currentSlide?.layout || "full"
   const bgStyle =
     layout === "full" && currentSlide?.image
@@ -52,18 +56,48 @@ export function HeroSlider({ slides, mode, staticIndex, autoplaySeconds, height 
         ? { backgroundColor: currentSlide.bgColor }
         : { backgroundColor: "#0f172a" }
 
+  useEffect(() => {
+    const frame = frameRef.current
+    const content = contentRef.current
+    if (!frame || !content) return
+
+    const measure = () => {
+      const frameH = frame.clientHeight
+      const contentH = content.scrollHeight
+      const isOverflowing = contentH > frameH - 12
+      setCompactMode(isOverflowing)
+    }
+
+    measure()
+    const resizeObserver = new ResizeObserver(measure)
+    resizeObserver.observe(frame)
+    resizeObserver.observe(content)
+    window.addEventListener("resize", measure)
+
+    return () => {
+      resizeObserver.disconnect()
+      window.removeEventListener("resize", measure)
+    }
+  }, [active, mode, staticIndex, layout, height, currentSlide?.title, currentSlide?.subtitle, currentSlide?.ctaText])
+
   return (
     <section className="relative border-b border-border">
-      <div className="relative overflow-hidden" style={{ ...bgStyle, height: heightValue }}>
+      <div ref={frameRef} className="relative overflow-hidden" style={{ ...bgStyle, height: heroFrameHeight }}>
         <div className={layout === "full" && currentSlide?.image ? "bg-black/50" : ""}>
           <div
-            className="container mx-auto px-4 lg:px-8 py-12 lg:py-20 h-full flex items-center"
-            style={{ height: heightValue }}
+            className={`container mx-auto px-4 lg:px-8 h-full flex items-start md:items-center pt-[calc((var(--mobile-sticky-header-h,0px)*0.25)+0.0rem)] md:pt-12 lg:pt-20 ${
+              compactMode ? "py-2 md:py-10 lg:py-12" : "py-4 lg:py-20"
+            }`}
+            style={{ height: heroFrameHeight }}
           >
             {layout === "image-left" || layout === "image-right" ? (
-              <div className="grid md:grid-cols-2 gap-8 items-center w-full min-h-0">
+              <div ref={contentRef} className={`grid md:grid-cols-2 items-center w-full min-h-0 ${compactMode ? "gap-4 md:gap-6" : "gap-8"}`}>
                 {layout === "image-left" && currentSlide?.image && (
-                  <div className="relative h-full min-h-[280px] w-full overflow-hidden rounded-xl shadow-lg bg-background max-h-full">
+                  <div
+                    className={`relative w-full overflow-hidden rounded-xl shadow-lg bg-background max-h-full ${
+                      compactMode ? "min-h-[110px] md:min-h-[220px]" : "min-h-[180px] md:min-h-[280px]"
+                    }`}
+                  >
                     <div
                       className="absolute inset-0"
                       style={{
@@ -75,18 +109,18 @@ export function HeroSlider({ slides, mode, staticIndex, autoplaySeconds, height 
                     />
                   </div>
                 )}
-                <div className="space-y-6 text-white text-left md:text-left min-h-0">
-                  <h1 className="text-4xl md:text-5xl font-bold leading-tight">
+                <div className={`text-white text-left md:text-left min-h-0 max-w-3xl ${compactMode ? "space-y-3 md:space-y-4" : "space-y-6"}`}>
+                  <h1 className={`font-bold leading-tight text-[clamp(2rem,7vw,3rem)] md:text-[clamp(2rem,3.8vw,3.2rem)] ${compactMode ? "tracking-tight" : ""}`}>
                     {currentSlide?.title || "Empowering Organizations with Innovative Software Solutions"}
                   </h1>
                   {(currentSlide?.subtitle || currentSlide?.ctaText || currentSlide?.ctaHref) && (
-                    <p className="text-lg text-white/80 leading-relaxed">
+                    <p className={`text-white/80 leading-relaxed text-[clamp(1rem,3.8vw,1.25rem)] ${compactMode ? "line-clamp-3 md:line-clamp-4" : ""}`}>
                       {currentSlide?.subtitle ||
                         "Specialized software for educational institutions, Quran academies, professional training, and complete order supply solutions."}
                     </p>
                   )}
-                  <div className="flex flex-col sm:flex-row items-start md:items-center gap-4">
-                    <Button asChild size="lg" className="text-base">
+                  <div className={`flex flex-col sm:flex-row items-start md:items-center ${compactMode ? "gap-2" : "gap-4"}`}>
+                    <Button asChild size={compactMode ? "default" : "lg"} className={compactMode ? "text-sm" : "text-base"}>
                       <Link href={currentSlide?.ctaHref || "/contact"}>
                         {currentSlide?.ctaText || "Get Started"}
                         <ArrowRight className="ml-2 h-5 w-5" />
@@ -95,7 +129,11 @@ export function HeroSlider({ slides, mode, staticIndex, autoplaySeconds, height 
                   </div>
                 </div>
                 {layout === "image-right" && currentSlide?.image && (
-                  <div className="relative h-full min-h-[280px] w-full overflow-hidden rounded-xl shadow-lg bg-background max-h-full">
+                  <div
+                    className={`relative w-full overflow-hidden rounded-xl shadow-lg bg-background max-h-full ${
+                      compactMode ? "min-h-[110px] md:min-h-[220px]" : "min-h-[180px] md:min-h-[280px]"
+                    }`}
+                  >
                     <div
                       className="absolute inset-0"
                       style={{
@@ -109,18 +147,18 @@ export function HeroSlider({ slides, mode, staticIndex, autoplaySeconds, height 
                 )}
               </div>
             ) : (
-              <div className="max-w-4xl mx-auto text-center space-y-8 text-white w-full">
-                <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-balance leading-tight">
+              <div ref={contentRef} className={`max-w-4xl mx-auto text-center text-white w-full ${compactMode ? "space-y-4" : "space-y-8"}`}>
+                <h1 className="font-bold text-balance leading-tight text-[clamp(2rem,7.5vw,4rem)]">
                   {currentSlide?.title || "Empowering Organizations with Innovative Software Solutions"}
                 </h1>
                 {(currentSlide?.subtitle || currentSlide?.ctaText || currentSlide?.ctaHref) && (
-                  <p className="text-lg md:text-xl text-white/80 text-pretty max-w-2xl mx-auto leading-relaxed">
+                  <p className={`text-white/80 text-pretty max-w-2xl mx-auto leading-relaxed text-[clamp(1rem,3.8vw,1.25rem)] ${compactMode ? "line-clamp-4" : ""}`}>
                     {currentSlide?.subtitle ||
                       "Specialized software for educational institutions, Quran academies, professional training, and complete order supply solutions."}
                   </p>
                 )}
-                <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-                  <Button asChild size="lg" className="text-base">
+                <div className={`flex flex-col sm:flex-row items-center justify-center ${compactMode ? "gap-2" : "gap-4"}`}>
+                  <Button asChild size={compactMode ? "default" : "lg"} className={compactMode ? "text-sm" : "text-base"}>
                     <Link href={currentSlide?.ctaHref || "/contact"}>
                       {currentSlide?.ctaText || "Get Started"}
                       <ArrowRight className="ml-2 h-5 w-5" />

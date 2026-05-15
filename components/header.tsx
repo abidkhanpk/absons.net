@@ -3,7 +3,7 @@
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Menu, X, Lock } from "lucide-react"
-import { useMemo, useState } from "react"
+import { useEffect, useMemo, useRef, useState } from "react"
 import type { SiteSettings } from "@/lib/site-settings"
 import { resolveAssetUrl } from "@/lib/asset-url"
 
@@ -14,6 +14,7 @@ type HeaderProps = {
 export function Header({ settings }: HeaderProps) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [logoFailed, setLogoFailed] = useState(false)
+  const headerRef = useRef<HTMLElement | null>(null)
 
   const logoRadius = Math.max(0, Math.min(512, settings.logoRadius ?? 8))
   const showCta = settings.navCtaEnabled !== false
@@ -30,8 +31,38 @@ export function Header({ settings }: HeaderProps) {
     }
   }, [settings.navAlignment])
 
+  useEffect(() => {
+    const root = document.documentElement
+    const mobileQuery = window.matchMedia("(max-width: 767px)")
+    const headerEl = headerRef.current
+    if (!headerEl) return
+
+    const applyHeaderOffset = () => {
+      if (mobileQuery.matches) {
+        root.style.setProperty("--mobile-sticky-header-h", `${headerEl.offsetHeight}px`)
+      } else {
+        root.style.setProperty("--mobile-sticky-header-h", "0px")
+      }
+    }
+
+    applyHeaderOffset()
+    const observer = new ResizeObserver(applyHeaderOffset)
+    observer.observe(headerEl)
+    mobileQuery.addEventListener("change", applyHeaderOffset)
+    window.addEventListener("resize", applyHeaderOffset)
+
+    return () => {
+      observer.disconnect()
+      mobileQuery.removeEventListener("change", applyHeaderOffset)
+      window.removeEventListener("resize", applyHeaderOffset)
+    }
+  }, [mobileMenuOpen, settings.navItems, settings.navCtaEnabled, settings.showLoginLink])
+
   return (
-    <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+    <header
+      ref={headerRef}
+      className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60"
+    >
       <nav className="container mx-auto px-4 lg:px-8">
         <div className="flex h-16 items-center gap-6">
           <div className="flex items-center gap-2">
@@ -96,7 +127,7 @@ export function Header({ settings }: HeaderProps) {
 
           {/* Mobile Menu Button */}
           <button
-            className="md:hidden p-2 text-muted-foreground hover:text-foreground"
+            className="md:hidden ml-auto p-2 -mr-2 text-muted-foreground hover:text-foreground"
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
           >
             {mobileMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
