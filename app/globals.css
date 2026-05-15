@@ -342,6 +342,17 @@
   height: 2.5rem;
 }
 
+/* Keep table row heights consistent between preview HTML and TipTap editor DOM */
+.prose table.cms-table th > *:first-child,
+.prose table.cms-table td > *:first-child {
+  margin-top: 0 !important;
+}
+
+.prose table.cms-table th > *:last-child,
+.prose table.cms-table td > *:last-child {
+  margin-bottom: 0 !important;
+}
+
 .prose table.cms-table th {
   background: var(--muted);
   font-weight: 600;
@@ -409,10 +420,24 @@
 .tiptap table th,
 .tiptap table td {
   border: 1px solid var(--border);
-  padding: 0.65rem 0.75rem;
+  padding: 0.45rem 0.6rem;
   vertical-align: middle;
   min-width: 80px;
-  height: 2.5rem;
+  height: 1.5rem;
+}
+
+.ProseMirror table th > *:first-child,
+.ProseMirror table td > *:first-child,
+.tiptap table th > *:first-child,
+.tiptap table td > *:first-child {
+  margin-top: 0 !important;
+}
+
+.ProseMirror table th > *:last-child,
+.ProseMirror table td > *:last-child,
+.tiptap table th > *:last-child,
+.tiptap table td > *:last-child {
+  margin-bottom: 0 !important;
 }
 
 .ProseMirror table,
