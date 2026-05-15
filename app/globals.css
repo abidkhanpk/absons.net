@@ -1,5 +1,6 @@
 @import "tailwindcss";
 @import "tw-animate-css";
+@import "@fortawesome/fontawesome-free/css/all.min.css";
 
 @custom-variant dark (&:is(.dark *));
 
@@ -278,6 +279,33 @@
 .prose a {
   color: var(--primary);
   text-decoration: underline;
+}
+
+.prose a.bg-primary,
+.prose a.bg-primary span,
+.prose a.bg-primary i,
+.prose a.bg-primary [data-cms-fa] {
+  color: #fff !important;
+  text-decoration: none !important;
+}
+
+.prose a[data-cms-button="true"] [data-cms-fa] {
+  margin-right: 0.5rem;
+}
+
+.prose a.bg-background {
+  text-decoration: none;
+}
+
+.prose a[data-cms-button="true"].bg-background,
+.prose a[data-cms-button="true"].bg-background span,
+.prose a[data-cms-button="true"].bg-background [data-cms-fa] {
+  color: var(--foreground) !important;
+}
+
+.prose details[data-cms-accordion] {
+  margin-top: 0.5rem;
+  margin-bottom: 0.5rem;
 }
 
 .prose strong {
