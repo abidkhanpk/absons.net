@@ -75,32 +75,37 @@ export function HeroSlider({ slides, mode, staticIndex, autoplaySeconds, height 
     if (!frame || !content) return
 
     let raf = 0
-    let compactLockedForSlide = false
     const measure = () => {
       cancelAnimationFrame(raf)
       raf = window.requestAnimationFrame(() => {
         const frameH = frame.clientHeight
         const contentH = content.scrollHeight
         const overflow = contentH - frameH
-        // Use a larger deadband to prevent compact/non-compact chattering on borderline slides.
+        // Use conservative thresholds on mobile to avoid over-shrinking while still preventing overflow.
         setCompactMode((prev) => {
-          if (mobileParallaxFallback && compactLockedForSlide) return true
-          const next = prev ? overflow > -72 : overflow > -12
-          if (mobileParallaxFallback && next) compactLockedForSlide = true
-          return next
+          const enterThreshold = mobileParallaxFallback ? 56 : 0
+          const exitThreshold = mobileParallaxFallback ? 24 : -32
+          return prev ? overflow > exitThreshold : overflow > enterThreshold
         })
       })
     }
 
     measure()
-    const resizeObserver = new ResizeObserver(measure)
-    resizeObserver.observe(frame)
-    window.addEventListener("resize", measure)
+    let resizeObserver: ResizeObserver | null = null
+
+    if (mobileParallaxFallback) {
+      window.addEventListener("orientationchange", measure)
+    } else {
+      resizeObserver = new ResizeObserver(measure)
+      resizeObserver.observe(frame)
+      window.addEventListener("resize", measure)
+    }
 
     return () => {
       cancelAnimationFrame(raf)
-      resizeObserver.disconnect()
+      resizeObserver?.disconnect()
       window.removeEventListener("resize", measure)
+      window.removeEventListener("orientationchange", measure)
     }
   }, [active, mode, staticIndex, layout, height, currentSlide?.title, currentSlide?.subtitle, currentSlide?.ctaText, mobileParallaxFallback])
 
@@ -110,7 +115,7 @@ export function HeroSlider({ slides, mode, staticIndex, autoplaySeconds, height 
         <div className={layout === "full" && currentSlide?.image ? "bg-black/50" : ""}>
           <div
             className={`container mx-auto px-4 lg:px-8 h-full flex items-start md:items-center pt-[calc((var(--mobile-sticky-header-h,0px)*0.25)+0.0rem)] md:pt-12 lg:pt-20 ${
-              compactMode ? "py-2 md:py-10 lg:py-12" : "py-4 lg:py-20"
+              compactMode ? "py-4 md:py-10 lg:py-12" : "py-4 lg:py-20"
             }`}
             style={{ height: heroFrameHeight }}
           >
@@ -119,7 +124,7 @@ export function HeroSlider({ slides, mode, staticIndex, autoplaySeconds, height 
                 {layout === "image-left" && currentSlide?.image && (
                   <div
                     className={`relative w-full overflow-hidden rounded-xl shadow-lg bg-background max-h-full ${
-                      compactMode ? "min-h-[110px] md:min-h-[220px]" : "min-h-[180px] md:min-h-[280px]"
+                      compactMode ? "min-h-[160px] md:min-h-[220px]" : "min-h-[180px] md:min-h-[280px]"
                     }`}
                   >
                     <div
@@ -138,7 +143,7 @@ export function HeroSlider({ slides, mode, staticIndex, autoplaySeconds, height 
                     {currentSlide?.title || "Empowering Organizations with Innovative Software Solutions"}
                   </h1>
                   {(currentSlide?.subtitle || currentSlide?.ctaText || currentSlide?.ctaHref) && (
-                    <p className={`text-white/80 leading-relaxed text-[clamp(1rem,3.8vw,1.25rem)] ${compactMode ? "line-clamp-3 md:line-clamp-4" : ""}`}>
+                    <p className="text-white/80 leading-relaxed text-[clamp(1rem,3.8vw,1.25rem)]">
                       {currentSlide?.subtitle ||
                         "Specialized software for educational institutions, Quran academies, professional training, and complete order supply solutions."}
                     </p>
@@ -155,7 +160,7 @@ export function HeroSlider({ slides, mode, staticIndex, autoplaySeconds, height 
                 {layout === "image-right" && currentSlide?.image && (
                   <div
                     className={`relative w-full overflow-hidden rounded-xl shadow-lg bg-background max-h-full ${
-                      compactMode ? "min-h-[110px] md:min-h-[220px]" : "min-h-[180px] md:min-h-[280px]"
+                      compactMode ? "min-h-[160px] md:min-h-[220px]" : "min-h-[180px] md:min-h-[280px]"
                     }`}
                   >
                     <div
@@ -176,7 +181,7 @@ export function HeroSlider({ slides, mode, staticIndex, autoplaySeconds, height 
                   {currentSlide?.title || "Empowering Organizations with Innovative Software Solutions"}
                 </h1>
                 {(currentSlide?.subtitle || currentSlide?.ctaText || currentSlide?.ctaHref) && (
-                  <p className={`text-white/80 text-pretty max-w-2xl mx-auto leading-relaxed text-[clamp(1rem,3.8vw,1.25rem)] ${compactMode ? "line-clamp-4" : ""}`}>
+                  <p className="text-white/80 text-pretty max-w-2xl mx-auto leading-relaxed text-[clamp(1rem,3.8vw,1.25rem)]">
                     {currentSlide?.subtitle ||
                       "Specialized software for educational institutions, Quran academies, professional training, and complete order supply solutions."}
                   </p>
