@@ -74,22 +74,34 @@ export function HeroSlider({ slides, mode, staticIndex, autoplaySeconds, height 
     const content = contentRef.current
     if (!frame || !content) return
 
+    let raf = 0
     const measure = () => {
-      const frameH = frame.clientHeight
-      const contentH = content.scrollHeight
-      // Use hysteresis to avoid rapid compact/non-compact toggling near threshold.
-      setCompactMode((prev) => (prev ? contentH > frameH - 36 : contentH > frameH - 12))
+      cancelAnimationFrame(raf)
+      raf = window.requestAnimationFrame(() => {
+        const frameH = frame.clientHeight
+        const contentH = content.scrollHeight
+        const overflow = contentH - frameH
+        // Use a larger deadband to prevent compact/non-compact chattering on borderline slides.
+        setCompactMode((prev) => {
+          if (!prev) return overflow > -12
+          return overflow > -72
+        })
+      })
     }
 
     measure()
     const resizeObserver = new ResizeObserver(measure)
     resizeObserver.observe(frame)
-    resizeObserver.observe(content)
     window.addEventListener("resize", measure)
+    window.visualViewport?.addEventListener("resize", measure)
+    window.visualViewport?.addEventListener("scroll", measure)
 
     return () => {
+      cancelAnimationFrame(raf)
       resizeObserver.disconnect()
       window.removeEventListener("resize", measure)
+      window.visualViewport?.removeEventListener("resize", measure)
+      window.visualViewport?.removeEventListener("scroll", measure)
     }
   }, [active, mode, staticIndex, layout, height, currentSlide?.title, currentSlide?.subtitle, currentSlide?.ctaText])
 
