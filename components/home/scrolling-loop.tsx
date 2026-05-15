@@ -23,7 +23,24 @@ export function ScrollingLoop({
   const trackRef = useRef<HTMLDivElement | null>(null)
   const [isDragging, setIsDragging] = useState(false)
   const [isHovered, setIsHovered] = useState(false)
+  const [canHover, setCanHover] = useState(false)
   const dragStateRef = useRef({ startX: 0, startScrollLeft: 0 })
+
+  const isToggleFocusedInside = () => {
+    const container = containerRef.current
+    if (!container) return false
+    const activeEl = document.activeElement as HTMLElement | null
+    if (!activeEl || !container.contains(activeEl)) return false
+    return Boolean(activeEl.closest('[data-scroll-toggle="true"]'))
+  }
+
+  useEffect(() => {
+    const media = window.matchMedia("(hover: hover)")
+    const apply = () => setCanHover(media.matches)
+    apply()
+    media.addEventListener("change", apply)
+    return () => media.removeEventListener("change", apply)
+  }, [])
 
   const normalizeScrollPosition = () => {
     if (!containerRef.current || !trackRef.current) return
@@ -59,7 +76,7 @@ export function ScrollingLoop({
       const deltaMs = ts - lastTs
       lastTs = ts
 
-      const shouldAutoScroll = !isDragging && !(pauseOnHover && isHovered)
+      const shouldAutoScroll = !isDragging && !(pauseOnHover && canHover && isHovered) && !isToggleFocusedInside()
       if (shouldAutoScroll && Number.isFinite(loopWidth) && loopWidth > 0) {
         const pxPerMs = loopWidth / Math.max(1000, (durationSeconds || 30) * 1000)
         container.scrollLeft += pxPerMs * deltaMs
@@ -71,9 +88,17 @@ export function ScrollingLoop({
 
     raf = requestAnimationFrame(animate)
     return () => cancelAnimationFrame(raf)
-  }, [durationSeconds, isDragging, isHovered, pauseOnHover])
+  }, [canHover, durationSeconds, isDragging, isHovered, pauseOnHover])
 
   const onPointerDown = (event: React.PointerEvent<HTMLDivElement>) => {
+    const target = event.target as HTMLElement
+    const toggleCard = target.closest('[data-scroll-toggle="true"]') as HTMLElement | null
+    if (toggleCard && document.activeElement === toggleCard) {
+      toggleCard.blur()
+      event.preventDefault()
+      return
+    }
+
     if (!dragEnabled) return
     if (event.button !== 0) return
     if (!containerRef.current || !trackRef.current) return
@@ -107,8 +132,12 @@ export function ScrollingLoop({
       className={`scrolling-loop ${dragEnabled ? "drag-enabled" : "drag-disabled"} ${pauseOnHover ? "pause-on-hover" : ""} ${
         isDragging ? "is-dragging" : ""
       } ${className}`.trim()}
-      onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
+      onMouseEnter={() => {
+        if (canHover) setIsHovered(true)
+      }}
+      onMouseLeave={() => {
+        if (canHover) setIsHovered(false)
+      }}
       onPointerDown={onPointerDown}
       onPointerMove={onPointerMove}
       onPointerUp={stopDragging}

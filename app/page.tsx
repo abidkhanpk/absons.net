@@ -548,7 +548,9 @@ export default async function HomePage() {
               (testimonial) => (
                 <Card
                   key={testimonial.id}
-                  className="border-border group overflow-hidden transition-shadow hover:shadow-lg"
+                  tabIndex={0}
+                  data-scroll-toggle="true"
+                  className="border-border group overflow-hidden transition-shadow hover:shadow-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
                 >
                   <CardContent className="p-6 space-y-4">
                     <div className="flex gap-1">
@@ -556,7 +558,7 @@ export default async function HomePage() {
                         <Star key={i} className="h-5 w-5 fill-primary text-primary" />
                       ))}
                     </div>
-                    <div className="max-h-20 overflow-hidden group-hover:max-h-[1000px] transition-all duration-300 ease-in-out">
+                    <div className="max-h-20 overflow-hidden group-hover:max-h-[1000px] group-focus-within:max-h-[1000px] transition-all duration-300 ease-in-out">
                       <p className="text-muted-foreground leading-relaxed italic testimonial-clamp">"{testimonial.content}"</p>
                     </div>
                     <div>
