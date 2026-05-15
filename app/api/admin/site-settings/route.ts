@@ -44,6 +44,36 @@ function normalizeHomeSections(raw: unknown) {
     .filter((entry): entry is Record<string, unknown> => Boolean(entry))
 }
 
+function normalizeHeroSlides(raw: unknown): { serialized?: string; wasExplicitlyEmpty: boolean } {
+  if (typeof raw === "undefined") return { serialized: undefined, wasExplicitlyEmpty: false }
+
+  let parsed: unknown = raw
+  if (typeof raw === "string") {
+    try {
+      parsed = JSON.parse(raw)
+    } catch {
+      return { serialized: undefined, wasExplicitlyEmpty: false }
+    }
+  }
+
+  if (!Array.isArray(parsed)) return { serialized: undefined, wasExplicitlyEmpty: false }
+  if (parsed.length === 0) return { serialized: undefined, wasExplicitlyEmpty: true }
+
+  const normalized = parsed
+    .filter((slide): slide is Record<string, unknown> => Boolean(slide) && typeof slide === "object")
+    .map((slide) => ({
+      title: typeof slide.title === "string" ? slide.title : "",
+      subtitle: typeof slide.subtitle === "string" ? slide.subtitle : "",
+      ctaText: typeof slide.ctaText === "string" ? slide.ctaText : "",
+      ctaHref: typeof slide.ctaHref === "string" ? slide.ctaHref : "",
+      image: typeof slide.image === "string" ? slide.image : "",
+      layout: typeof slide.layout === "string" ? slide.layout : "full",
+      bgColor: typeof slide.bgColor === "string" ? slide.bgColor : "",
+    }))
+
+  return normalized.length > 0 ? { serialized: JSON.stringify(normalized), wasExplicitlyEmpty: false } : { serialized: undefined, wasExplicitlyEmpty: true }
+}
+
 export async function PUT(request: Request) {
   try {
     const body = await request.json()
@@ -109,12 +139,7 @@ export async function PUT(request: Request) {
       return NextResponse.json({ error: "Only super admins can update settings" }, { status: 403 })
     }
 
-    const normalizedHeroSlides =
-      typeof heroSlides === "string"
-        ? heroSlides
-        : Array.isArray(heroSlides)
-          ? JSON.stringify(heroSlides)
-          : undefined
+    const normalizedHeroSlides = normalizeHeroSlides(heroSlides)
 
     const normalizedBusinessHoursSchedule =
       typeof businessHoursSchedule === "string"
@@ -147,7 +172,7 @@ export async function PUT(request: Request) {
                 : undefined,
         layoutMode,
         layoutWidth,
-        heroSlides: normalizedHeroSlides,
+        heroSlides: normalizedHeroSlides.serialized,
         heroMode,
         heroStaticIndex,
         heroAutoplaySeconds,
@@ -185,6 +210,10 @@ export async function PUT(request: Request) {
         staticSeo: staticSeo ? staticSeo : undefined,
       },
     })
+
+    if (normalizedHeroSlides.wasExplicitlyEmpty) {
+      console.warn("Ignored empty heroSlides payload to prevent accidental overwrite.")
+    }
 
     return NextResponse.json({ success: true })
   } catch (error) {

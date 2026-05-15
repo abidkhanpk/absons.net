@@ -5,6 +5,16 @@ import { getSession } from "@/lib/auth"
 import { prisma, withRls } from "@/lib/prisma"
 import { getSiteSettings } from "@/lib/site-settings"
 
+function resolveInitialHeroSlides(raw: string | null | undefined, fallback: unknown[]) {
+  if (!raw) return fallback
+  try {
+    const parsed = JSON.parse(raw)
+    return Array.isArray(parsed) && parsed.length > 0 ? parsed : fallback
+  } catch {
+    return fallback
+  }
+}
+
 export default async function SettingsPage() {
   const session = await getSession()
   if (!session) redirect("/auth/login")
@@ -56,7 +66,7 @@ export default async function SettingsPage() {
               layout_width: settings?.layoutWidth ?? 90,
               hero_mode: (settings?.heroMode as "static" | "parallax") || resolved.heroMode || "static",
               hero_static_index: settings?.heroStaticIndex ?? resolved.heroStaticIndex ?? 0,
-              hero_slides: JSON.stringify(settings?.heroSlides ? JSON.parse(settings.heroSlides) : resolved.heroSlides),
+              hero_slides: JSON.stringify(resolveInitialHeroSlides(settings?.heroSlides, resolved.heroSlides as unknown[])),
               hero_autoplay_seconds: settings?.heroAutoplaySeconds ?? resolved.heroAutoplaySeconds ?? 6,
               hero_height: settings?.heroHeight ?? resolved.heroHeight ?? 560,
               business_hours: settings?.businessHours ?? resolved.businessHours ?? "Mon - Sat, 9:00 AM - 6:00 PM",
