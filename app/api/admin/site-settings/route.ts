@@ -109,6 +109,20 @@ export async function PUT(request: Request) {
       return NextResponse.json({ error: "Only super admins can update settings" }, { status: 403 })
     }
 
+    const normalizedHeroSlides =
+      typeof heroSlides === "string"
+        ? heroSlides
+        : Array.isArray(heroSlides)
+          ? JSON.stringify(heroSlides)
+          : undefined
+
+    const normalizedBusinessHoursSchedule =
+      typeof businessHoursSchedule === "string"
+        ? businessHoursSchedule
+        : Array.isArray(businessHoursSchedule)
+          ? JSON.stringify(businessHoursSchedule)
+          : undefined
+
     await prisma.siteSettings.update({
       where: { id: "site" },
       data: {
@@ -133,15 +147,14 @@ export async function PUT(request: Request) {
                 : undefined,
         layoutMode,
         layoutWidth,
-        heroSlides: typeof heroSlides === "string" ? heroSlides : JSON.stringify(heroSlides ?? []),
+        heroSlides: normalizedHeroSlides,
         heroMode,
         heroStaticIndex,
         heroAutoplaySeconds,
         heroHeight,
         businessHours,
         businessDays,
-        businessHoursSchedule:
-          typeof businessHoursSchedule === "string" ? businessHoursSchedule : JSON.stringify(businessHoursSchedule ?? []),
+        businessHoursSchedule: normalizedBusinessHoursSchedule,
         businessHoursMode,
         showBusinessHours,
         logoWidth,
