@@ -1,5 +1,4 @@
-import { prisma } from "./prisma"
-import { DatabaseConnectionError, isDatabaseConnectionError } from "./prisma"
+import { prisma, isDatabaseConnectionError } from "./prisma"
 import { resolveAssetUrl } from "./asset-url"
 
 export type SiteSettings = {
@@ -873,8 +872,8 @@ export async function getSiteSettings(): Promise<SiteSettings> {
     }
   } catch (error) {
     if (isDatabaseConnectionError(error)) {
-      console.error("Site settings DB connection error:", error)
-      throw new DatabaseConnectionError()
+      console.error("Site settings DB connection error, using defaults:", error)
+      return defaultSettings
     }
     console.error("Failed to load site settings, using defaults:", error)
     return defaultSettings

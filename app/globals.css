@@ -308,6 +308,22 @@
   margin-bottom: 0.5rem;
 }
 
+.prose [data-cms-card="true"] {
+  border: 1px solid var(--border);
+  border-radius: 0.75rem;
+  background: var(--card);
+  color: var(--card-foreground);
+  padding: 1.25rem;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.04);
+  margin-top: 1rem;
+  margin-bottom: 1rem;
+}
+
+.prose [data-cms-card="true"] h3 {
+  margin-top: 0;
+  margin-bottom: 0.5rem;
+}
+
 .prose strong {
   font-weight: 600;
 }

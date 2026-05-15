@@ -6,9 +6,11 @@ import StarterKit from "@tiptap/starter-kit"
 import { Node, mergeAttributes } from "@tiptap/core"
 import Link from "@tiptap/extension-link"
 import Image from "@tiptap/extension-image"
+import CodeMirror from "@uiw/react-codemirror"
+import { html as htmlLang } from "@codemirror/lang-html"
+import { EditorView } from "@codemirror/view"
 import fontAwesomeIcons from "@/lib/font-awesome-free-icons.json"
 import { Button } from "@/components/ui/button"
-import { Textarea } from "@/components/ui/textarea"
 import { Input } from "@/components/ui/input"
 import {
   Bold,
@@ -91,6 +93,19 @@ const AccordionDetails = Node.create({
   },
 })
 
+const CmsCard = Node.create({
+  name: "cmsCard",
+  group: "block",
+  content: "block+",
+  defining: true,
+  parseHTML() {
+    return [{ tag: "article[data-cms-card]" }]
+  },
+  renderHTML({ HTMLAttributes }) {
+    return ["article", mergeAttributes(HTMLAttributes, { "data-cms-card": "true" }), 0]
+  },
+})
+
 const CmsFaIcon = Node.create({
   name: "cmsFaIcon",
   group: "inline",
@@ -128,6 +143,8 @@ export function RichTextEditor({ content, onChange }: RichTextEditorProps) {
   const [pendingButtonLabel, setPendingButtonLabel] = useState("")
   const [pendingButtonHref, setPendingButtonHref] = useState("")
   const [faIcons, setFaIcons] = useState<Array<{ name: string; className: string }>>(fontAwesomeIcons)
+  const [sourceSeed, setSourceSeed] = useState("")
+  const [ignoreSourceInitChange, setIgnoreSourceInitChange] = useState(false)
   const editor = useEditor({
     extensions: [
       StarterKit.configure({
@@ -145,6 +162,7 @@ export function RichTextEditor({ content, onChange }: RichTextEditorProps) {
       }),
       AccordionSummary,
       AccordionDetails,
+      CmsCard,
       CmsFaIcon,
     ],
     content,
@@ -163,11 +181,13 @@ export function RichTextEditor({ content, onChange }: RichTextEditorProps) {
   useEffect(() => {
     if (!editor) return
     const incoming = content || ""
-    setSourceHtml(incoming)
+    if (mode !== "source") {
+      setSourceHtml(incoming)
+    }
     if (incoming !== editor.getHTML()) {
       editor.commands.setContent(incoming, { emitUpdate: false })
     }
-  }, [content, editor])
+  }, [content, editor, mode])
 
   useEffect(() => {
     if (faIcons.length === 0) setFaIcons(fontAwesomeIcons)
@@ -215,24 +235,20 @@ export function RichTextEditor({ content, onChange }: RichTextEditorProps) {
     }
   }
 
-  const switchMode = (next: "visual" | "source") => {
-    if (next === mode) return
-    if (next === "source") {
-      setSourceHtml(prettyFormatHtml(editor.getHTML()))
-    } else if (next === "visual") {
-      editor.commands.setContent(sourceHtml || "", { emitUpdate: false })
-      onChange(sourceHtml || "")
-    }
-    setMode(next)
-  }
-
   const switchModeAny = (next: "visual" | "source" | "preview") => {
     if (next === mode) return
     if (next === "source") {
-      setSourceHtml(prettyFormatHtml(editor.getHTML()))
-    } else if (next === "visual") {
-      editor.commands.setContent(sourceHtml || "", { emitUpdate: false })
-      onChange(sourceHtml || "")
+      const raw = editor.getHTML() || content || ""
+      const formatted = prettyFormatHtml(raw) || raw
+      setSourceSeed(formatted)
+      setSourceHtml(formatted)
+      setIgnoreSourceInitChange(true)
+    } else if (mode === "source") {
+      const preserved = sourceHtml.trim().length > 0 ? sourceHtml : sourceSeed
+      const resolvedHtml = preserved.trim().length > 0 ? preserved : editor.getHTML()
+      editor.commands.setContent(resolvedHtml || "", { emitUpdate: false })
+      onChange(resolvedHtml || "")
+      setIgnoreSourceInitChange(false)
     }
     setMode(next)
   }
@@ -275,22 +291,31 @@ export function RichTextEditor({ content, onChange }: RichTextEditorProps) {
 
   const insertAccordion = () => {
     const groupId = `cms-accordion-${Date.now()}`
+    const countRaw = window.prompt("How many accordion items?", "1")?.trim() || "1"
+    const count = Math.min(Math.max(Number.parseInt(countRaw || "1", 10) || 1, 1), 10)
+    let html = ""
+
+    for (let i = 0; i < count; i += 1) {
+      const idx = i + 1
+      const title = window.prompt(`Accordion title ${idx}`, `Accordion title ${idx}`)?.trim() || `Accordion title ${idx}`
+      const body = window.prompt(`Accordion content ${idx}`, "Accordion content goes here.")?.trim() || "Accordion content goes here."
+      html += `<details data-cms-accordion="true" name="${groupId}" class="rounded-md border border-border p-3"><summary data-cms-accordion-summary="true" class="cursor-pointer font-semibold">${title}</summary><p class="mt-2 text-muted-foreground">${body}</p></details>`
+    }
+
     editor
       .chain()
       .focus()
-      .insertContent(
-        `<details data-cms-accordion="true" name="${groupId}" class="rounded-md border border-border p-3"><summary data-cms-accordion-summary="true" class="cursor-pointer font-semibold">Accordion title 1</summary><p class="mt-2 text-muted-foreground">Accordion content goes here.</p></details><details data-cms-accordion="true" name="${groupId}" class="rounded-md border border-border p-3"><summary data-cms-accordion-summary="true" class="cursor-pointer font-semibold">Accordion title 2</summary><p class="mt-2 text-muted-foreground">Accordion content goes here.</p></details><details data-cms-accordion="true" name="${groupId}" class="rounded-md border border-border p-3"><summary data-cms-accordion-summary="true" class="cursor-pointer font-semibold">Accordion title 3</summary><p class="mt-2 text-muted-foreground">Accordion content goes here.</p></details><p></p>`,
-      )
+      .insertContent(`${html}<p></p>`)
       .run()
   }
 
   const insertCard = () => {
+    const title = window.prompt("Card title", "Card title")?.trim() || "Card title"
+    const body = window.prompt("Card description", "Card description text.")?.trim() || "Card description text."
     editor
       .chain()
       .focus()
-      .insertContent(
-        `<div class="rounded-xl border border-border bg-card p-5"><h3>Card title</h3><p>Card description text.</p></div><p></p>`,
-      )
+      .insertContent(`<article data-cms-card="true"><h3>${title}</h3><p>${body}</p></article><p></p>`)
       .run()
   }
 
@@ -312,40 +337,35 @@ export function RichTextEditor({ content, onChange }: RichTextEditorProps) {
     const source = (raw || "").trim()
     if (!source) return ""
     try {
-      const parser = new DOMParser()
-      const doc = parser.parseFromString(source, "text/html")
-      const root = doc.body
-      const isInlineOnly = (el: Element) =>
-        ["a", "span", "strong", "em", "code", "small", "mark"].includes(el.tagName.toLowerCase())
+      const text = source
+        .replace(/>\s*</g, ">\n<")
+        .replace(/\n{2,}/g, "\n")
+        .trim()
+      const lines = text.split("\n")
+      let indentLevel = 0
+      const formatted: string[] = []
+      const selfClosing = /<(area|base|br|col|embed|hr|img|input|link|meta|param|source|track|wbr)\b/i
 
-      const formatNode = (node: ChildNode, depth: number): string => {
-        const indent = "  ".repeat(depth)
-        if (node.nodeType === Node.TEXT_NODE) {
-          const text = (node.textContent || "").replace(/\s+/g, " ").trim()
-          return text ? `${indent}${text}\n` : ""
+      for (const rawLine of lines) {
+        const line = rawLine.trim()
+        if (!line) continue
+
+        if (/^<\//.test(line)) {
+          indentLevel = Math.max(0, indentLevel - 1)
         }
-        if (node.nodeType !== Node.ELEMENT_NODE) return ""
-        const el = node as Element
-        const tag = el.tagName.toLowerCase()
-        const attrs = Array.from(el.attributes)
-          .map((a) => `${a.name}="${a.value}"`)
-          .join(" ")
-        const open = attrs ? `<${tag} ${attrs}>` : `<${tag}>`
-        const children = Array.from(el.childNodes)
-        if (!children.length) {
-          return `${indent}${open}</${tag}>\n`
+
+        formatted.push(`${"  ".repeat(indentLevel)}${line}`)
+
+        const opens = (line.match(/<[^/!][^>]*?>/g) || []).filter((tag) => !/\/>$/.test(tag) && !selfClosing.test(tag)).length
+        const closes = (line.match(/<\/[^>]+>/g) || []).length
+        if (!/^<\//.test(line)) {
+          indentLevel = Math.max(0, indentLevel + opens - closes)
+        } else {
+          indentLevel = Math.max(0, indentLevel + opens - closes + 1)
         }
-        if (isInlineOnly(el) && children.every((c) => c.nodeType === Node.TEXT_NODE)) {
-          const inlineText = children.map((c) => (c.textContent || "").replace(/\s+/g, " ").trim()).join(" ")
-          return `${indent}${open}${inlineText}</${tag}>\n`
-        }
-        return `${indent}${open}\n${children.map((c) => formatNode(c, depth + 1)).join("")}${indent}</${tag}>\n`
       }
 
-      return Array.from(root.childNodes)
-        .map((node) => formatNode(node, 0))
-        .join("")
-        .trim()
+      return formatted.join("\n").trim()
     } catch {
       return source
     }
@@ -560,16 +580,30 @@ export function RichTextEditor({ content, onChange }: RichTextEditorProps) {
       </>
       ) : mode === "source" ? (
         <div className="p-3">
-          <Textarea
-            value={sourceHtml}
-            onChange={(e) => {
-              const value = e.target.value
+          <CodeMirror
+            value={sourceHtml || sourceSeed || prettyFormatHtml(editor.getHTML())}
+            extensions={[htmlLang(), EditorView.lineWrapping]}
+            onChange={(value, viewUpdate) => {
+              if (ignoreSourceInitChange && !viewUpdate.docChanged) {
+                return
+              }
+              if (ignoreSourceInitChange && value.trim().length === 0 && sourceSeed.trim().length > 0) {
+                return
+              }
+              if (ignoreSourceInitChange) {
+                setIgnoreSourceInitChange(false)
+              }
               setSourceHtml(value)
-              onChange(value)
             }}
-            rows={18}
-            className="font-mono text-sm"
-            placeholder="<section><h2>Heading</h2><p>Write HTML here...</p></section>"
+            basicSetup={{
+              lineNumbers: true,
+              foldGutter: true,
+              highlightActiveLine: true,
+              highlightSelectionMatches: true,
+            }}
+            theme="light"
+            minHeight="420px"
+            className="w-full max-w-full rounded-md overflow-hidden border border-input bg-background text-foreground"
           />
         </div>
       ) : (
