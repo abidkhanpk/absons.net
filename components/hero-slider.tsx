@@ -18,8 +18,21 @@ export function HeroSlider({ slides, mode, staticIndex, autoplaySeconds, height 
   const safeSlides = useMemo(() => (slides && slides.length > 0 ? slides : []), [slides])
   const [active, setActive] = useState(0)
   const [compactMode, setCompactMode] = useState(false)
+  const [mobileParallaxFallback, setMobileParallaxFallback] = useState(false)
   const frameRef = useRef<HTMLDivElement | null>(null)
   const contentRef = useRef<HTMLDivElement | null>(null)
+
+  useEffect(() => {
+    const query = window.matchMedia("(max-width: 767px), (hover: none) and (pointer: coarse)")
+    const apply = () => setMobileParallaxFallback(query.matches)
+    apply()
+    if (typeof query.addEventListener === "function") {
+      query.addEventListener("change", apply)
+      return () => query.removeEventListener("change", apply)
+    }
+    query.addListener(apply)
+    return () => query.removeListener(apply)
+  }, [])
 
   useEffect(() => {
     if (mode !== "parallax" || safeSlides.length <= 1) return
@@ -50,7 +63,7 @@ export function HeroSlider({ slides, mode, staticIndex, autoplaySeconds, height 
           backgroundSize: "cover",
           backgroundRepeat: "no-repeat",
           backgroundPosition: "center",
-          backgroundAttachment: mode === "parallax" ? "fixed" : undefined,
+          backgroundAttachment: mode === "parallax" && !mobileParallaxFallback ? "fixed" : "scroll",
         }
       : currentSlide?.bgColor
         ? { backgroundColor: currentSlide.bgColor }

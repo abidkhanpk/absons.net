@@ -13,7 +13,6 @@ import TableHeader from "@tiptap/extension-table-header"
 import TextAlign from "@tiptap/extension-text-align"
 import CodeMirror from "@uiw/react-codemirror"
 import { html as htmlLang } from "@codemirror/lang-html"
-import { EditorView } from "@codemirror/view"
 import fontAwesomeIcons from "@/lib/font-awesome-free-icons.json"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -853,7 +852,7 @@ export function RichTextEditor({ content, onChange }: RichTextEditorProps) {
         <div className="p-3">
           <CodeMirror
             value={sourceHtml || sourceSeed || prettyFormatHtml(editor.getHTML())}
-            extensions={[htmlLang(), EditorView.lineWrapping]}
+            extensions={[htmlLang()]}
             onChange={(value, viewUpdate) => {
               if (ignoreSourceInitChange && !viewUpdate.docChanged) {
                 return
