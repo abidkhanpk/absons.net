@@ -75,6 +75,7 @@ export function HeroSlider({ slides, mode, staticIndex, autoplaySeconds, height 
     if (!frame || !content) return
 
     let raf = 0
+    let compactLockedForSlide = false
     const measure = () => {
       cancelAnimationFrame(raf)
       raf = window.requestAnimationFrame(() => {
@@ -83,8 +84,10 @@ export function HeroSlider({ slides, mode, staticIndex, autoplaySeconds, height 
         const overflow = contentH - frameH
         // Use a larger deadband to prevent compact/non-compact chattering on borderline slides.
         setCompactMode((prev) => {
-          if (!prev) return overflow > -12
-          return overflow > -72
+          if (mobileParallaxFallback && compactLockedForSlide) return true
+          const next = prev ? overflow > -72 : overflow > -12
+          if (mobileParallaxFallback && next) compactLockedForSlide = true
+          return next
         })
       })
     }
@@ -93,17 +96,13 @@ export function HeroSlider({ slides, mode, staticIndex, autoplaySeconds, height 
     const resizeObserver = new ResizeObserver(measure)
     resizeObserver.observe(frame)
     window.addEventListener("resize", measure)
-    window.visualViewport?.addEventListener("resize", measure)
-    window.visualViewport?.addEventListener("scroll", measure)
 
     return () => {
       cancelAnimationFrame(raf)
       resizeObserver.disconnect()
       window.removeEventListener("resize", measure)
-      window.visualViewport?.removeEventListener("resize", measure)
-      window.visualViewport?.removeEventListener("scroll", measure)
     }
-  }, [active, mode, staticIndex, layout, height, currentSlide?.title, currentSlide?.subtitle, currentSlide?.ctaText])
+  }, [active, mode, staticIndex, layout, height, currentSlide?.title, currentSlide?.subtitle, currentSlide?.ctaText, mobileParallaxFallback])
 
   return (
     <section className="relative border-b border-border">
