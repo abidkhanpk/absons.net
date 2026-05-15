@@ -64,8 +64,8 @@ export function HeroSlider({ slides, mode, staticIndex, autoplaySeconds, height 
     const measure = () => {
       const frameH = frame.clientHeight
       const contentH = content.scrollHeight
-      const isOverflowing = contentH > frameH - 12
-      setCompactMode(isOverflowing)
+      // Use hysteresis to avoid rapid compact/non-compact toggling near threshold.
+      setCompactMode((prev) => (prev ? contentH > frameH - 36 : contentH > frameH - 12))
     }
 
     measure()

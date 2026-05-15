@@ -6,6 +6,11 @@ import StarterKit from "@tiptap/starter-kit"
 import { Node, mergeAttributes } from "@tiptap/core"
 import Link from "@tiptap/extension-link"
 import Image from "@tiptap/extension-image"
+import { Table } from "@tiptap/extension-table"
+import TableRow from "@tiptap/extension-table-row"
+import TableCell from "@tiptap/extension-table-cell"
+import TableHeader from "@tiptap/extension-table-header"
+import TextAlign from "@tiptap/extension-text-align"
 import CodeMirror from "@uiw/react-codemirror"
 import { html as htmlLang } from "@codemirror/lang-html"
 import { EditorView } from "@codemirror/view"
@@ -34,6 +39,14 @@ import {
   SquareStack,
   Columns2,
   RectangleHorizontal,
+  AlignLeft,
+  AlignCenter,
+  AlignRight,
+  Table2,
+  Plus,
+  Minus,
+  Trash2,
+  SplitSquareHorizontal,
 } from "lucide-react"
 
 interface RichTextEditorProps {
@@ -145,6 +158,7 @@ export function RichTextEditor({ content, onChange }: RichTextEditorProps) {
   const [faIcons, setFaIcons] = useState<Array<{ name: string; className: string }>>(fontAwesomeIcons)
   const [sourceSeed, setSourceSeed] = useState("")
   const [ignoreSourceInitChange, setIgnoreSourceInitChange] = useState(false)
+  const [isCursorInTable, setIsCursorInTable] = useState(false)
   const editor = useEditor({
     extensions: [
       StarterKit.configure({
@@ -159,6 +173,39 @@ export function RichTextEditor({ content, onChange }: RichTextEditorProps) {
         HTMLAttributes: {
           class: "max-w-full h-auto rounded-lg",
         },
+      }),
+      Table.configure({
+        resizable: true,
+        HTMLAttributes: {
+          class: "cms-table",
+        },
+      }).extend({
+        addAttributes() {
+          return {
+            ...this.parent?.(),
+            class: {
+              default: "cms-table cms-table-border-solid",
+              parseHTML: (element) => element.getAttribute("class"),
+              renderHTML: (attributes) => (attributes.class ? { class: attributes.class } : {}),
+            },
+            borderStyle: {
+              default: "solid",
+              parseHTML: (element) => element.getAttribute("data-border-style") || "solid",
+              renderHTML: (attributes) => (attributes.borderStyle ? { "data-border-style": attributes.borderStyle } : {}),
+            },
+            style: {
+              default: null,
+              parseHTML: (element) => element.getAttribute("style"),
+              renderHTML: (attributes) => (attributes.style ? { style: attributes.style } : {}),
+            },
+          }
+        },
+      }),
+      TableRow,
+      TableHeader,
+      TableCell,
+      TextAlign.configure({
+        types: ["heading", "paragraph", "tableHeader", "tableCell"],
       }),
       AccordionSummary,
       AccordionDetails,
@@ -192,6 +239,84 @@ export function RichTextEditor({ content, onChange }: RichTextEditorProps) {
   useEffect(() => {
     if (faIcons.length === 0) setFaIcons(fontAwesomeIcons)
   }, [faIcons.length])
+
+  useEffect(() => {
+    if (!editor) return
+    const updateTableState = () => setIsCursorInTable(editor.isActive("table"))
+    updateTableState()
+    editor.on("selectionUpdate", updateTableState)
+    editor.on("transaction", updateTableState)
+    return () => {
+      editor.off("selectionUpdate", updateTableState)
+      editor.off("transaction", updateTableState)
+    }
+  }, [editor])
+
+  useEffect(() => {
+    if (!editor) return
+
+    const readCssVarFromStyle = (styleText: string | null | undefined, variableName: string, fallback: string) => {
+      if (!styleText) return fallback
+      const match = styleText.match(new RegExp(`${variableName}\\s*:\\s*([^;]+)`, "i"))
+      return match?.[1]?.trim() || fallback
+    }
+
+    const syncEditorTableBorders = () => {
+      editor.state.doc.descendants((node, pos) => {
+        if (node.type.name !== "table") return true
+
+        const nodeDom = editor.view.nodeDOM(pos)
+        const tableEl =
+          nodeDom instanceof HTMLTableElement
+            ? nodeDom
+            : nodeDom instanceof HTMLElement
+              ? nodeDom.querySelector<HTMLTableElement>("table")
+              : null
+
+        if (!tableEl) return true
+
+        const borderStyle = typeof node.attrs.borderStyle === "string" ? node.attrs.borderStyle : "solid"
+        const styleText = typeof node.attrs.style === "string" ? node.attrs.style : null
+
+        let resolvedStyle = "solid"
+        let resolvedWidth = "1px"
+        let resolvedColor = "var(--border)"
+
+        if (borderStyle === "none") {
+          resolvedStyle = "dotted"
+        } else if (borderStyle === "dashed") {
+          resolvedStyle = "dashed"
+        } else if (borderStyle === "double") {
+          resolvedStyle = "double"
+          resolvedWidth = "3px"
+        } else if (borderStyle === "custom") {
+          resolvedStyle = readCssVarFromStyle(styleText, "--cms-table-border-style", "solid")
+          resolvedWidth = readCssVarFromStyle(styleText, "--cms-table-border-width", "1px")
+          resolvedColor = readCssVarFromStyle(styleText, "--cms-table-border-color", "var(--border)")
+        }
+
+        tableEl.setAttribute("data-cms-editor-border", borderStyle)
+        tableEl.setAttribute("data-border-style", borderStyle)
+        tableEl.style.setProperty("--cms-editor-table-border-style", resolvedStyle)
+        tableEl.style.setProperty("--cms-editor-table-border-width", resolvedWidth)
+        tableEl.style.setProperty("--cms-editor-table-border-color", resolvedColor)
+        tableEl.style.setProperty("--cms-table-border-style", resolvedStyle)
+        tableEl.style.setProperty("--cms-table-border-width", resolvedWidth)
+        tableEl.style.setProperty("--cms-table-border-color", resolvedColor)
+
+        return true
+      })
+    }
+
+    syncEditorTableBorders()
+    editor.on("transaction", syncEditorTableBorders)
+    editor.on("selectionUpdate", syncEditorTableBorders)
+
+    return () => {
+      editor.off("transaction", syncEditorTableBorders)
+      editor.off("selectionUpdate", syncEditorTableBorders)
+    }
+  }, [editor, mode])
 
   if (!editor) {
     return null
@@ -331,6 +456,73 @@ export function RichTextEditor({ content, onChange }: RichTextEditorProps) {
 
   const insertSeparator = () => {
     editor.chain().focus().insertContent(`<hr class="my-8 border-border" />`).run()
+  }
+
+  const insertTable = () => {
+    const rows = Math.min(Math.max(Number.parseInt(window.prompt("Rows", "2") || "2", 10) || 2, 1), 10)
+    const cols = Math.min(Math.max(Number.parseInt(window.prompt("Columns", "3") || "3", 10) || 3, 1), 10)
+    editor.chain().focus().insertTable({ rows, cols, withHeaderRow: false }).run()
+    editor.chain().focus().updateAttributes("table", { class: "cms-table cms-table-border-solid", borderStyle: "solid" }).run()
+    editor.chain().focus().setTextAlign("center").run()
+  }
+
+  const setTableBorderPreset = (preset: "none" | "solid" | "dashed" | "double") => {
+    if (!editor.isActive("table")) return
+    editor
+      .chain()
+      .focus()
+      .command(({ state, tr, dispatch }) => {
+        const { $from } = state.selection
+        for (let depth = $from.depth; depth > 0; depth -= 1) {
+          const node = $from.node(depth)
+          if (node.type.name !== "table") continue
+          const pos = $from.before(depth)
+          const attrs = {
+            ...node.attrs,
+            class: `cms-table cms-table-border-${preset}`,
+            borderStyle: preset,
+            style: null,
+          }
+          tr.setNodeMarkup(pos, undefined, attrs)
+          if (dispatch) dispatch(tr)
+          return true
+        }
+        return false
+      })
+      .run()
+  }
+
+  const setTableBorderCustom = () => {
+    if (!editor.isActive("table")) return
+    const style = (window.prompt("Border style (solid / dashed / double)", "solid") || "solid").trim().toLowerCase()
+    const widthRaw = (window.prompt("Border width in px", "1") || "1").trim()
+    const color = (window.prompt("Border color (hex or css color)", "#d8dfe4") || "#d8dfe4").trim()
+    const width = Number.parseInt(widthRaw, 10)
+    const safeWidth = Number.isFinite(width) && width > 0 ? width : 1
+    const safeStyle = ["solid", "dashed", "double"].includes(style) ? style : "solid"
+
+    editor
+      .chain()
+      .focus()
+      .command(({ state, tr, dispatch }) => {
+        const { $from } = state.selection
+        for (let depth = $from.depth; depth > 0; depth -= 1) {
+          const node = $from.node(depth)
+          if (node.type.name !== "table") continue
+          const pos = $from.before(depth)
+          const attrs = {
+            ...node.attrs,
+            class: "cms-table cms-table-border-custom",
+            borderStyle: "custom",
+            style: `--cms-table-border-style:${safeStyle};--cms-table-border-width:${safeWidth}px;--cms-table-border-color:${color};`,
+          }
+          tr.setNodeMarkup(pos, undefined, attrs)
+          if (dispatch) dispatch(tr)
+          return true
+        }
+        return false
+      })
+      .run()
   }
 
   const prettyFormatHtml = (raw: string) => {
@@ -479,6 +671,30 @@ export function RichTextEditor({ content, onChange }: RichTextEditorProps) {
         <Button type="button" size="sm" variant={editor.isActive("link") ? "default" : "ghost"} onClick={setLink}>
           <LinkIcon className="h-4 w-4" />
         </Button>
+        <Button
+          type="button"
+          size="sm"
+          variant={editor.isActive({ textAlign: "left" }) ? "default" : "ghost"}
+          onClick={() => editor.chain().focus().setTextAlign("left").run()}
+        >
+          <AlignLeft className="h-4 w-4" />
+        </Button>
+        <Button
+          type="button"
+          size="sm"
+          variant={editor.isActive({ textAlign: "center" }) ? "default" : "ghost"}
+          onClick={() => editor.chain().focus().setTextAlign("center").run()}
+        >
+          <AlignCenter className="h-4 w-4" />
+        </Button>
+        <Button
+          type="button"
+          size="sm"
+          variant={editor.isActive({ textAlign: "right" }) ? "default" : "ghost"}
+          onClick={() => editor.chain().focus().setTextAlign("right").run()}
+        >
+          <AlignRight className="h-4 w-4" />
+        </Button>
         <Button type="button" size="sm" variant="ghost" onClick={addImage}>
           <ImageIcon className="h-4 w-4" />
         </Button>
@@ -527,7 +743,62 @@ export function RichTextEditor({ content, onChange }: RichTextEditorProps) {
           <SeparatorHorizontal className="h-4 w-4 mr-1" />
           Separator
         </Button>
+        <Button type="button" size="sm" variant="outline" onClick={insertTable}>
+          <Table2 className="h-4 w-4 mr-1" />
+          Table
+        </Button>
       </div>
+      {isCursorInTable && (
+        <div className="flex flex-wrap gap-2 p-2 border-b border-input bg-muted/20">
+          <Button type="button" size="sm" variant="outline" onClick={() => setTableBorderPreset("none")}>
+            No Border
+          </Button>
+          <Button type="button" size="sm" variant="outline" onClick={() => setTableBorderPreset("solid")}>
+            Solid Border
+          </Button>
+          <Button type="button" size="sm" variant="outline" onClick={() => setTableBorderPreset("dashed")}>
+            Dashed Border
+          </Button>
+          <Button type="button" size="sm" variant="outline" onClick={() => setTableBorderPreset("double")}>
+            Double Border
+          </Button>
+          <Button type="button" size="sm" variant="outline" onClick={setTableBorderCustom}>
+            Custom Border
+          </Button>
+          <Button type="button" size="sm" variant="outline" onClick={() => editor.chain().focus().addColumnBefore().run()}>
+            <Plus className="h-4 w-4 mr-1" />
+            Col Before
+          </Button>
+          <Button type="button" size="sm" variant="outline" onClick={() => editor.chain().focus().addColumnAfter().run()}>
+            <Plus className="h-4 w-4 mr-1" />
+            Col After
+          </Button>
+          <Button type="button" size="sm" variant="outline" onClick={() => editor.chain().focus().deleteColumn().run()}>
+            <Minus className="h-4 w-4 mr-1" />
+            Del Col
+          </Button>
+          <Button type="button" size="sm" variant="outline" onClick={() => editor.chain().focus().addRowBefore().run()}>
+            <Plus className="h-4 w-4 mr-1" />
+            Row Before
+          </Button>
+          <Button type="button" size="sm" variant="outline" onClick={() => editor.chain().focus().addRowAfter().run()}>
+            <Plus className="h-4 w-4 mr-1" />
+            Row After
+          </Button>
+          <Button type="button" size="sm" variant="outline" onClick={() => editor.chain().focus().deleteRow().run()}>
+            <Minus className="h-4 w-4 mr-1" />
+            Del Row
+          </Button>
+          <Button type="button" size="sm" variant="outline" onClick={() => editor.chain().focus().mergeOrSplit().run()}>
+            <SplitSquareHorizontal className="h-4 w-4 mr-1" />
+            Merge/Split
+          </Button>
+          <Button type="button" size="sm" variant="destructive" onClick={() => editor.chain().focus().deleteTable().run()}>
+            <Trash2 className="h-4 w-4 mr-1" />
+            Delete Table
+          </Button>
+        </div>
+      )}
       {showIconPicker && (
         <div className="p-3 border-b border-input bg-muted/20 space-y-3">
           <p className="text-sm font-medium">Step 3: Select Icon (optional)</p>

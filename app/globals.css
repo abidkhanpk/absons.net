@@ -324,6 +324,203 @@
   margin-bottom: 0.5rem;
 }
 
+.prose table.cms-table,
+.prose table.cms-table {
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: fixed;
+  margin-top: 1rem;
+  margin-bottom: 1rem;
+}
+
+.prose table.cms-table th,
+.prose table.cms-table td {
+  border: 1px solid var(--border);
+  padding: 0.65rem 0.75rem;
+  vertical-align: middle;
+  min-width: 96px;
+  height: 2.5rem;
+}
+
+.prose table.cms-table th {
+  background: var(--muted);
+  font-weight: 600;
+}
+
+.prose table.cms-table[data-border-style="none"] th,
+.prose table.cms-table[data-border-style="none"] td {
+  border: none;
+  background: transparent;
+}
+
+.prose table.cms-table[data-border-style="solid"] th,
+.prose table.cms-table[data-border-style="solid"] td {
+  border: 1px solid var(--border);
+}
+
+.prose table.cms-table[data-border-style="dashed"] th,
+.prose table.cms-table[data-border-style="dashed"] td {
+  border: 1px dashed var(--border);
+}
+
+.prose table.cms-table[data-border-style="double"] th,
+.prose table.cms-table[data-border-style="double"] td {
+  border: 3px double var(--border);
+}
+
+.prose table.cms-table[data-border-style="custom"] th,
+.prose table.cms-table[data-border-style="custom"] td {
+  border-style: var(--cms-table-border-style, solid);
+  border-width: var(--cms-table-border-width, 1px);
+  border-color: var(--cms-table-border-color, var(--border));
+}
+
+/* Editor-only guides when content border is intentionally none */
+.ProseMirror table.cms-table[data-border-style="none"] th,
+.ProseMirror table.cms-table[data-border-style="none"] td {
+  border: 1px dashed var(--border) !important;
+  background: transparent !important;
+}
+.ProseMirror table[data-border-style="none"] th,
+.ProseMirror table[data-border-style="none"] td {
+  border: 1px dashed var(--border) !important;
+  background: transparent !important;
+}
+.tiptap table.cms-table[data-border-style="none"] th,
+.tiptap table.cms-table[data-border-style="none"] td,
+.tiptap table[data-border-style="none"] th,
+.tiptap table[data-border-style="none"] td {
+  border: 1px dashed var(--border) !important;
+  background: transparent !important;
+}
+
+/* Editor WYSIWYG base table styles */
+.ProseMirror table,
+.tiptap table {
+  width: 100% !important;
+  border-collapse: collapse;
+  table-layout: fixed !important;
+  margin-top: 1rem;
+  margin-bottom: 1rem;
+}
+
+.ProseMirror table th,
+.ProseMirror table td,
+.tiptap table th,
+.tiptap table td {
+  border: 1px solid var(--border);
+  padding: 0.65rem 0.75rem;
+  vertical-align: middle;
+  min-width: 80px;
+  height: 2.5rem;
+}
+
+.ProseMirror table,
+.tiptap table {
+  --cms-editor-table-border-style: solid;
+  --cms-editor-table-border-width: 1px;
+  --cms-editor-table-border-color: var(--border);
+}
+
+.ProseMirror table th,
+.ProseMirror table td,
+.tiptap table th,
+.tiptap table td {
+  border-style: var(--cms-editor-table-border-style) !important;
+  border-width: var(--cms-editor-table-border-width) !important;
+  border-color: var(--cms-editor-table-border-color) !important;
+}
+
+.ProseMirror table[data-cms-editor-border="none"] th,
+.ProseMirror table[data-cms-editor-border="none"] td,
+.tiptap table[data-cms-editor-border="none"] th,
+.tiptap table[data-cms-editor-border="none"] td {
+  border-style: dotted !important;
+  border-width: 1px !important;
+  border-color: var(--border) !important;
+  background: transparent !important;
+}
+
+.ProseMirror table th,
+.tiptap table th {
+  background: var(--muted);
+  font-weight: 600;
+}
+
+/* Keep TipTap colgroup from collapsing cells in editor */
+.ProseMirror table colgroup col,
+.tiptap table colgroup col {
+  min-width: 80px !important;
+  width: auto !important;
+}
+
+/* Editor: reflect selected border style immediately while editing */
+.ProseMirror table.cms-table[data-border-style="solid"] th,
+.ProseMirror table.cms-table[data-border-style="solid"] td {
+  border: 1px solid var(--border) !important;
+}
+.ProseMirror table[data-border-style="solid"] th,
+.ProseMirror table[data-border-style="solid"] td {
+  border: 1px solid var(--border) !important;
+}
+.tiptap table.cms-table[data-border-style="solid"] th,
+.tiptap table.cms-table[data-border-style="solid"] td,
+.tiptap table[data-border-style="solid"] th,
+.tiptap table[data-border-style="solid"] td {
+  border: 1px solid var(--border) !important;
+}
+
+.ProseMirror table.cms-table[data-border-style="dashed"] th,
+.ProseMirror table.cms-table[data-border-style="dashed"] td {
+  border: 1px dashed var(--border) !important;
+}
+.ProseMirror table[data-border-style="dashed"] th,
+.ProseMirror table[data-border-style="dashed"] td {
+  border: 1px dashed var(--border) !important;
+}
+.tiptap table.cms-table[data-border-style="dashed"] th,
+.tiptap table.cms-table[data-border-style="dashed"] td,
+.tiptap table[data-border-style="dashed"] th,
+.tiptap table[data-border-style="dashed"] td {
+  border: 1px dashed var(--border) !important;
+}
+
+.ProseMirror table.cms-table[data-border-style="double"] th,
+.ProseMirror table.cms-table[data-border-style="double"] td {
+  border: 3px double var(--border) !important;
+}
+.ProseMirror table[data-border-style="double"] th,
+.ProseMirror table[data-border-style="double"] td {
+  border: 3px double var(--border) !important;
+}
+.tiptap table.cms-table[data-border-style="double"] th,
+.tiptap table.cms-table[data-border-style="double"] td,
+.tiptap table[data-border-style="double"] th,
+.tiptap table[data-border-style="double"] td {
+  border: 3px double var(--border) !important;
+}
+
+.ProseMirror table.cms-table[data-border-style="custom"] th,
+.ProseMirror table.cms-table[data-border-style="custom"] td {
+  border-style: var(--cms-table-border-style, solid) !important;
+  border-width: var(--cms-table-border-width, 1px) !important;
+  border-color: var(--cms-table-border-color, var(--border)) !important;
+}
+.ProseMirror table[data-border-style="custom"] th,
+.ProseMirror table[data-border-style="custom"] td {
+  border-style: var(--cms-table-border-style, solid) !important;
+  border-width: var(--cms-table-border-width, 1px) !important;
+  border-color: var(--cms-table-border-color, var(--border)) !important;
+}
+.tiptap table.cms-table[data-border-style="custom"] th,
+.tiptap table.cms-table[data-border-style="custom"] td,
+.tiptap table[data-border-style="custom"] th,
+.tiptap table[data-border-style="custom"] td {
+  border-style: var(--cms-table-border-style, solid) !important;
+  border-width: var(--cms-table-border-width, 1px) !important;
+  border-color: var(--cms-table-border-color, var(--border)) !important;
+}
+
 .prose strong {
   font-weight: 600;
 }
