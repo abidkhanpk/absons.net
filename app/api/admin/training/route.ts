@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server"
 import { getSession } from "@/lib/auth"
 import { withRls, prisma } from "@/lib/prisma"
+import { normalizeAssetDbValue } from "@/lib/asset-key"
 
 async function requireAdmin() {
   const session = await getSession()
@@ -20,6 +21,7 @@ export async function POST(request: Request) {
     const body = await request.json()
     const { title, description, duration, level, provider, featured_image, link_url, link_label, is_active, display_order } =
       body
+    const normalizedFeaturedImage = normalizeAssetDbValue(featured_image)
     if (!title || !description) {
       return NextResponse.json({ error: "Missing required fields" }, { status: 400 })
     }
@@ -32,7 +34,7 @@ export async function POST(request: Request) {
           duration,
           level,
           provider,
-          featuredImage: featured_image,
+          featuredImage: typeof normalizedFeaturedImage === "undefined" ? undefined : normalizedFeaturedImage,
           linkUrl: link_url || null,
           linkLabel: link_label || null,
           isActive: is_active ?? true,
@@ -56,6 +58,7 @@ export async function PUT(request: Request) {
     const body = await request.json()
     const { id, title, description, duration, level, provider, featured_image, link_url, link_label, is_active, display_order } =
       body
+    const normalizedFeaturedImage = normalizeAssetDbValue(featured_image)
     if (!id) return NextResponse.json({ error: "Course id is required" }, { status: 400 })
 
     await withRls(session!.userId, (tx) =>
@@ -67,7 +70,7 @@ export async function PUT(request: Request) {
           duration,
           level,
           provider,
-          featuredImage: featured_image,
+          featuredImage: typeof normalizedFeaturedImage === "undefined" ? undefined : normalizedFeaturedImage,
           linkUrl: link_url || null,
           linkLabel: link_label || null,
           isActive: is_active ?? true,

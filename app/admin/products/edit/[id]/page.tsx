@@ -2,6 +2,7 @@ import { ProductForm } from "@/components/admin/product-form"
 import { notFound, redirect } from "next/navigation"
 import { getSession } from "@/lib/auth"
 import { withRls } from "@/lib/prisma"
+import { findUniqueProductCompat } from "@/lib/product-compat"
 
 export default async function EditProductPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
@@ -16,7 +17,7 @@ export default async function EditProductPage({ params }: { params: Promise<{ id
     redirect("/admin/blog")
   }
 
-  const product = await withRls(session.userId, (tx) => tx.product.findUnique({ where: { id } }))
+  const product = await withRls(session.userId, (tx) => findUniqueProductCompat(tx, id))
   if (!product) notFound()
 
   return (

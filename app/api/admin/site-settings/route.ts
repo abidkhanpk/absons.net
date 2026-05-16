@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 import { getSession } from "@/lib/auth"
+import { normalizeAssetDbValue } from "@/lib/asset-key"
 
 function normalizeWhyChooseItems(raw: unknown) {
   if (!Array.isArray(raw)) return undefined
@@ -61,17 +62,39 @@ function normalizeHeroSlides(raw: unknown): { serialized?: string; wasExplicitly
 
   const normalized = parsed
     .filter((slide): slide is Record<string, unknown> => Boolean(slide) && typeof slide === "object")
-    .map((slide) => ({
-      title: typeof slide.title === "string" ? slide.title : "",
-      subtitle: typeof slide.subtitle === "string" ? slide.subtitle : "",
-      ctaText: typeof slide.ctaText === "string" ? slide.ctaText : "",
-      ctaHref: typeof slide.ctaHref === "string" ? slide.ctaHref : "",
-      image: typeof slide.image === "string" ? slide.image : "",
-      layout: typeof slide.layout === "string" ? slide.layout : "full",
-      bgColor: typeof slide.bgColor === "string" ? slide.bgColor : "",
-    }))
+    .map((slide) => {
+      const rawImage = typeof slide.image === "string" ? slide.image : ""
+      const image = normalizeAssetDbValue(rawImage)
+      return {
+        title: typeof slide.title === "string" ? slide.title : "",
+        subtitle: typeof slide.subtitle === "string" ? slide.subtitle : "",
+        ctaText: typeof slide.ctaText === "string" ? slide.ctaText : "",
+        ctaHref: typeof slide.ctaHref === "string" ? slide.ctaHref : "",
+        image: typeof image === "string" ? image : "",
+        layout: typeof slide.layout === "string" ? slide.layout : "full",
+        bgColor: typeof slide.bgColor === "string" ? slide.bgColor : "",
+      }
+    })
 
   return normalized.length > 0 ? { serialized: JSON.stringify(normalized), wasExplicitlyEmpty: false } : { serialized: undefined, wasExplicitlyEmpty: true }
+}
+
+function normalizeStaticSeo(raw: unknown) {
+  if (!raw || typeof raw !== "object" || Array.isArray(raw)) return undefined
+  const allowedKeys = ["home", "about", "services", "training", "contact", "blog"] as const
+  const normalized: Record<string, unknown> = {}
+  for (const key of allowedKeys) {
+    const entry = (raw as Record<string, unknown>)[key]
+    if (!entry || typeof entry !== "object" || Array.isArray(entry)) continue
+    const ogImage = normalizeAssetDbValue(
+      typeof (entry as Record<string, unknown>).ogImage === "string" ? ((entry as Record<string, unknown>).ogImage as string) : "",
+    )
+    normalized[key] = {
+      ...entry,
+      ogImage: typeof ogImage === "string" ? ogImage : "",
+    }
+  }
+  return Object.keys(normalized).length > 0 ? normalized : undefined
 }
 
 export async function PUT(request: Request) {
@@ -140,6 +163,10 @@ export async function PUT(request: Request) {
     }
 
     const normalizedHeroSlides = normalizeHeroSlides(heroSlides)
+    const normalizedLogoUrl = normalizeAssetDbValue(logoUrl)
+    const normalizedFaviconUrl = normalizeAssetDbValue(faviconUrl)
+    const normalizedSeoDefaultOgImage = normalizeAssetDbValue(seoDefaultOgImage)
+    const normalizedStaticSeo = normalizeStaticSeo(staticSeo)
 
     const normalizedBusinessHoursSchedule =
       typeof businessHoursSchedule === "string"
@@ -152,8 +179,8 @@ export async function PUT(request: Request) {
       where: { id: "site" },
       data: {
         siteTitle,
-        logoUrl,
-        faviconUrl,
+        logoUrl: typeof normalizedLogoUrl === "undefined" ? undefined : normalizedLogoUrl,
+        faviconUrl: typeof normalizedFaviconUrl === "undefined" ? undefined : normalizedFaviconUrl,
         contactEmail,
         contactPhone,
         contactAddress,
@@ -205,9 +232,9 @@ export async function PUT(request: Request) {
         seoDefaultTitle,
         seoDefaultDescription,
         seoDefaultKeywords,
-        seoDefaultOgImage,
+        seoDefaultOgImage: typeof normalizedSeoDefaultOgImage === "undefined" ? undefined : normalizedSeoDefaultOgImage,
         seoDefaultCanonicalBase,
-        staticSeo: staticSeo ? staticSeo : undefined,
+        staticSeo: normalizedStaticSeo ?? (staticSeo ? staticSeo : undefined),
       },
     })
 

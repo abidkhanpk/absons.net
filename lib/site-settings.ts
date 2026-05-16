@@ -126,7 +126,7 @@ export type StaticSeoSettings = Record<
 const defaultSettings: SiteSettings = {
   siteTitle: "Site",
   logoUrl: "/uploads/default-logo.png",
-  faviconUrl: "absons/uploads/favicons/default-icon-light-32x32.png",
+  faviconUrl: "/uploads/default-icon-light-32x32.png",
   navAlignment: "left",
   navLoginText: "Login",
   navCtaText: "Get Started",
@@ -435,7 +435,7 @@ function parseHeroSlides(raw: string | null | undefined): HeroSlide[] {
         subtitle: slide?.subtitle ?? "",
         ctaText: slide?.ctaText ?? "",
         ctaHref: slide?.ctaHref ?? "",
-        image: slide?.image ?? "",
+        image: resolveAssetUrl(typeof slide?.image === "string" ? slide.image : "") ?? "",
         layout: slide?.layout ?? "full",
         bgColor: slide?.bgColor ?? "",
       }))

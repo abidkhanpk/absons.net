@@ -1,13 +1,13 @@
-function hasProtocol(value: string) {
-  return /^[a-zA-Z][a-zA-Z0-9+.-]*:\/\//.test(value)
-}
+import { isExternalAssetReference, normalizeAssetDbValue } from "./asset-key"
 
 export function resolveAssetUrl(value: string | null | undefined) {
   if (!value) return value
-  const trimmed = value.trim()
+  const normalized = normalizeAssetDbValue(value)
+  if (!normalized) return normalized
+  const trimmed = normalized.trim()
   if (!trimmed) return trimmed
 
-  if (hasProtocol(trimmed) || trimmed.startsWith("data:") || trimmed.startsWith("blob:")) {
+  if (isExternalAssetReference(trimmed)) {
     return trimmed
   }
 

@@ -6,6 +6,7 @@ import { Plus, Edit } from "lucide-react"
 import { DeleteDepartmentButton } from "@/components/admin/delete-department-button"
 import { getSession } from "@/lib/auth"
 import { withRls } from "@/lib/prisma"
+import { findManyDepartmentsCompat } from "@/lib/department-compat"
 import { redirect } from "next/navigation"
 
 export default async function DepartmentsManagementPage() {
@@ -20,7 +21,7 @@ export default async function DepartmentsManagementPage() {
   }
 
   const departments = await withRls(session.userId, (tx) =>
-    tx.department.findMany({ orderBy: { displayOrder: "asc" } }),
+    findManyDepartmentsCompat(tx, { orderBy: { displayOrder: "asc" } }),
   )
 
   return (

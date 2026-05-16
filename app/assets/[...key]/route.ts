@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server"
+import { ensureAssetStoragePrefix, getAssetStoragePrefix, stripAssetStoragePrefix } from "@/lib/asset-key"
 
 function deriveBlobBaseFromToken(token: string | undefined) {
   if (!token) return ""
@@ -18,26 +19,18 @@ function normalizeSegment(value: string) {
 }
 
 function buildAssetRedirectUrl(base: string, key: string) {
-  const prefix = normalizeSegment(process.env.ASSET_STORAGE_PREFIX || "")
-  let finalKey = normalizeSegment(key)
+  const prefix = getAssetStoragePrefix()
+  const storageKey = ensureAssetStoragePrefix(key, prefix)
   const normalizedBase = base.replace(/\/+$/g, "")
-
-  // If key already includes the storage prefix and base URL ends with the same prefix path,
-  // avoid duplicating it in the final URL.
-  if (prefix) {
-    const basePath = (() => {
-      try {
-        return normalizeSegment(new URL(normalizedBase).pathname)
-      } catch {
-        return ""
-      }
-    })()
-    const keyWithSlash = `${prefix}/`
-    if (basePath.endsWith(prefix) && (finalKey === prefix || finalKey.startsWith(keyWithSlash))) {
-      finalKey = finalKey.slice(prefix.length).replace(/^\/+/, "")
+  const basePath = (() => {
+    try {
+      return normalizeSegment(new URL(normalizedBase).pathname)
+    } catch {
+      return ""
     }
-  }
-
+  })()
+  const finalKey =
+    prefix && basePath.endsWith(prefix) ? stripAssetStoragePrefix(storageKey, prefix) : storageKey
   return `${normalizedBase}/${finalKey}`
 }
 
@@ -57,5 +50,6 @@ export async function GET(
     return NextResponse.redirect(buildAssetRedirectUrl(base, cleanKey))
   }
 
-  return NextResponse.redirect(`/${cleanKey}`)
+  const storageKey = ensureAssetStoragePrefix(cleanKey, getAssetStoragePrefix())
+  return NextResponse.redirect(`/${storageKey}`)
 }

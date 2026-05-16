@@ -15,6 +15,8 @@ import { buildSeoMetadata } from "@/lib/seo"
 import TestimonialSubmittedBanner from "@/components/testimonial-submitted-banner"
 import { contentIconMap } from "@/lib/content-icons"
 import { resolveAssetUrl } from "@/lib/asset-url"
+import { findManyProductsCompat } from "@/lib/product-compat"
+import { findManyDepartmentsCompat } from "@/lib/department-compat"
 
 // Ensure the homepage is served dynamically so it can gracefully handle missing data in production
 export const dynamic = "force-dynamic"
@@ -67,18 +69,16 @@ export default async function HomePage() {
       orderBy: { displayOrder: "asc" },
       take: 3,
     })
-  const products = await prisma.product
-    .findMany({
-      where: { isActive: true },
-      orderBy: { displayOrder: "asc" },
-      take: 6,
-    })
-  const departments = await prisma.department
-    .findMany({
-      where: { isActive: true },
-      orderBy: { displayOrder: "asc" },
-      take: 6,
-    })
+  const products = await findManyProductsCompat(prisma, {
+    where: { isActive: true },
+    orderBy: { displayOrder: "asc" },
+    take: 6,
+  })
+  const departments = await findManyDepartmentsCompat(prisma, {
+    where: { isActive: true },
+    orderBy: { displayOrder: "asc" },
+    take: 6,
+  })
   const pricingPlans = await prisma.pricingPlan
     .findMany({
       where: { isActive: true },

@@ -1,6 +1,7 @@
 import { promises as fs } from "fs"
 import path from "path"
 import { put } from "@vercel/blob"
+import { getAssetStoragePrefix, stripAssetStoragePrefix } from "./asset-key"
 
 type SaveAssetParams = {
   buffer: Buffer
@@ -11,7 +12,7 @@ type SaveAssetParams = {
 
 function getStorageConfig() {
   const storageType = (process.env.ASSET_STORAGE_TYPE || "auto").toLowerCase()
-  const keyPrefix = (process.env.ASSET_STORAGE_PREFIX || "absons/uploads").replace(/^\/+|\/+$/g, "")
+  const keyPrefix = getAssetStoragePrefix()
   const publicBaseUrl = (process.env.ASSET_PUBLIC_BASE_URL || "").replace(/\/+$/g, "")
   return { storageType, keyPrefix, publicBaseUrl }
 }
@@ -36,15 +37,16 @@ function toPublicUrl(key: string, publicBaseUrl: string, fallbackAbsoluteUrl?: s
   return `/${key}`
 }
 
-export function buildAssetKey(assetType: string, fileName: string, keyPrefix = "absons/uploads") {
+export function buildAssetKey(assetType: string, fileName: string, keyPrefix = getAssetStoragePrefix()) {
   const safeType = sanitizeSegment(assetType, "images")
   const safeName = sanitizeFileName(fileName)
-  return `${keyPrefix}/${safeType}/${Date.now()}-${safeName}`
+  return keyPrefix ? `${keyPrefix}/${safeType}/${Date.now()}-${safeName}` : `${safeType}/${Date.now()}-${safeName}`
 }
 
 export async function saveAsset({ buffer, contentType, assetType, fileName }: SaveAssetParams) {
   const { storageType, keyPrefix, publicBaseUrl } = getStorageConfig()
-  const key = buildAssetKey(assetType, fileName, keyPrefix)
+  const storageKey = buildAssetKey(assetType, fileName, keyPrefix)
+  const dbKey = stripAssetStoragePrefix(storageKey, keyPrefix)
   const blobToken = process.env.BLOB_READ_WRITE_TOKEN
   const useBlob = storageType === "vercel_blob" || (storageType === "auto" && Boolean(blobToken))
 
@@ -55,18 +57,18 @@ export async function saveAsset({ buffer, contentType, assetType, fileName }: Sa
     if (!publicBaseUrl) {
       throw new Error("ASSET_PUBLIC_BASE_URL is required when using key-based storage with vercel_blob")
     }
-    const blob = await put(key, buffer, {
+    const blob = await put(storageKey, buffer, {
       access: "public",
       token: blobToken,
       contentType,
       addRandomSuffix: false,
       allowOverwrite: true,
     })
-    return { key, url: toPublicUrl(key, publicBaseUrl, blob.url), provider: "vercel_blob" as const }
+    return { key: dbKey, url: toPublicUrl(storageKey, publicBaseUrl, blob.url), provider: "vercel_blob" as const }
   }
 
-  const localPath = path.join(process.cwd(), "public", ...key.split("/"))
+  const localPath = path.join(process.cwd(), "public", ...storageKey.split("/"))
   await fs.mkdir(path.dirname(localPath), { recursive: true })
   await fs.writeFile(localPath, buffer)
-  return { key, url: toPublicUrl(key, publicBaseUrl), provider: "local" as const }
+  return { key: dbKey, url: toPublicUrl(storageKey, publicBaseUrl), provider: "local" as const }
 }

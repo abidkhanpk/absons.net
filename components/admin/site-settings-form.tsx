@@ -634,6 +634,7 @@ export function SiteSettingsForm({ initial, pages }: { initial: SiteSettings; pa
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState(false)
   const [uploading, setUploading] = useState(false)
+  const [uploadingHeroIndex, setUploadingHeroIndex] = useState<number | null>(null)
   const [activeTab, setActiveTab] = useState<"general" | "home-sections" | "navigation" | "hero" | "contact" | "seo">("general")
   const [selectedHeaderPage, setSelectedHeaderPage] = useState("")
   const [selectedFooterPage, setSelectedFooterPage] = useState("")
@@ -964,6 +965,40 @@ export function SiteSettingsForm({ initial, pages }: { initial: SiteSettings; pa
       setError(err instanceof Error ? err.message : "Upload failed")
     } finally {
       setUploading(false)
+    }
+  }
+
+  const handleHeroSlideUpload = async (file: File | null, index: number) => {
+    if (!file) return
+    setUploading(true)
+    setUploadingHeroIndex(index)
+    setError(null)
+    setSuccess(false)
+    try {
+      const formDataUpload = new FormData()
+      formDataUpload.append("file", file)
+      formDataUpload.append("kind", "hero")
+      const res = await fetch("/api/admin/site-settings/upload", {
+        method: "POST",
+        body: formDataUpload,
+      })
+      const data = await res.json().catch(() => ({}))
+      if (!res.ok || (!data?.key && !data?.url)) {
+        throw new Error(data.error || "Upload failed")
+      }
+      const value = data.key || data.url
+      setFormData((prev) => {
+        const copy = [...prev.heroSlides]
+        if (!copy[index]) return prev
+        copy[index] = { ...copy[index], image: value }
+        return { ...prev, heroSlides: copy }
+      })
+      setSuccess(true)
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Upload failed")
+    } finally {
+      setUploading(false)
+      setUploadingHeroIndex(null)
     }
   }
 
@@ -2181,7 +2216,26 @@ export function SiteSettingsForm({ initial, pages }: { initial: SiteSettings; pa
                       }
                       placeholder="https://..."
                     />
-                    <p className="text-xs text-muted-foreground">Use a large landscape image for best results.</p>
+                    <div className="flex items-center gap-3">
+                      <Label
+                        htmlFor={`heroSlideUpload-${index}`}
+                        className="inline-flex items-center gap-2 text-sm text-primary cursor-pointer hover:underline"
+                      >
+                        <UploadCloud className="h-4 w-4" />
+                        Upload hero image
+                      </Label>
+                      <input
+                        id={`heroSlideUpload-${index}`}
+                        type="file"
+                        accept="image/*"
+                        className="hidden"
+                        onChange={(e) => handleHeroSlideUpload(e.target.files?.[0] || null, index)}
+                      />
+                      {uploading && uploadingHeroIndex === index ? (
+                        <span className="text-xs text-muted-foreground">Uploading...</span>
+                      ) : null}
+                    </div>
+                    <p className="text-xs text-muted-foreground">Upload stores asset key; URL is resolved at render time.</p>
                   </div>
                   <div className="grid md:grid-cols-2 gap-3">
                     <div className="space-y-2">

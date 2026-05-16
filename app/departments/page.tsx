@@ -9,6 +9,7 @@ import { getSiteSettings } from "@/lib/site-settings"
 import { buildSeoMetadata } from "@/lib/seo"
 import { contentIconMap } from "@/lib/content-icons"
 import { resolveAssetUrl } from "@/lib/asset-url"
+import { findManyDepartmentsCompat } from "@/lib/department-compat"
 
 export async function generateMetadata() {
   const settings = await getSiteSettings()
@@ -23,7 +24,7 @@ export default async function DepartmentsPage() {
     typeof link === "string" && link.trim() ? link.trim() : fallback
 
   const [departments, siteSettings] = await Promise.all([
-    prisma.department.findMany({
+    findManyDepartmentsCompat(prisma, {
       where: { isActive: true },
       orderBy: { displayOrder: "asc" },
     }),

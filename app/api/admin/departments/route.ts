@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server"
 import { getSession } from "@/lib/auth"
 import { withRls, prisma } from "@/lib/prisma"
+import { normalizeAssetDbValue } from "@/lib/asset-key"
 
 async function requireAdmin() {
   const session = await getSession()
@@ -19,6 +20,7 @@ export async function POST(request: Request) {
   try {
     const body = await request.json()
     const { title, description, icon, image_url, link_url, link_label, is_featured, is_active, display_order } = body
+    const normalizedImageUrl = normalizeAssetDbValue(image_url)
 
     if (!title || !description) {
       return NextResponse.json({ error: "Missing required fields" }, { status: 400 })
@@ -30,7 +32,7 @@ export async function POST(request: Request) {
           title,
           description,
           icon,
-          imageUrl: image_url || null,
+          imageUrl: typeof normalizedImageUrl === "string" && normalizedImageUrl ? normalizedImageUrl : null,
           linkUrl: link_url || null,
           linkLabel: link_label || null,
           isFeatured: is_featured ?? false,
@@ -53,6 +55,7 @@ export async function PUT(request: Request) {
   try {
     const body = await request.json()
     const { id, title, description, icon, image_url, link_url, link_label, is_featured, is_active, display_order } = body
+    const normalizedImageUrl = normalizeAssetDbValue(image_url)
 
     if (!id) return NextResponse.json({ error: "Department id is required" }, { status: 400 })
 
@@ -63,7 +66,7 @@ export async function PUT(request: Request) {
           title,
           description,
           icon,
-          imageUrl: image_url || null,
+          imageUrl: typeof normalizedImageUrl === "string" && normalizedImageUrl ? normalizedImageUrl : null,
           linkUrl: link_url || null,
           linkLabel: link_label || null,
           isFeatured: is_featured ?? false,

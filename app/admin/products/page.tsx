@@ -6,6 +6,7 @@ import { Plus, Edit } from "lucide-react"
 import { DeleteProductButton } from "@/components/admin/delete-product-button"
 import { getSession } from "@/lib/auth"
 import { withRls } from "@/lib/prisma"
+import { findManyProductsCompat } from "@/lib/product-compat"
 import { redirect } from "next/navigation"
 
 export default async function ProductsManagementPage() {
@@ -20,7 +21,7 @@ export default async function ProductsManagementPage() {
   }
 
   const products = await withRls(session.userId, (tx) =>
-    tx.product.findMany({ orderBy: { displayOrder: "asc" } }),
+    findManyProductsCompat(tx, { orderBy: { displayOrder: "asc" } }),
   )
 
   return (

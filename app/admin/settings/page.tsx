@@ -53,7 +53,7 @@ export default async function SettingsPage() {
             initial={{
               site_title: settings?.siteTitle || resolved.siteTitle || "Site",
               logo_url: settings?.logoUrl || null,
-              favicon_url: settings?.faviconUrl || "absons/uploads/favicons/default-icon-light-32x32.png",
+              favicon_url: settings?.faviconUrl || "/uploads/default-icon-light-32x32.png",
               contact_email: settings?.contactEmail || "info@absonsolutions.com",
               contact_phone: settings?.contactPhone || "+92 XXX XXXXXXX",
               contact_address: settings?.contactAddress || "Pakistan",

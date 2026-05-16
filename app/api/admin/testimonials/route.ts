@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server"
 import { getSession } from "@/lib/auth"
 import { withRls, prisma } from "@/lib/prisma"
+import { normalizeAssetDbValue } from "@/lib/asset-key"
 
 async function requireAdmin() {
   const session = await getSession()
@@ -19,6 +20,7 @@ export async function POST(request: Request) {
   try {
     const body = await request.json()
     const { client_name, client_company, client_position, content, rating, avatar_url, display_order, submitter_email, is_published } = body
+    const normalizedAvatarUrl = normalizeAssetDbValue(avatar_url)
     if (!client_name || !content || !rating) {
       return NextResponse.json({ error: "Missing required fields" }, { status: 400 })
     }
@@ -31,7 +33,7 @@ export async function POST(request: Request) {
           clientPosition: client_position,
           content,
           rating: Number(rating),
-          avatarUrl: avatar_url,
+          avatarUrl: typeof normalizedAvatarUrl === "string" && normalizedAvatarUrl ? normalizedAvatarUrl : null,
           isFeatured: false,
           displayOrder: Number(display_order) || 0,
           submitterEmail: submitter_email || null,
@@ -55,6 +57,7 @@ export async function PUT(request: Request) {
     const body = await request.json()
     const { id, client_name, client_company, client_position, content, rating, avatar_url, display_order, submitter_email, is_published } =
       body
+    const normalizedAvatarUrl = normalizeAssetDbValue(avatar_url)
     if (!id) return NextResponse.json({ error: "Testimonial id is required" }, { status: 400 })
 
     await withRls(session!.userId, (tx) =>
@@ -66,7 +69,7 @@ export async function PUT(request: Request) {
           clientPosition: client_position,
           content,
           rating: Number(rating),
-          avatarUrl: avatar_url,
+          avatarUrl: typeof normalizedAvatarUrl === "string" && normalizedAvatarUrl ? normalizedAvatarUrl : null,
           isFeatured: false,
           displayOrder: Number(display_order) || 0,
           submitterEmail: submitter_email || null,

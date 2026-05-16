@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server"
 import { getSession } from "@/lib/auth"
 import { withRls, prisma } from "@/lib/prisma"
+import { normalizeAssetDbValue } from "@/lib/asset-key"
 
 async function requireEditorAccess() {
   const session = await getSession()
@@ -37,6 +38,7 @@ export async function POST(request: Request) {
       seoNoIndex,
       seoNoFollow,
     } = body
+    const normalizedSeoOgImage = normalizeAssetDbValue(seoOgImage)
     if (!title || !slug || !content) {
       return NextResponse.json({ error: "Missing required fields" }, { status: 400 })
     }
@@ -55,7 +57,7 @@ export async function POST(request: Request) {
           seoTitle,
           seoDescription,
           seoKeywords,
-          seoOgImage,
+          seoOgImage: typeof normalizedSeoOgImage === "undefined" ? undefined : normalizedSeoOgImage,
           seoCanonicalUrl,
           seoNoIndex: Boolean(seoNoIndex),
           seoNoFollow: Boolean(seoNoFollow),
@@ -97,6 +99,7 @@ export async function PUT(request: Request) {
       seoNoIndex,
       seoNoFollow,
     } = body
+    const normalizedSeoOgImage = normalizeAssetDbValue(seoOgImage)
     if (!id) return NextResponse.json({ error: "Page id is required" }, { status: 400 })
 
     const approvalRequired = await isEditorApprovalRequired()
@@ -153,7 +156,7 @@ export async function PUT(request: Request) {
           seoTitle,
           seoDescription,
           seoKeywords,
-          seoOgImage,
+          seoOgImage: typeof normalizedSeoOgImage === "undefined" ? undefined : normalizedSeoOgImage,
           seoCanonicalUrl,
           seoNoIndex: Boolean(seoNoIndex),
           seoNoFollow: Boolean(seoNoFollow),

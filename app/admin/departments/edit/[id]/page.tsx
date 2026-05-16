@@ -2,6 +2,7 @@ import { DepartmentForm } from "@/components/admin/department-form"
 import { notFound, redirect } from "next/navigation"
 import { getSession } from "@/lib/auth"
 import { withRls } from "@/lib/prisma"
+import { findUniqueDepartmentCompat } from "@/lib/department-compat"
 
 export default async function EditDepartmentPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
@@ -16,7 +17,7 @@ export default async function EditDepartmentPage({ params }: { params: Promise<{
     redirect("/admin/blog")
   }
 
-  const department = await withRls(session.userId, (tx) => tx.department.findUnique({ where: { id } }))
+  const department = await withRls(session.userId, (tx) => findUniqueDepartmentCompat(tx, id))
   if (!department) notFound()
 
   return (

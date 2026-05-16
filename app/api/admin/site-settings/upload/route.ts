@@ -11,12 +11,13 @@ export async function POST(request: Request) {
 
     const requester = await prisma.user.findUnique({ where: { id: session.userId } })
     if (requester?.role !== "super_admin") {
-      return NextResponse.json({ error: "Only super admins can upload the logo" }, { status: 403 })
+      return NextResponse.json({ error: "Only super admins can upload site assets" }, { status: 403 })
     }
 
     const formData = await request.formData()
     const file = formData.get("file")
-    const kind = formData.get("kind") === "favicon" ? "favicon" : "logo"
+    const kindValue = formData.get("kind")
+    const kind = kindValue === "favicon" ? "favicon" : kindValue === "hero" ? "hero" : "logo"
 
     if (!(file instanceof File)) {
       return NextResponse.json({ error: "No file uploaded" }, { status: 400 })
@@ -24,7 +25,7 @@ export async function POST(request: Request) {
 
     const buffer = Buffer.from(await file.arrayBuffer())
 
-    // Allow broader image types for logos; restrict favicon to png/ico and rescale to 32x32 PNG
+    // Allow broader image types for logos/hero slides; restrict favicon to png/ico and rescale to 32x32 PNG
     const allowedFaviconTypes = ["image/png", "image/x-icon", "image/vnd.microsoft.icon"]
     if (kind === "favicon" && !allowedFaviconTypes.includes(file.type)) {
       return NextResponse.json({ error: "Favicon must be a PNG or ICO file" }, { status: 400 })
@@ -45,12 +46,12 @@ export async function POST(request: Request) {
     const stored = await saveAsset({
       buffer: outputBuffer,
       contentType: outputMime,
-      assetType: kind === "favicon" ? "favicons" : "logos",
+      assetType: kind === "favicon" ? "favicons" : kind === "hero" ? "hero-slides" : "logos",
       fileName: outputName,
     })
     return NextResponse.json({ url: stored.url, key: stored.key, provider: stored.provider })
   } catch (error) {
-    console.error("Logo upload error:", error)
-    return NextResponse.json({ error: "Failed to upload logo" }, { status: 500 })
+    console.error("Site settings asset upload error:", error)
+    return NextResponse.json({ error: "Failed to upload asset" }, { status: 500 })
   }
 }

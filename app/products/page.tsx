@@ -10,6 +10,7 @@ import { getSiteSettings } from "@/lib/site-settings"
 import { buildSeoMetadata } from "@/lib/seo"
 import { contentIconMap } from "@/lib/content-icons"
 import { resolveAssetUrl } from "@/lib/asset-url"
+import { findManyProductsCompat } from "@/lib/product-compat"
 
 export async function generateMetadata() {
   const settings = await getSiteSettings()
@@ -24,7 +25,7 @@ export default async function ProductsPage() {
     typeof link === "string" && link.trim() ? link.trim() : fallback
 
   const [products, siteSettings] = await Promise.all([
-    prisma.product.findMany({
+    findManyProductsCompat(prisma, {
       where: { isActive: true },
       orderBy: { displayOrder: "asc" },
     }),
