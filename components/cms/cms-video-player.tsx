@@ -10,6 +10,7 @@ export type CmsVideoConfig = {
   poster?: string
   title?: string
   caption?: string
+  align?: "left" | "center" | "right"
   controls: boolean
   autoplay: boolean
   muted: boolean
@@ -68,6 +69,11 @@ function normalizeTrackKind(value: string) {
   return "subtitles"
 }
 
+function normalizeAlign(value: CmsVideoConfig["align"]) {
+  if (value === "center" || value === "right") return value
+  return "left"
+}
+
 export function CmsVideoPlayer({ config }: { config: CmsVideoConfig }) {
   const source = resolveAssetUrl(config.src) || config.src
   if (!source) return null
@@ -76,12 +82,10 @@ export function CmsVideoPlayer({ config }: { config: CmsVideoConfig }) {
   const thumbnails = resolveAssetUrl(config.thumbnails || "") || undefined
   const title = config.title?.trim() || "Video"
   const caption = config.caption?.trim() || ""
+  const align = normalizeAlign(config.align)
   const width = parseSize(config.width)
   const height = parseSize(config.height)
-  const playerStyle: CSSProperties = {
-    width: "100%",
-    height: "100%",
-  }
+  const playerStyle: CSSProperties = { width: "100%", height: "100%" }
   const wrapperStyle: CSSProperties = {
     width: width || "100%",
     maxWidth: "100%",
@@ -89,45 +93,69 @@ export function CmsVideoPlayer({ config }: { config: CmsVideoConfig }) {
   if (height) {
     wrapperStyle.height = height
   }
+  if (align === "center") {
+    wrapperStyle.marginLeft = "auto"
+    wrapperStyle.marginRight = "auto"
+  } else if (align === "right") {
+    wrapperStyle.marginLeft = "auto"
+    wrapperStyle.marginRight = "0"
+  } else {
+    wrapperStyle.marginLeft = "0"
+    wrapperStyle.marginRight = "auto"
+  }
+  const captionStyle: CSSProperties = {
+    textAlign: align,
+  }
+  const showCustomLayoutControls = config.controls
 
   return (
-    <figure className="not-prose my-6" style={wrapperStyle}>
-      <MediaPlayer
-        src={source}
-        title={title}
-        className="block bg-black text-white"
-        style={playerStyle}
-        aspectRatio={height ? undefined : parseAspectRatio(config.aspectRatio)}
-        controls={config.controls}
-        autoPlay={config.autoplay}
-        muted={config.muted || config.autoplay}
-        loop={config.loop}
-        playsInline={config.playsInline}
-        preload={config.preload}
-        poster={poster}
-        viewType={config.viewType}
-        streamType={config.streamType}
-        logLevel={config.logLevel}
-        crossOrigin={config.crossOrigin ? "anonymous" : undefined}
-      >
-        <MediaProvider>
-          {config.tracks.map((track, index) => (
-            <Track
-              key={`${track.src}-${index}`}
-              src={resolveAssetUrl(track.src) || track.src}
-              kind={normalizeTrackKind(track.kind)}
-              label={track.label || undefined}
-              language={track.language || undefined}
-              default={Boolean(track.default)}
-              type={(track.type as "vtt" | "srt" | "ssa" | "ass" | "json" | undefined) || undefined}
-            />
-          ))}
-        </MediaProvider>
-        <Poster alt={title} />
-        <DefaultAudioLayout icons={defaultLayoutIcons} />
-        <DefaultVideoLayout thumbnails={thumbnails} icons={defaultLayoutIcons} />
-      </MediaPlayer>
-      {caption ? <figcaption className="mt-2 text-sm text-muted-foreground">{caption}</figcaption> : null}
+    <figure className="not-prose my-6 w-full">
+      <div style={wrapperStyle}>
+        <MediaPlayer
+          src={source}
+          title={title}
+          className="block bg-black text-white"
+          style={playerStyle}
+          aspectRatio={height ? undefined : parseAspectRatio(config.aspectRatio)}
+          controls={false}
+          autoPlay={config.autoplay}
+          muted={config.muted || config.autoplay}
+          loop={config.loop}
+          playsInline={config.playsInline}
+          preload={config.preload}
+          poster={poster}
+          viewType={config.viewType}
+          streamType={config.streamType}
+          logLevel={config.logLevel}
+          crossOrigin={config.crossOrigin ? "anonymous" : undefined}
+        >
+          <MediaProvider>
+            {config.tracks.map((track, index) => (
+              <Track
+                key={`${track.src}-${index}`}
+                src={resolveAssetUrl(track.src) || track.src}
+                kind={normalizeTrackKind(track.kind)}
+                label={track.label || undefined}
+                language={track.language || undefined}
+                default={Boolean(track.default)}
+                type={(track.type as "vtt" | "srt" | "ssa" | "ass" | "json" | undefined) || undefined}
+              />
+            ))}
+          </MediaProvider>
+          <Poster alt={title} />
+          {showCustomLayoutControls ? (
+            <>
+              <DefaultAudioLayout icons={defaultLayoutIcons} />
+              <DefaultVideoLayout thumbnails={thumbnails} icons={defaultLayoutIcons} />
+            </>
+          ) : null}
+        </MediaPlayer>
+        {caption ? (
+          <figcaption className="mt-2 text-sm text-muted-foreground" style={captionStyle}>
+            {caption}
+          </figcaption>
+        ) : null}
+      </div>
     </figure>
   )
 }

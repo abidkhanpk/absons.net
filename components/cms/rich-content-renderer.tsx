@@ -65,6 +65,13 @@ function normalizeLogLevel(value: string): "silent" | "error" | "warn" | "info" 
   return "warn"
 }
 
+function normalizeAlign(value: string): "left" | "center" | "right" {
+  const normalized = value.trim().toLowerCase()
+  if (normalized === "center") return "center"
+  if (normalized === "right") return "right"
+  return "left"
+}
+
 function parseTracks(value: string) {
   const raw = value.trim()
   if (!raw) return []
@@ -112,6 +119,7 @@ function parseVideoBlock(blockHtml: string): CmsVideoConfig | null {
     poster: getAttr(tag, "data-video-poster").trim() || undefined,
     title: getAttr(tag, "data-video-title").trim() || "Video",
     caption: caption || undefined,
+    align: normalizeAlign(getAttr(tag, "data-video-align")),
     controls: parseBoolean(getAttr(tag, "data-video-controls"), true),
     autoplay: parseBoolean(getAttr(tag, "data-video-autoplay"), false),
     muted: parseBoolean(getAttr(tag, "data-video-muted"), false),

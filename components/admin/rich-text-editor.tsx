@@ -153,6 +153,14 @@ const CmsVideo = Node.create({
         default: "",
         parseHTML: (element) => element.querySelector("figcaption")?.textContent?.trim() || "",
       },
+      align: {
+        default: "left",
+        parseHTML: (element) => {
+          const value = (element.getAttribute("data-video-align") || "left").toLowerCase()
+          if (value === "center" || value === "right") return value
+          return "left"
+        },
+      },
       controls: {
         default: true,
         parseHTML: (element) => parseBoolean(element.getAttribute("data-video-controls"), true),
@@ -227,6 +235,7 @@ const CmsVideo = Node.create({
       HTMLAttributes.src ? { "data-video-src": HTMLAttributes.src } : {},
       HTMLAttributes.poster ? { "data-video-poster": HTMLAttributes.poster } : {},
       HTMLAttributes.title ? { "data-video-title": HTMLAttributes.title } : {},
+      { "data-video-align": HTMLAttributes.align || "left" },
       { "data-video-controls": String(Boolean(HTMLAttributes.controls)) },
       { "data-video-autoplay": String(Boolean(HTMLAttributes.autoplay)) },
       { "data-video-muted": String(Boolean(HTMLAttributes.muted)) },
@@ -297,6 +306,7 @@ export function RichTextEditor({ content, onChange }: RichTextEditorProps) {
   const [videoPoster, setVideoPoster] = useState("")
   const [videoTitle, setVideoTitle] = useState("")
   const [videoCaption, setVideoCaption] = useState("")
+  const [videoAlign, setVideoAlign] = useState<"left" | "center" | "right">("left")
   const [videoAspectRatio, setVideoAspectRatio] = useState("16/9")
   const [videoWidth, setVideoWidth] = useState("")
   const [videoHeight, setVideoHeight] = useState("")
@@ -546,6 +556,44 @@ export function RichTextEditor({ content, onChange }: RichTextEditorProps) {
   const iconPool = faIcons.length > 0 ? faIcons : fallbackIcons
   const filteredIcons = iconPool.filter((icon) => icon.name.includes(iconSearch.trim().toLowerCase()))
 
+  const getSelectedVideoAlign = (): "left" | "center" | "right" => {
+    if (selectedVideoPos === null) return "left"
+    const node = editor.state.doc.nodeAt(selectedVideoPos)
+    if (!node || node.type.name !== "cmsVideo") return "left"
+    const value = typeof node.attrs.align === "string" ? node.attrs.align.toLowerCase() : "left"
+    if (value === "center" || value === "right") return value
+    return "left"
+  }
+
+  const isAlignmentActive = (alignment: "left" | "center" | "right") => {
+    if (selectedVideoPos !== null) {
+      return getSelectedVideoAlign() === alignment
+    }
+    return editor.isActive({ textAlign: alignment })
+  }
+
+  const applyAlignment = (alignment: "left" | "center" | "right") => {
+    if (selectedVideoPos === null) {
+      editor.chain().focus().setTextAlign(alignment).run()
+      return
+    }
+    const updated = editor
+      .chain()
+      .focus()
+      .command(({ tr, dispatch }) => {
+        const node = tr.doc.nodeAt(selectedVideoPos)
+        if (!node || node.type.name !== "cmsVideo") return false
+        tr.setNodeMarkup(selectedVideoPos, undefined, { ...node.attrs, align: alignment })
+        if (dispatch) dispatch(tr)
+        return true
+      })
+      .run()
+    if (updated) {
+      editor.commands.setNodeSelection(selectedVideoPos)
+      setVideoAlign(alignment)
+    }
+  }
+
   const setLink = () => {
     const url = window.prompt("Enter URL")
     if (url) {
@@ -608,6 +656,7 @@ export function RichTextEditor({ content, onChange }: RichTextEditorProps) {
     setVideoPoster("")
     setVideoTitle("")
     setVideoCaption("")
+    setVideoAlign("left")
     setVideoAspectRatio("16/9")
     setVideoWidth("")
     setVideoHeight("")
@@ -700,6 +749,7 @@ export function RichTextEditor({ content, onChange }: RichTextEditorProps) {
     setVideoPoster("https://files.vidstack.io/sprite-fight/poster.webp")
     setVideoTitle("Sprite Fight")
     setVideoCaption("")
+    setVideoAlign("left")
     setVideoAspectRatio("16/9")
     setVideoWidth("")
     setVideoHeight("")
@@ -759,6 +809,8 @@ export function RichTextEditor({ content, onChange }: RichTextEditorProps) {
     setVideoPoster(typeof attrs.poster === "string" ? attrs.poster : "")
     setVideoTitle(typeof attrs.title === "string" ? attrs.title : "Video")
     setVideoCaption(typeof attrs.caption === "string" ? attrs.caption : "")
+    const alignValue = typeof attrs.align === "string" ? attrs.align.toLowerCase() : "left"
+    setVideoAlign(alignValue === "center" || alignValue === "right" ? alignValue : "left")
     setVideoAspectRatio(typeof attrs.aspectRatio === "string" ? attrs.aspectRatio : "16/9")
     setVideoWidth(typeof attrs.width === "string" ? attrs.width : "")
     setVideoHeight(typeof attrs.height === "string" ? attrs.height : "")
@@ -813,6 +865,7 @@ export function RichTextEditor({ content, onChange }: RichTextEditorProps) {
       poster: videoPoster.trim(),
       title: videoTitle.trim() || "Video",
       caption: videoCaption.trim(),
+      align: videoAlign,
       controls: videoControls,
       autoplay: videoAutoplay,
       muted: videoMuted,
@@ -1186,24 +1239,24 @@ export function RichTextEditor({ content, onChange }: RichTextEditorProps) {
         <Button
           type="button"
           size="sm"
-          variant={editor.isActive({ textAlign: "left" }) ? "default" : "ghost"}
-          onClick={() => editor.chain().focus().setTextAlign("left").run()}
+          variant={isAlignmentActive("left") ? "default" : "ghost"}
+          onClick={() => applyAlignment("left")}
         >
           <AlignLeft className="h-4 w-4" />
         </Button>
         <Button
           type="button"
           size="sm"
-          variant={editor.isActive({ textAlign: "center" }) ? "default" : "ghost"}
-          onClick={() => editor.chain().focus().setTextAlign("center").run()}
+          variant={isAlignmentActive("center") ? "default" : "ghost"}
+          onClick={() => applyAlignment("center")}
         >
           <AlignCenter className="h-4 w-4" />
         </Button>
         <Button
           type="button"
           size="sm"
-          variant={editor.isActive({ textAlign: "right" }) ? "default" : "ghost"}
-          onClick={() => editor.chain().focus().setTextAlign("right").run()}
+          variant={isAlignmentActive("right") ? "default" : "ghost"}
+          onClick={() => applyAlignment("right")}
         >
           <AlignRight className="h-4 w-4" />
         </Button>
