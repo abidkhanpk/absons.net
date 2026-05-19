@@ -65,6 +65,10 @@ function normalizeLogLevel(value: string): "silent" | "error" | "warn" | "info" 
   return "warn"
 }
 
+function normalizeMenuGroup(value: string): "top" | "bottom" {
+  return value.trim().toLowerCase() === "bottom" ? "bottom" : "top"
+}
+
 function normalizeAlign(value: string): "left" | "center" | "right" {
   const normalized = value.trim().toLowerCase()
   if (normalized === "center") return "center"
@@ -132,6 +136,7 @@ function parseVideoBlock(blockHtml: string): CmsVideoConfig | null {
     viewType: normalizeViewType(getAttr(tag, "data-video-view-type")),
     streamType: normalizeStreamType(getAttr(tag, "data-video-stream-type")),
     logLevel: normalizeLogLevel(getAttr(tag, "data-video-log-level")),
+    menuGroup: normalizeMenuGroup(getAttr(tag, "data-video-menu-group")),
     crossOrigin: parseBoolean(getAttr(tag, "data-video-crossorigin"), true),
     thumbnails: getAttr(tag, "data-video-thumbnails").trim() || undefined,
     tracks: parseTracks(getAttr(tag, "data-video-tracks")),

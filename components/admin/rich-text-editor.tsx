@@ -209,6 +209,10 @@ const CmsVideo = Node.create({
         default: "warn",
         parseHTML: (element) => element.getAttribute("data-video-log-level") || "warn",
       },
+      menuGroup: {
+        default: "top",
+        parseHTML: (element) => (element.getAttribute("data-video-menu-group") || "top").toLowerCase() === "bottom" ? "bottom" : "top",
+      },
       crossOrigin: {
         default: true,
         parseHTML: (element) => parseBoolean(element.getAttribute("data-video-crossorigin"), true),
@@ -248,6 +252,7 @@ const CmsVideo = Node.create({
       { "data-video-view-type": HTMLAttributes.viewType || "video" },
       { "data-video-stream-type": HTMLAttributes.streamType || "on-demand" },
       { "data-video-log-level": HTMLAttributes.logLevel || "warn" },
+      { "data-video-menu-group": HTMLAttributes.menuGroup || "top" },
       { "data-video-crossorigin": String(Boolean(HTMLAttributes.crossOrigin)) },
       HTMLAttributes.thumbnails ? { "data-video-thumbnails": HTMLAttributes.thumbnails } : {},
       HTMLAttributes.tracks ? { "data-video-tracks": HTMLAttributes.tracks } : {},
@@ -878,6 +883,7 @@ export function RichTextEditor({ content, onChange }: RichTextEditorProps) {
       viewType: videoViewType,
       streamType: videoStreamType,
       logLevel: videoLogLevel,
+      menuGroup: "top",
       crossOrigin: videoCrossOrigin,
       thumbnails: videoThumbnails.trim(),
       tracks: JSON.stringify(tracks),

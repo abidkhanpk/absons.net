@@ -23,6 +23,7 @@ export type CmsVideoConfig = {
   viewType: "video" | "audio"
   streamType: "unknown" | "on-demand" | "live" | "live:dvr" | "ll-live" | "ll-live:dvr"
   logLevel: "silent" | "error" | "warn" | "info" | "debug"
+  menuGroup?: "top" | "bottom"
   crossOrigin: boolean
   thumbnails?: string
   tracks: Array<{
