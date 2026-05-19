@@ -5,14 +5,14 @@ const PRODUCT_BASE_SELECT_TEMPLATE = {
   title: true,
   description: true,
   icon: true,
+  imageUrl: true,
+  linkUrl: true,
+  linkLabel: true,
   isActive: true,
   displayOrder: true,
 }
 
 const PRODUCT_OPTIONAL_COLUMN_TO_FIELD = {
-  image_url: "imageUrl",
-  link_url: "linkUrl",
-  link_label: "linkLabel",
   is_featured: "isFeatured",
   tags: "tags",
 } as const

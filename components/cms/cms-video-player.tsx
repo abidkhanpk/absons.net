@@ -151,6 +151,7 @@ export function CmsVideoPlayer({ config }: { config: CmsVideoConfig }) {
                 thumbnails={thumbnails}
                 icons={defaultLayoutIcons}
                 menuGroup={config.menuGroup === "bottom" ? "bottom" : "top"}
+                smallLayoutWhen={({ width, height }) => width < 860 || height < 520}
               />
             </>
           ) : null}

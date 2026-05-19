@@ -24,7 +24,13 @@ export function ScrollingLoop({
   const [isDragging, setIsDragging] = useState(false)
   const [isHovered, setIsHovered] = useState(false)
   const [canHover, setCanHover] = useState(false)
-  const dragStateRef = useRef({ startX: 0, startScrollLeft: 0 })
+  const dragStateRef = useRef({
+    startX: 0,
+    startScrollLeft: 0,
+    pointerId: -1,
+    isPointerDown: false,
+    dragStarted: false,
+  })
 
   const isToggleFocusedInside = () => {
     const container = containerRef.current
@@ -98,6 +104,9 @@ export function ScrollingLoop({
       event.preventDefault()
       return
     }
+    if (target.closest("a, button, input, textarea, select, label")) {
+      return
+    }
 
     if (!dragEnabled) return
     if (event.button !== 0) return
@@ -109,22 +118,39 @@ export function ScrollingLoop({
       if (container.scrollLeft < loopWidth * 0.5) container.scrollLeft += loopWidth
       if (container.scrollLeft > loopWidth * 1.5) container.scrollLeft -= loopWidth
     }
-    setIsDragging(true)
     dragStateRef.current = {
       startX: event.clientX,
       startScrollLeft: container.scrollLeft,
+      pointerId: event.pointerId,
+      isPointerDown: true,
+      dragStarted: false,
     }
-    container.setPointerCapture(event.pointerId)
   }
 
   const onPointerMove = (event: React.PointerEvent<HTMLDivElement>) => {
-    if (!isDragging || !containerRef.current) return
+    if (!dragStateRef.current.isPointerDown || !containerRef.current) return
     const delta = event.clientX - dragStateRef.current.startX
+    if (!dragStateRef.current.dragStarted) {
+      if (Math.abs(delta) < 5) return
+      dragStateRef.current.dragStarted = true
+      setIsDragging(true)
+      containerRef.current.setPointerCapture(dragStateRef.current.pointerId)
+    }
     containerRef.current.scrollLeft = dragStateRef.current.startScrollLeft - delta
     normalizeScrollPosition()
   }
 
-  const stopDragging = () => setIsDragging(false)
+  const stopDragging = () => {
+    const container = containerRef.current
+    const { pointerId, isPointerDown } = dragStateRef.current
+    if (container && isPointerDown && pointerId >= 0 && container.hasPointerCapture(pointerId)) {
+      container.releasePointerCapture(pointerId)
+    }
+    dragStateRef.current.isPointerDown = false
+    dragStateRef.current.dragStarted = false
+    dragStateRef.current.pointerId = -1
+    setIsDragging(false)
+  }
 
   return (
     <div
