@@ -10,6 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Switch } from "@/components/ui/switch"
 import { CONTENT_ICON_OPTIONS } from "@/lib/content-icons"
 import { ImageUrlUploadField } from "@/components/admin/image-url-upload-field"
+import { decodeStoredItemLink, encodeStoredItemLink, type ItemLinkTargetMode } from "@/lib/item-link"
 import { useRouter } from "next/navigation"
 import { useState } from "react"
 
@@ -29,12 +30,14 @@ type Department = {
 export function DepartmentForm({ department }: { department?: Department }) {
   const router = useRouter()
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const initialLink = decodeStoredItemLink(department?.linkUrl)
   const [formData, setFormData] = useState({
     title: department?.title || "",
     description: department?.description || "",
     icon: department?.icon || "Building2",
     image_url: department?.imageUrl || "",
-    link_url: department?.linkUrl || "",
+    link_url: initialLink.href,
+    link_target: initialLink.target,
     link_label: department?.linkLabel || "Learn more",
     is_featured: department?.isFeatured ?? false,
     is_active: department?.isActive !== undefined ? department.isActive : true,
@@ -46,10 +49,14 @@ export function DepartmentForm({ department }: { department?: Department }) {
     setIsSubmitting(true)
 
     try {
+      const payload = {
+        ...formData,
+        link_url: encodeStoredItemLink(formData.link_url, formData.link_target),
+      }
       const response = await fetch("/api/admin/departments", {
         method: department ? "PUT" : "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(department ? { id: department.id, ...formData } : formData),
+        body: JSON.stringify(department ? { id: department.id, ...payload } : payload),
       })
       const result = await response.json().catch(() => ({}))
       if (!response.ok) throw new Error(result.error || "Failed to save department")
@@ -148,6 +155,27 @@ export function DepartmentForm({ department }: { department?: Department }) {
               onChange={(e) => setFormData({ ...formData, link_label: e.target.value })}
               placeholder="Learn more"
             />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="link_target">Link Open Mode</Label>
+            <Select
+              value={formData.link_target}
+              onValueChange={(value) =>
+                setFormData({
+                  ...formData,
+                  link_target: (value === "new_tab" ? "new_tab" : "same_tab") as ItemLinkTargetMode,
+                })
+              }
+            >
+              <SelectTrigger id="link_target">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="same_tab">Open in same tab</SelectItem>
+                <SelectItem value="new_tab">Open in new tab</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
 
           <div className="flex items-center space-x-2">

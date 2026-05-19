@@ -10,6 +10,7 @@ import { buildSeoMetadata } from "@/lib/seo"
 import { contentIconMap } from "@/lib/content-icons"
 import { resolveAssetUrl } from "@/lib/asset-url"
 import { findManyDepartmentsCompat } from "@/lib/department-compat"
+import { getItemLinkTargetProps, resolveItemLinkHref } from "@/lib/item-link"
 
 export async function generateMetadata() {
   const settings = await getSiteSettings()
@@ -21,7 +22,7 @@ export async function generateMetadata() {
 
 export default async function DepartmentsPage() {
   const resolveItemLink = (link: string | null | undefined, fallback: string) =>
-    typeof link === "string" && link.trim() ? link.trim() : fallback
+    resolveItemLinkHref(link, fallback)
 
   const [departments, siteSettings] = await Promise.all([
     findManyDepartmentsCompat(prisma, {
@@ -70,7 +71,10 @@ export default async function DepartmentsPage() {
                         <h3 className="text-xl font-semibold">{department.title}</h3>
                         <p className="text-muted-foreground leading-relaxed">{department.description}</p>
                         <Button asChild variant="outline" className="w-full bg-transparent mt-auto">
-                          <Link href={resolveItemLink(department.linkUrl, "/departments")}>
+                          <Link
+                            href={resolveItemLink(department.linkUrl, "/departments")}
+                            {...getItemLinkTargetProps(department.linkUrl)}
+                          >
                             {department.linkLabel || "Learn more"} <ArrowRight className="ml-2 h-4 w-4" />
                           </Link>
                         </Button>

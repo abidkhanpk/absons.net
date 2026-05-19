@@ -9,6 +9,7 @@ import { prisma } from "@/lib/prisma"
 import { getSiteSettings } from "@/lib/site-settings"
 import { buildSeoMetadata } from "@/lib/seo"
 import { resolveAssetUrl } from "@/lib/asset-url"
+import { getItemLinkTargetProps, resolveItemLinkHref } from "@/lib/item-link"
 
 export async function generateMetadata() {
   const settings = await getSiteSettings()
@@ -28,7 +29,7 @@ export async function generateMetadata() {
 
 export default async function TrainingPage() {
   const resolveItemLink = (link: string | null | undefined, fallback: string) =>
-    typeof link === "string" && link.trim() ? link.trim() : fallback
+    resolveItemLinkHref(link, fallback)
 
   const courses = await prisma.trainingCourse.findMany({
     where: { isActive: true },
@@ -117,7 +118,12 @@ export default async function TrainingPage() {
                       </div>
                       <div className="flex items-center">
                         <Button asChild className="w-full md:w-auto">
-                          <Link href={resolveItemLink(course.linkUrl, "/contact")}>{course.linkLabel || "Enroll Now"}</Link>
+                          <Link
+                            href={resolveItemLink(course.linkUrl, "/contact")}
+                            {...getItemLinkTargetProps(course.linkUrl)}
+                          >
+                            {course.linkLabel || "Enroll Now"}
+                          </Link>
                         </Button>
                       </div>
                     </div>

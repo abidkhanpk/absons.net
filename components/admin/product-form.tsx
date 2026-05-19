@@ -10,6 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Switch } from "@/components/ui/switch"
 import { CONTENT_ICON_OPTIONS } from "@/lib/content-icons"
 import { ImageUrlUploadField } from "@/components/admin/image-url-upload-field"
+import { decodeStoredItemLink, encodeStoredItemLink, type ItemLinkTargetMode } from "@/lib/item-link"
 import { useRouter } from "next/navigation"
 import { useState } from "react"
 
@@ -30,12 +31,14 @@ type Product = {
 export function ProductForm({ product }: { product?: Product }) {
   const router = useRouter()
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const initialLink = decodeStoredItemLink(product?.linkUrl)
   const [formData, setFormData] = useState({
     title: product?.title || "",
     description: product?.description || "",
     icon: product?.icon || "Package",
     image_url: product?.imageUrl || "",
-    link_url: product?.linkUrl || "",
+    link_url: initialLink.href,
+    link_target: initialLink.target,
     link_label: product?.linkLabel || "Explore product",
     is_featured: product?.isFeatured ?? false,
     tags: Array.isArray(product?.tags) ? product.tags.join(", ") : "",
@@ -48,10 +51,14 @@ export function ProductForm({ product }: { product?: Product }) {
     setIsSubmitting(true)
 
     try {
+      const payload = {
+        ...formData,
+        link_url: encodeStoredItemLink(formData.link_url, formData.link_target),
+      }
       const response = await fetch("/api/admin/products", {
         method: product ? "PUT" : "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(product ? { id: product.id, ...formData } : formData),
+        body: JSON.stringify(product ? { id: product.id, ...payload } : payload),
       })
       const result = await response.json().catch(() => ({}))
       if (!response.ok) throw new Error(result.error || "Failed to save product")
@@ -150,6 +157,27 @@ export function ProductForm({ product }: { product?: Product }) {
               onChange={(e) => setFormData({ ...formData, link_label: e.target.value })}
               placeholder="Explore product"
             />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="link_target">Link Open Mode</Label>
+            <Select
+              value={formData.link_target}
+              onValueChange={(value) =>
+                setFormData({
+                  ...formData,
+                  link_target: (value === "new_tab" ? "new_tab" : "same_tab") as ItemLinkTargetMode,
+                })
+              }
+            >
+              <SelectTrigger id="link_target">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="same_tab">Open in same tab</SelectItem>
+                <SelectItem value="new_tab">Open in new tab</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
 
           <div className="space-y-2">

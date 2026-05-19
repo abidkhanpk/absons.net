@@ -11,6 +11,7 @@ import { buildSeoMetadata } from "@/lib/seo"
 import { contentIconMap } from "@/lib/content-icons"
 import { resolveAssetUrl } from "@/lib/asset-url"
 import { findManyProductsCompat } from "@/lib/product-compat"
+import { getItemLinkTargetProps, resolveItemLinkHref } from "@/lib/item-link"
 
 export async function generateMetadata() {
   const settings = await getSiteSettings()
@@ -22,7 +23,7 @@ export async function generateMetadata() {
 
 export default async function ProductsPage() {
   const resolveItemLink = (link: string | null | undefined, fallback: string) =>
-    typeof link === "string" && link.trim() ? link.trim() : fallback
+    resolveItemLinkHref(link, fallback)
 
   const [products, siteSettings] = await Promise.all([
     findManyProductsCompat(prisma, {
@@ -93,7 +94,10 @@ export default async function ProductsPage() {
                           </li>
                         </ul>
                         <Button asChild variant="outline" className="w-full bg-transparent mt-auto">
-                          <Link href={resolveItemLink(product.linkUrl, "/products")}>
+                          <Link
+                            href={resolveItemLink(product.linkUrl, "/products")}
+                            {...getItemLinkTargetProps(product.linkUrl)}
+                          >
                             {product.linkLabel || "Explore product"} <ArrowRight className="ml-2 h-4 w-4" />
                           </Link>
                         </Button>

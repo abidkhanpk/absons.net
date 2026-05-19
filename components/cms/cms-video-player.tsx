@@ -147,7 +147,11 @@ export function CmsVideoPlayer({ config }: { config: CmsVideoConfig }) {
           {showCustomLayoutControls ? (
             <>
               <DefaultAudioLayout icons={defaultLayoutIcons} />
-              <DefaultVideoLayout thumbnails={thumbnails} icons={defaultLayoutIcons} />
+              <DefaultVideoLayout
+                thumbnails={thumbnails}
+                icons={defaultLayoutIcons}
+                menuGroup={config.menuGroup === "bottom" ? "bottom" : "top"}
+              />
             </>
           ) : null}
         </MediaPlayer>

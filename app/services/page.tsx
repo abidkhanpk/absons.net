@@ -9,6 +9,7 @@ import { getSiteSettings } from "@/lib/site-settings"
 import { buildSeoMetadata } from "@/lib/seo"
 import { contentIconMap } from "@/lib/content-icons"
 import { resolveAssetUrl } from "@/lib/asset-url"
+import { getItemLinkTargetProps, resolveItemLinkHref } from "@/lib/item-link"
 
 export async function generateMetadata() {
   const settings = await getSiteSettings()
@@ -27,7 +28,7 @@ export async function generateMetadata() {
 
 export default async function ServicesPage() {
   const resolveItemLink = (link: string | null | undefined, fallback: string) =>
-    typeof link === "string" && link.trim() ? link.trim() : fallback
+    resolveItemLinkHref(link, fallback)
 
   const services = await prisma.service.findMany({ orderBy: { displayOrder: "asc" } })
   const siteSettings = await getSiteSettings()
@@ -71,7 +72,10 @@ export default async function ServicesPage() {
                       <h3 className="text-xl font-semibold">{service.title}</h3>
                       <p className="text-muted-foreground leading-relaxed">{service.description}</p>
                       <Button asChild variant="link" className="p-0">
-                        <Link href={resolveItemLink(service.linkUrl, "/services")}>
+                        <Link
+                          href={resolveItemLink(service.linkUrl, "/services")}
+                          {...getItemLinkTargetProps(service.linkUrl)}
+                        >
                           {service.linkLabel || "Learn more"} <ArrowRight className="ml-2 h-4 w-4" />
                         </Link>
                       </Button>

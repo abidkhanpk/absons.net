@@ -11,6 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Switch } from "@/components/ui/switch"
 import { CONTENT_ICON_OPTIONS } from "@/lib/content-icons"
 import { ImageUrlUploadField } from "@/components/admin/image-url-upload-field"
+import { decodeStoredItemLink, encodeStoredItemLink, type ItemLinkTargetMode } from "@/lib/item-link"
 import { useRouter } from "next/navigation"
 import { useState } from "react"
 
@@ -30,12 +31,14 @@ type Service = {
 export function ServiceForm({ service }: { service?: Service }) {
   const router = useRouter()
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const initialLink = decodeStoredItemLink(service?.linkUrl)
   const [formData, setFormData] = useState({
     title: service?.title || "",
     description: service?.description || "",
     icon: service?.icon || "Package",
     image_url: service?.imageUrl || "",
-    link_url: service?.linkUrl || "",
+    link_url: initialLink.href,
+    link_target: initialLink.target,
     link_label: service?.linkLabel || "Learn more",
     category: service?.category || "education",
     is_featured: service?.isFeatured || false,
@@ -47,10 +50,14 @@ export function ServiceForm({ service }: { service?: Service }) {
     setIsSubmitting(true)
 
     try {
+      const payload = {
+        ...formData,
+        link_url: encodeStoredItemLink(formData.link_url, formData.link_target),
+      }
       const response = await fetch("/api/admin/services", {
         method: service ? "PUT" : "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(service ? { id: service.id, ...formData } : formData),
+        body: JSON.stringify(service ? { id: service.id, ...payload } : payload),
       })
 
       const result = await response.json().catch(() => ({}))
@@ -162,6 +169,27 @@ export function ServiceForm({ service }: { service?: Service }) {
               onChange={(e) => setFormData({ ...formData, link_label: e.target.value })}
               placeholder="Learn more"
             />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="link_target">Link Open Mode</Label>
+            <Select
+              value={formData.link_target}
+              onValueChange={(value) =>
+                setFormData({
+                  ...formData,
+                  link_target: (value === "new_tab" ? "new_tab" : "same_tab") as ItemLinkTargetMode,
+                })
+              }
+            >
+              <SelectTrigger id="link_target">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="same_tab">Open in same tab</SelectItem>
+                <SelectItem value="new_tab">Open in new tab</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
 
           <div className="space-y-2">

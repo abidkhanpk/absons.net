@@ -10,6 +10,7 @@ import { Card, CardContent } from "@/components/ui/card"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Switch } from "@/components/ui/switch"
 import { ImageUrlUploadField } from "@/components/admin/image-url-upload-field"
+import { decodeStoredItemLink, encodeStoredItemLink, type ItemLinkTargetMode } from "@/lib/item-link"
 import { useRouter } from "next/navigation"
 import { useState } from "react"
 
@@ -30,6 +31,7 @@ type TrainingCourse = {
 export function TrainingForm({ course }: { course?: TrainingCourse }) {
   const router = useRouter()
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const initialLink = decodeStoredItemLink(course?.linkUrl)
   const [formData, setFormData] = useState({
     title: course?.title || "",
     description: course?.description || "",
@@ -39,7 +41,8 @@ export function TrainingForm({ course }: { course?: TrainingCourse }) {
     is_active: course?.isActive !== undefined ? course.isActive : true,
     display_order: course?.displayOrder ?? 0,
     featured_image: course?.featuredImage || "",
-    link_url: course?.linkUrl || "",
+    link_url: initialLink.href,
+    link_target: initialLink.target,
     link_label: course?.linkLabel || "Learn more",
   })
 
@@ -48,10 +51,14 @@ export function TrainingForm({ course }: { course?: TrainingCourse }) {
     setIsSubmitting(true)
 
     try {
+      const payload = {
+        ...formData,
+        link_url: encodeStoredItemLink(formData.link_url, formData.link_target),
+      }
       const response = await fetch("/api/admin/training", {
         method: course ? "PUT" : "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(course ? { id: course.id, ...formData } : formData),
+        body: JSON.stringify(course ? { id: course.id, ...payload } : payload),
       })
 
       const result = await response.json().catch(() => ({}))
@@ -174,6 +181,27 @@ export function TrainingForm({ course }: { course?: TrainingCourse }) {
               onChange={(e) => setFormData({ ...formData, link_label: e.target.value })}
               placeholder="Learn more"
             />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="link_target">Link Open Mode</Label>
+            <Select
+              value={formData.link_target}
+              onValueChange={(value) =>
+                setFormData({
+                  ...formData,
+                  link_target: (value === "new_tab" ? "new_tab" : "same_tab") as ItemLinkTargetMode,
+                })
+              }
+            >
+              <SelectTrigger id="link_target">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="same_tab">Open in same tab</SelectItem>
+                <SelectItem value="new_tab">Open in new tab</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
 
           <div className="flex items-center space-x-2">
