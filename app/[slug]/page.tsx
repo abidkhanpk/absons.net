@@ -4,6 +4,7 @@ import { Footer } from "@/components/footer"
 import { prisma } from "@/lib/prisma"
 import { getSiteSettings } from "@/lib/site-settings"
 import { buildSeoMetadata } from "@/lib/seo"
+import { RichContentRenderer } from "@/components/cms/rich-content-renderer"
 
 export const dynamic = "force-dynamic"
 export const revalidate = 0
@@ -56,7 +57,7 @@ export default async function ContentPage({ params }: { params: Promise<{ slug: 
 
         <section className="py-12">
           <div className="container mx-auto px-4 lg:px-8">
-            <div className="prose prose-lg max-w-none" dangerouslySetInnerHTML={{ __html: page.content }} />
+            <RichContentRenderer content={page.content} className="prose prose-lg max-w-none" />
           </div>
         </section>
       </main>

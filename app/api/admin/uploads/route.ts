@@ -23,8 +23,10 @@ export async function POST(request: Request) {
     if (!(file instanceof File)) {
       return NextResponse.json({ error: "No file uploaded" }, { status: 400 })
     }
-    if (!file.type.startsWith("image/")) {
-      return NextResponse.json({ error: "Only image files are allowed" }, { status: 400 })
+    const isImage = file.type.startsWith("image/")
+    const isVideo = file.type.startsWith("video/")
+    if (!isImage && !isVideo) {
+      return NextResponse.json({ error: "Only image or video files are allowed" }, { status: 400 })
     }
 
     const outputName = file.name
@@ -38,7 +40,7 @@ export async function POST(request: Request) {
     })
     return NextResponse.json({ url: stored.url, key: stored.key, provider: stored.provider })
   } catch (error) {
-    console.error("Image upload error:", error)
-    return NextResponse.json({ error: "Failed to upload image" }, { status: 500 })
+    console.error("Asset upload error:", error)
+    return NextResponse.json({ error: "Failed to upload asset" }, { status: 500 })
   }
 }

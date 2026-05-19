@@ -1,6 +1,10 @@
 @import "tailwindcss";
 @import "tw-animate-css";
 @import "@fortawesome/fontawesome-free/css/all.min.css";
+@import "@vidstack/react/player/styles/base.css";
+@import "@vidstack/react/player/styles/default/theme.css";
+@import "@vidstack/react/player/styles/default/layouts/audio.css";
+@import "@vidstack/react/player/styles/default/layouts/video.css";
 
 @custom-variant dark (&:is(.dark *));
 
@@ -322,6 +326,31 @@
 .prose [data-cms-card="true"] h3 {
   margin-top: 0;
   margin-bottom: 0.5rem;
+}
+
+.prose figure.cms-video {
+  margin-top: 1rem;
+  margin-bottom: 1rem;
+}
+
+.ProseMirror figure[data-cms-video],
+.tiptap figure[data-cms-video] {
+  border: 1px dashed var(--border);
+  border-radius: 0.75rem;
+  background: color-mix(in oklab, var(--muted) 55%, transparent);
+  padding: 0.75rem;
+  margin-top: 1rem;
+  margin-bottom: 1rem;
+}
+
+.ProseMirror figure[data-cms-video]::before,
+.tiptap figure[data-cms-video]::before {
+  content: "Video: " attr(data-video-src);
+  display: block;
+  color: var(--muted-foreground);
+  font-size: 0.8rem;
+  line-height: 1.4;
+  word-break: break-word;
 }
 
 .prose table.cms-table,

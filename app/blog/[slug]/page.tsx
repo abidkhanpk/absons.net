@@ -8,6 +8,7 @@ import { prisma } from "@/lib/prisma"
 import { getSiteSettings } from "@/lib/site-settings"
 import { buildSeoMetadata } from "@/lib/seo"
 import { resolveAssetUrl } from "@/lib/asset-url"
+import { RichContentRenderer } from "@/components/cms/rich-content-renderer"
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params
@@ -82,7 +83,7 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
                 </div>
               </div>
 
-              <div className="prose prose-lg max-w-none" dangerouslySetInnerHTML={{ __html: post.content }} />
+              <RichContentRenderer content={post.content} className="prose prose-lg max-w-none" />
             </div>
           </div>
         </article>
