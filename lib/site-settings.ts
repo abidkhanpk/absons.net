@@ -1,5 +1,10 @@
 import { prisma, isDatabaseConnectionError } from "./prisma"
 import { resolveAssetUrl } from "./asset-url"
+import {
+  DEFAULT_HEADING_TYPOGRAPHY,
+  normalizeHeadingTypography,
+  type HeadingTypographySettings,
+} from "./heading-typography"
 
 export type SiteSettings = {
   siteTitle: string
@@ -53,6 +58,7 @@ export type SiteSettings = {
   contactEmail: string | null
   contactPhone: string | null
   contactAddress: string | null
+  headingTypography: HeadingTypographySettings
 }
 
 export type NavItem = {
@@ -397,6 +403,7 @@ const defaultSettings: SiteSettings = {
   contactEmail: "info@absons.net",
   contactPhone: "+92 XXX XXXXXXX",
   contactAddress: "Pakistan",
+  headingTypography: DEFAULT_HEADING_TYPOGRAPHY,
 }
 
 function resolveLogoUrl(logoUrl: string | null | undefined) {
@@ -779,6 +786,18 @@ function parseStaticSeo(raw: unknown): StaticSeoSettings {
   }
 }
 
+function parseHeadingTypography(raw: unknown): HeadingTypographySettings {
+  try {
+    const parsed = typeof raw === "string" ? JSON.parse(raw) : raw
+    if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) {
+      return DEFAULT_HEADING_TYPOGRAPHY
+    }
+    return normalizeHeadingTypography((parsed as Record<string, unknown>).typography)
+  } catch {
+    return DEFAULT_HEADING_TYPOGRAPHY
+  }
+}
+
 export async function getSiteSettings(): Promise<SiteSettings> {
   try {
     const settings = await prisma.siteSettings.findUnique({ where: { id: "site" } })
@@ -866,6 +885,7 @@ export async function getSiteSettings(): Promise<SiteSettings> {
       seoDefaultOgImage: settings.seoDefaultOgImage ?? defaultSettings.seoDefaultOgImage,
       seoDefaultCanonicalBase: settings.seoDefaultCanonicalBase ?? defaultSettings.seoDefaultCanonicalBase,
       staticSeo: parseStaticSeo(settings.staticSeo),
+      headingTypography: parseHeadingTypography(settings.staticSeo),
       contactEmail: settings.contactEmail ?? defaultSettings.contactEmail,
       contactPhone: settings.contactPhone ?? defaultSettings.contactPhone,
       contactAddress: settings.contactAddress ?? defaultSettings.contactAddress,

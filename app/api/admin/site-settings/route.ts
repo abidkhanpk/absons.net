@@ -2,6 +2,7 @@ import { NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 import { getSession } from "@/lib/auth"
 import { normalizeAssetDbValue } from "@/lib/asset-key"
+import { normalizeHeadingTypography } from "@/lib/heading-typography"
 
 function normalizeWhyChooseItems(raw: unknown) {
   if (!Array.isArray(raw)) return undefined
@@ -79,12 +80,15 @@ function normalizeHeroSlides(raw: unknown): { serialized?: string; wasExplicitly
   return normalized.length > 0 ? { serialized: JSON.stringify(normalized), wasExplicitlyEmpty: false } : { serialized: undefined, wasExplicitlyEmpty: true }
 }
 
-function normalizeStaticSeo(raw: unknown) {
-  if (!raw || typeof raw !== "object" || Array.isArray(raw)) return undefined
+function normalizeStaticSeo(raw: unknown, headingTypographyRaw: unknown) {
+  if ((!raw || typeof raw !== "object" || Array.isArray(raw)) && typeof headingTypographyRaw === "undefined") {
+    return undefined
+  }
   const allowedKeys = ["home", "about", "services", "training", "contact", "blog"] as const
+  const parsedRaw = raw && typeof raw === "object" && !Array.isArray(raw) ? (raw as Record<string, unknown>) : {}
   const normalized: Record<string, unknown> = {}
   for (const key of allowedKeys) {
-    const entry = (raw as Record<string, unknown>)[key]
+    const entry = parsedRaw[key]
     if (!entry || typeof entry !== "object" || Array.isArray(entry)) continue
     const ogImage = normalizeAssetDbValue(
       typeof (entry as Record<string, unknown>).ogImage === "string" ? ((entry as Record<string, unknown>).ogImage as string) : "",
@@ -93,6 +97,11 @@ function normalizeStaticSeo(raw: unknown) {
       ...entry,
       ogImage: typeof ogImage === "string" ? ogImage : "",
     }
+  }
+  const headingSource =
+    typeof headingTypographyRaw !== "undefined" ? headingTypographyRaw : (parsedRaw as Record<string, unknown>).typography
+  if (typeof headingSource !== "undefined") {
+    normalized.typography = normalizeHeadingTypography(headingSource)
   }
   return Object.keys(normalized).length > 0 ? normalized : undefined
 }
@@ -152,6 +161,7 @@ export async function PUT(request: Request) {
       seoDefaultOgImage,
       seoDefaultCanonicalBase,
       staticSeo,
+      headingTypography,
     } = body
 
     const session = await getSession()
@@ -166,7 +176,7 @@ export async function PUT(request: Request) {
     const normalizedLogoUrl = normalizeAssetDbValue(logoUrl)
     const normalizedFaviconUrl = normalizeAssetDbValue(faviconUrl)
     const normalizedSeoDefaultOgImage = normalizeAssetDbValue(seoDefaultOgImage)
-    const normalizedStaticSeo = normalizeStaticSeo(staticSeo)
+    const normalizedStaticSeo = normalizeStaticSeo(staticSeo, headingTypography)
 
     const normalizedBusinessHoursSchedule =
       typeof businessHoursSchedule === "string"

@@ -73,8 +73,8 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
                 </div>
               )}
 
-              <div className="space-y-4 mb-8">
-                <h1 className="text-4xl md:text-5xl font-bold text-balance">{post.title}</h1>
+              <div className="space-y-4 mb-8 cms-page-title-wrap">
+                <h1 className="cms-page-title text-balance">{post.title}</h1>
                 <div className="flex items-center gap-2 text-muted-foreground">
                   <Calendar className="h-4 w-4" />
                   <time dateTime={post.publishedAt ?? undefined}>

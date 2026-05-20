@@ -123,6 +123,7 @@ export default async function SettingsPage() {
                 : resolved.staticSeo
                   ? JSON.stringify(resolved.staticSeo)
                   : undefined,
+              heading_typography: resolved.headingTypography ? JSON.stringify(resolved.headingTypography) : undefined,
               nav_items: JSON.stringify({
                 main: resolved.navItems,
                 footer: resolved.footerNavItems,

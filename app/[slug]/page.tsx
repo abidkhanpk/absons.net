@@ -50,12 +50,12 @@ export default async function ContentPage({ params }: { params: Promise<{ slug: 
 
       <main className="flex-1">
         <section className="border-b border-border bg-muted/20">
-          <div className="container mx-auto px-4 lg:px-8 py-12">
-            <h1 className="text-3xl md:text-4xl font-bold">{page.title}</h1>
+          <div className="container mx-auto px-4 lg:px-8 cms-page-title-wrap">
+            <h1 className="cms-page-title">{page.title}</h1>
           </div>
         </section>
 
-        <section className="py-12">
+        <section className="cms-page-content-wrap">
           <div className="container mx-auto px-4 lg:px-8">
             <RichContentRenderer content={page.content} className="prose prose-lg max-w-none" />
           </div>

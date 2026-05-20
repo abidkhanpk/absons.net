@@ -6,6 +6,7 @@ import { ServiceWorkerReset } from "@/components/service-worker-reset"
 import { getSiteSettings } from "@/lib/site-settings"
 import { buildSeoMetadata } from "@/lib/seo"
 import { resolveAssetUrl } from "@/lib/asset-url"
+import { headingTypographyToCssVariables } from "@/lib/heading-typography"
 import "./globals.css"
 
 const DEFAULT_FAVICON = "/uploads/default-icon-light-32x32.png"
@@ -217,12 +218,13 @@ async function LayoutWithSettings({ children }: { children: React.ReactNode }) {
   const settings = await getSiteSettings()
   const layoutMode = settings.layoutMode || "container"
   const widthValue = layoutMode === "full" ? "100%" : `${Math.min(Math.max(settings.layoutWidth || 90, 60), 100)}%`
+  const headingVars = headingTypographyToCssVariables(settings.headingTypography)
   const analyticsSnippet = settings.analyticsScript?.trim()
   const headerSnippet = settings.headerCode?.trim()
   const footerSnippet = settings.footerCode?.trim()
 
   return (
-    <div style={{ ["--page-container-max" as string]: widthValue }}>
+    <div style={{ ["--page-container-max" as string]: widthValue, ...headingVars }}>
       <ServiceWorkerReset />
       {analyticsSnippet ? <div dangerouslySetInnerHTML={{ __html: analyticsSnippet }} /> : null}
       {headerSnippet ? <div dangerouslySetInnerHTML={{ __html: headerSnippet }} /> : null}

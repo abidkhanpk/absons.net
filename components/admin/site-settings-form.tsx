@@ -10,6 +10,15 @@ import { Switch } from "@/components/ui/switch"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion"
 import { ArrowDown, ArrowUp, Trash2, UploadCloud } from "lucide-react"
+import {
+  DEFAULT_HEADING_TYPOGRAPHY,
+  HEADING_TEXT_STYLE_OPTIONS,
+  normalizeHeadingTypography,
+  normalizeHeadingTextStyle,
+  type HeadingLevelKey,
+  type HeadingTextStyle,
+  type HeadingTypographySettings,
+} from "@/lib/heading-typography"
 
 type SiteSettings = {
   site_title: string
@@ -60,6 +69,7 @@ type SiteSettings = {
   seo_default_og_image?: string | null
   seo_default_canonical_base?: string | null
   static_seo?: string | null
+  heading_typography?: string | HeadingTypographySettings | null
   nav_items?: string | null
   home_sections?: string | null
 }
@@ -498,6 +508,16 @@ function safeParseWhyChooseItems(raw: string | null | undefined, fallback: WhyCh
   }
 }
 
+function safeParseHeadingTypography(raw: string | HeadingTypographySettings | null | undefined): HeadingTypographySettings {
+  if (!raw) return DEFAULT_HEADING_TYPOGRAPHY
+  try {
+    const parsed = typeof raw === "string" ? JSON.parse(raw) : raw
+    return normalizeHeadingTypography(parsed)
+  } catch {
+    return DEFAULT_HEADING_TYPOGRAPHY
+  }
+}
+
 export function SiteSettingsForm({ initial, pages }: { initial: SiteSettings; pages: PageSummary[] }) {
   const defaultSchedule: BusinessHourEntry[] = [
     { day: "Monday", open: "09:00", close: "18:00", closed: false },
@@ -626,6 +646,7 @@ export function SiteSettingsForm({ initial, pages }: { initial: SiteSettings; pa
     seoDefaultOgImage: initial.seo_default_og_image || "",
     seoDefaultCanonicalBase: initial.seo_default_canonical_base || "",
     staticSeo: initialStaticSeo,
+    headingTypography: safeParseHeadingTypography(initial.heading_typography),
     navItems: initialNavItems,
     footerNavItems: initialFooterNavItems,
     homeSections: initialHomeSections,
@@ -635,7 +656,9 @@ export function SiteSettingsForm({ initial, pages }: { initial: SiteSettings; pa
   const [success, setSuccess] = useState(false)
   const [uploading, setUploading] = useState(false)
   const [uploadingHeroIndex, setUploadingHeroIndex] = useState<number | null>(null)
-  const [activeTab, setActiveTab] = useState<"general" | "home-sections" | "navigation" | "hero" | "contact" | "seo">("general")
+  const [activeTab, setActiveTab] = useState<"general" | "headings" | "home-sections" | "navigation" | "hero" | "contact" | "seo">(
+    "general",
+  )
   const [selectedHeaderPage, setSelectedHeaderPage] = useState("")
   const [selectedFooterPage, setSelectedFooterPage] = useState("")
 
@@ -815,6 +838,23 @@ export function SiteSettingsForm({ initial, pages }: { initial: SiteSettings; pa
     }))
   }
 
+  const updateHeadingTypography = (
+    level: HeadingLevelKey,
+    field: keyof HeadingTypographySettings[HeadingLevelKey],
+    value: string | HeadingTextStyle,
+  ) => {
+    setFormData((prev) => ({
+      ...prev,
+      headingTypography: {
+        ...prev.headingTypography,
+        [level]: {
+          ...prev.headingTypography[level],
+          [field]: value,
+        },
+      },
+    }))
+  }
+
   const moveWhyChooseItem = (index: number, direction: -1 | 1) => {
     setFormData((prev) => ({
       ...prev,
@@ -897,6 +937,7 @@ export function SiteSettingsForm({ initial, pages }: { initial: SiteSettings; pa
 
     try {
       const whyChooseSection = formData.homeSections.find((section) => section.id === "why-choose")
+      const normalizedHeadingTypography = normalizeHeadingTypography(formData.headingTypography)
       const response = await fetch("/api/admin/site-settings", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
@@ -923,6 +964,7 @@ export function SiteSettingsForm({ initial, pages }: { initial: SiteSettings; pa
           seoDefaultOgImage: formData.seoDefaultOgImage,
           seoDefaultCanonicalBase: formData.seoDefaultCanonicalBase,
           staticSeo: formData.staticSeo,
+          headingTypography: normalizedHeadingTypography,
           heroSlides: formData.heroSlides,
           businessHoursSchedule: formData.businessHoursSchedule,
           businessHoursMode: formData.businessHoursMode,
@@ -1007,6 +1049,7 @@ export function SiteSettingsForm({ initial, pages }: { initial: SiteSettings; pa
       <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as typeof activeTab)} className="space-y-6">
         <TabsList>
           <TabsTrigger value="general">General</TabsTrigger>
+          <TabsTrigger value="headings">Headings</TabsTrigger>
           <TabsTrigger value="home-sections">Home Sections</TabsTrigger>
           <TabsTrigger value="navigation">Navigation & Layout</TabsTrigger>
           <TabsTrigger value="hero">Hero Slides</TabsTrigger>
@@ -1172,6 +1215,74 @@ export function SiteSettingsForm({ initial, pages }: { initial: SiteSettings; pa
             </div>
           </div>
 
+        </TabsContent>
+
+        <TabsContent value="headings" className="space-y-6">
+          <div className="space-y-4">
+            <div>
+              <Label className="font-semibold">Heading Typography</Label>
+              <p className="text-xs text-muted-foreground">
+                Applies site-wide to rich-content headings. Page and blog titles use the H1 settings.
+              </p>
+            </div>
+            <div className="space-y-3">
+              {(Object.keys(formData.headingTypography) as HeadingLevelKey[]).map((level) => {
+                const levelSettings = formData.headingTypography[level]
+                const fallback = DEFAULT_HEADING_TYPOGRAPHY[level]
+                return (
+                  <div key={level} className="rounded-md border border-border/60 bg-muted/40 p-3 space-y-3">
+                    <p className="text-sm font-medium uppercase">{level}</p>
+                    <div className="grid gap-3 md:grid-cols-4">
+                      <div className="space-y-1">
+                        <Label className="text-xs text-muted-foreground">Font Size</Label>
+                        <Input
+                          value={levelSettings.fontSize}
+                          onChange={(e) => updateHeadingTypography(level, "fontSize", e.target.value)}
+                          placeholder={fallback.fontSize}
+                        />
+                      </div>
+                      <div className="space-y-1">
+                        <Label className="text-xs text-muted-foreground">Style</Label>
+                        <Select
+                          value={levelSettings.textStyle}
+                          onValueChange={(value) =>
+                            updateHeadingTypography(level, "textStyle", normalizeHeadingTextStyle(value))
+                          }
+                        >
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select style" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {HEADING_TEXT_STYLE_OPTIONS.map((option) => (
+                              <SelectItem key={option.value} value={option.value}>
+                                {option.label}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div className="space-y-1">
+                        <Label className="text-xs text-muted-foreground">Space Before</Label>
+                        <Input
+                          value={levelSettings.spaceBefore}
+                          onChange={(e) => updateHeadingTypography(level, "spaceBefore", e.target.value)}
+                          placeholder={fallback.spaceBefore}
+                        />
+                      </div>
+                      <div className="space-y-1">
+                        <Label className="text-xs text-muted-foreground">Space After</Label>
+                        <Input
+                          value={levelSettings.spaceAfter}
+                          onChange={(e) => updateHeadingTypography(level, "spaceAfter", e.target.value)}
+                          placeholder={fallback.spaceAfter}
+                        />
+                      </div>
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
+          </div>
         </TabsContent>
 
         <TabsContent value="home-sections" className="space-y-6">

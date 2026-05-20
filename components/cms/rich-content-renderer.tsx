@@ -16,6 +16,30 @@ type RenderPart =
     }
 
 const VIDEO_BLOCK_PATTERN = /<figure\b[^>]*data-cms-video(?:=(['"])true\1)?[^>]*>[\s\S]*?<\/figure>/gi
+const LEADING_PARAGRAPH_PATTERN = /^\s*<p(?:\s+[^>]*)?>([\s\S]*?)<\/p>/i
+
+function isVisuallyEmptyParagraph(innerHtml: string) {
+  const withoutLineBreaks = innerHtml.replace(/<br\s*\/?>/gi, "")
+  const withoutInlineWrappers = withoutLineBreaks.replace(/<\/?(span|strong|em|u|b|i|small|mark|sup|sub)[^>]*>/gi, "")
+  const withoutEntities = withoutInlineWrappers
+    .replace(/&nbsp;|&#160;|&#xa0;|&#xA0;/gi, "")
+    .replace(/&ZeroWidthSpace;|&#8203;|&#x200B;/gi, "")
+  const withoutInvisibleChars = withoutEntities.replace(/[\u00A0\u200B\u200C\u200D\uFEFF]/g, "")
+  const withoutWhitespace = withoutInvisibleChars.replace(/\s+/g, "")
+  return withoutWhitespace.length === 0
+}
+
+function stripLeadingEmptyParagraphs(html: string) {
+  let output = html
+  while (true) {
+    const match = output.match(LEADING_PARAGRAPH_PATTERN)
+    if (!match) return output
+    const full = match[0]
+    const inner = match[1] || ""
+    if (!isVisuallyEmptyParagraph(inner)) return output
+    output = output.slice(full.length)
+  }
+}
 
 function decodeHtmlEntities(value: string) {
   return value
@@ -144,7 +168,7 @@ function parseVideoBlock(blockHtml: string): CmsVideoConfig | null {
 }
 
 function splitContent(content: string): RenderPart[] {
-  const html = content || ""
+  const html = stripLeadingEmptyParagraphs(content || "")
   const pattern = new RegExp(VIDEO_BLOCK_PATTERN.source, "gi")
   const parts: RenderPart[] = []
   let cursor = 0
