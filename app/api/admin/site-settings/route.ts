@@ -188,6 +188,12 @@ export async function PUT(request: Request) {
 
     const expectedUpdatedAtDate =
       typeof expectedUpdatedAt === "string" && expectedUpdatedAt.trim() ? new Date(expectedUpdatedAt) : null
+    if (typeof heroSlides !== "undefined" && !expectedUpdatedAtDate) {
+      return NextResponse.json(
+        { error: "Missing settings version token. Reload settings page and try again." },
+        { status: 400 },
+      )
+    }
     if (expectedUpdatedAtDate && Number.isNaN(expectedUpdatedAtDate.getTime())) {
       return NextResponse.json({ error: "Invalid settings version token" }, { status: 400 })
     }
@@ -210,70 +216,99 @@ export async function PUT(request: Request) {
       )
     }
 
-    const updatedSettings = await prisma.siteSettings.update({
-      where: { id: "site" },
-      data: {
-        siteTitle,
-        logoUrl: typeof normalizedLogoUrl === "undefined" ? undefined : normalizedLogoUrl,
-        faviconUrl: typeof normalizedFaviconUrl === "undefined" ? undefined : normalizedFaviconUrl,
-        contactEmail,
-        contactPhone,
-        contactAddress,
-        navAlignment,
-        navLoginText,
-        navCtaText,
-        navCtaHref,
-        navCtaEnabled,
-        navItems:
-          Array.isArray(navItems) && Array.isArray(footerNavItems)
-            ? { main: navItems, footer: footerNavItems }
-            : Array.isArray(navItems)
+    const updateData = {
+      siteTitle,
+      logoUrl: typeof normalizedLogoUrl === "undefined" ? undefined : normalizedLogoUrl,
+      faviconUrl: typeof normalizedFaviconUrl === "undefined" ? undefined : normalizedFaviconUrl,
+      contactEmail,
+      contactPhone,
+      contactAddress,
+      navAlignment,
+      navLoginText,
+      navCtaText,
+      navCtaHref,
+      navCtaEnabled,
+      navItems:
+        Array.isArray(navItems) && Array.isArray(footerNavItems)
+          ? { main: navItems, footer: footerNavItems }
+          : Array.isArray(navItems)
+            ? navItems
+            : typeof navItems === "object" && navItems !== null
               ? navItems
-              : typeof navItems === "object" && navItems !== null
-                ? navItems
-                : undefined,
-        layoutMode,
-        layoutWidth,
-        heroSlides: normalizedHeroSlides.serialized,
-        heroMode,
-        heroStaticIndex,
-        heroAutoplaySeconds,
-        heroHeight,
-        businessHours,
-        businessDays,
-        businessHoursSchedule: normalizedBusinessHoursSchedule,
-        businessHoursMode,
-        showBusinessHours,
-        logoWidth,
-        logoHeight,
-        logoRadius,
-        showLoginLink,
-        showServices,
-        showTraining,
-        showTestimonials,
-        homeSections: normalizeHomeSections(homeSections),
-        editorApprovalRequired,
-        whyChooseTitle,
-        whyChooseSubtitle,
-        whyChooseItems: normalizeWhyChooseItems(whyChooseItems),
-        whyChooseLayout,
-        whyChooseMobileLayout,
-        whyChooseScrollSpeed,
-        analyticsScript,
-        headerCode,
-        footerCode,
-        allowIndexing,
-        seoTitleTemplate,
-        seoDefaultTitle,
-        seoDefaultDescription,
-        seoDefaultKeywords,
-        seoDefaultOgImage: typeof normalizedSeoDefaultOgImage === "undefined" ? undefined : normalizedSeoDefaultOgImage,
-        seoDefaultCanonicalBase,
-        staticSeo: normalizedStaticSeo ?? (staticSeo ? staticSeo : undefined),
-        updatedAt: new Date(),
-      },
+              : undefined,
+      layoutMode,
+      layoutWidth,
+      heroSlides: normalizedHeroSlides.serialized,
+      heroMode,
+      heroStaticIndex,
+      heroAutoplaySeconds,
+      heroHeight,
+      businessHours,
+      businessDays,
+      businessHoursSchedule: normalizedBusinessHoursSchedule,
+      businessHoursMode,
+      showBusinessHours,
+      logoWidth,
+      logoHeight,
+      logoRadius,
+      showLoginLink,
+      showServices,
+      showTraining,
+      showTestimonials,
+      homeSections: normalizeHomeSections(homeSections),
+      editorApprovalRequired,
+      whyChooseTitle,
+      whyChooseSubtitle,
+      whyChooseItems: normalizeWhyChooseItems(whyChooseItems),
+      whyChooseLayout,
+      whyChooseMobileLayout,
+      whyChooseScrollSpeed,
+      analyticsScript,
+      headerCode,
+      footerCode,
+      allowIndexing,
+      seoTitleTemplate,
+      seoDefaultTitle,
+      seoDefaultDescription,
+      seoDefaultKeywords,
+      seoDefaultOgImage: typeof normalizedSeoDefaultOgImage === "undefined" ? undefined : normalizedSeoDefaultOgImage,
+      seoDefaultCanonicalBase,
+      staticSeo: normalizedStaticSeo ?? (staticSeo ? staticSeo : undefined),
+      updatedAt: new Date(),
+    }
+
+    if (expectedUpdatedAtDate) {
+      const updateResult = await prisma.siteSettings.updateMany({
+        where: { id: "site", updatedAt: existingSettings.updatedAt },
+        data: updateData,
+      })
+      if (updateResult.count === 0) {
+        const latest = await prisma.siteSettings.findUnique({
+          where: { id: "site" },
+          select: { updatedAt: true },
+        })
+        return NextResponse.json(
+          {
+            error: "Settings were changed in another session. Reload this page before saving.",
+            latestUpdatedAt: latest?.updatedAt.toISOString() ?? existingSettings.updatedAt.toISOString(),
+          },
+          { status: 409 },
+        )
+      }
+    } else {
+      await prisma.siteSettings.update({
+        where: { id: "site" },
+        data: updateData,
+      })
+    }
+
+    const updatedSettings = await prisma.siteSettings.findUnique({
+      where: { id: "site" },
       select: { updatedAt: true },
     })
+    if (!updatedSettings) {
+      return NextResponse.json({ error: "Site settings not found" }, { status: 404 })
+    }
 
     if (normalizedHeroSlides.wasExplicitlyEmpty) {
       console.warn("Ignored empty heroSlides payload to prevent accidental overwrite.")
