@@ -184,7 +184,7 @@
   overflow-y: hidden;
   scrollbar-width: none;
   -ms-overflow-style: none;
-  touch-action: pan-x;
+  touch-action: pan-y pinch-zoom;
 }
 
 .scrolling-loop.drag-enabled {

@@ -700,6 +700,25 @@ export function SiteSettingsForm({ initial, pages }: { initial: SiteSettings; pa
     })
   }
 
+  const moveHeroSlide = (index: number, direction: -1 | 1) => {
+    setFormData((prev) => {
+      const nextIndex = index + direction
+      if (nextIndex < 0 || nextIndex >= prev.heroSlides.length) return prev
+      const heroSlides = moveItem(prev.heroSlides, index, nextIndex)
+      let heroStaticIndex = prev.heroStaticIndex
+      if (prev.heroStaticIndex === index) {
+        heroStaticIndex = nextIndex
+      } else if (prev.heroStaticIndex === nextIndex) {
+        heroStaticIndex = index
+      }
+      return {
+        ...prev,
+        heroSlides,
+        heroStaticIndex,
+      }
+    })
+  }
+
   const toggleHomeSection = (id: HomeSection["id"], enabled: boolean) => {
     setFormData((prev) => {
       const homeSections = prev.homeSections.map((section) =>
@@ -2245,18 +2264,40 @@ export function SiteSettingsForm({ initial, pages }: { initial: SiteSettings; pa
                 <AccordionContent className="p-4 space-y-3">
                   <div className="flex items-center justify-between">
                     <span className="text-xs text-muted-foreground">Edit slide content</span>
-                    <button
-                      type="button"
-                      className="text-xs text-destructive"
-                      onClick={() =>
-                        setFormData((prev) => {
-                          const next = prev.heroSlides.filter((_, i) => i !== index)
-                          return { ...prev, heroSlides: next.length > 0 ? next : prev.heroSlides }
-                        })
-                      }
-                    >
-                      Remove
-                    </button>
+                    <div className="flex items-center gap-1">
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => moveHeroSlide(index, -1)}
+                        disabled={index === 0}
+                        aria-label={`Move slide ${index + 1} up`}
+                      >
+                        <ArrowUp className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => moveHeroSlide(index, 1)}
+                        disabled={index === formData.heroSlides.length - 1}
+                        aria-label={`Move slide ${index + 1} down`}
+                      >
+                        <ArrowDown className="h-4 w-4" />
+                      </Button>
+                      <button
+                        type="button"
+                        className="text-xs text-destructive"
+                        onClick={() =>
+                          setFormData((prev) => {
+                            const next = prev.heroSlides.filter((_, i) => i !== index)
+                            return { ...prev, heroSlides: next.length > 0 ? next : prev.heroSlides }
+                          })
+                        }
+                      >
+                        Remove
+                      </button>
+                    </div>
                   </div>
                   <div className="grid md:grid-cols-2 gap-3">
                     <div className="space-y-2">

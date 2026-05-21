@@ -26,11 +26,33 @@ export function ScrollingLoop({
   const [canHover, setCanHover] = useState(false)
   const dragStateRef = useRef({
     startX: 0,
+    startY: 0,
     startScrollLeft: 0,
     pointerId: -1,
+    pointerType: "",
     isPointerDown: false,
     dragStarted: false,
+    startedOnTextTarget: false,
   })
+
+  const isTextLikeTarget = (target: HTMLElement | null) => {
+    if (!target) return false
+    return Boolean(target.closest("p, h1, h2, h3, h4, h5, h6, li, span, strong, em, small, blockquote, dd, dt"))
+  }
+
+  const hasSelectionInside = (container: HTMLDivElement) => {
+    const selection = window.getSelection()
+    if (!selection || selection.isCollapsed || selection.rangeCount === 0) return false
+    const range = selection.getRangeAt(0)
+    const getHost = (node: Node | null) => {
+      if (!node) return null
+      if (node.nodeType === Node.ELEMENT_NODE) return node as Element
+      return node.parentElement
+    }
+    const startHost = getHost(range.startContainer)
+    const endHost = getHost(range.endContainer)
+    return Boolean(startHost && endHost && container.contains(startHost) && container.contains(endHost))
+  }
 
   const isToggleFocusedInside = () => {
     const container = containerRef.current
@@ -120,23 +142,42 @@ export function ScrollingLoop({
     }
     dragStateRef.current = {
       startX: event.clientX,
+      startY: event.clientY,
       startScrollLeft: container.scrollLeft,
       pointerId: event.pointerId,
+      pointerType: event.pointerType,
       isPointerDown: true,
       dragStarted: false,
+      startedOnTextTarget: isTextLikeTarget(target),
     }
   }
 
   const onPointerMove = (event: React.PointerEvent<HTMLDivElement>) => {
     if (!dragStateRef.current.isPointerDown || !containerRef.current) return
-    const delta = event.clientX - dragStateRef.current.startX
+    const deltaX = event.clientX - dragStateRef.current.startX
+    const deltaY = event.clientY - dragStateRef.current.startY
+    const absX = Math.abs(deltaX)
+    const absY = Math.abs(deltaY)
+
     if (!dragStateRef.current.dragStarted) {
-      if (Math.abs(delta) < 5) return
+      const moveThreshold = dragStateRef.current.startedOnTextTarget && dragStateRef.current.pointerType === "mouse" ? 12 : 6
+      if (absX < moveThreshold) return
+      if (absX <= absY) return
+      if (
+        dragStateRef.current.pointerType === "mouse" &&
+        dragStateRef.current.startedOnTextTarget &&
+        hasSelectionInside(containerRef.current)
+      ) {
+        stopDragging()
+        return
+      }
       dragStateRef.current.dragStarted = true
       setIsDragging(true)
       containerRef.current.setPointerCapture(dragStateRef.current.pointerId)
     }
-    containerRef.current.scrollLeft = dragStateRef.current.startScrollLeft - delta
+
+    event.preventDefault()
+    containerRef.current.scrollLeft = dragStateRef.current.startScrollLeft - deltaX
     normalizeScrollPosition()
   }
 
@@ -149,6 +190,8 @@ export function ScrollingLoop({
     dragStateRef.current.isPointerDown = false
     dragStateRef.current.dragStarted = false
     dragStateRef.current.pointerId = -1
+    dragStateRef.current.pointerType = ""
+    dragStateRef.current.startedOnTextTarget = false
     setIsDragging(false)
   }
 
