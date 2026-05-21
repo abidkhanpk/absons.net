@@ -333,12 +333,14 @@ export function RichTextEditor({ content, onChange }: RichTextEditorProps) {
   const [videoUploadError, setVideoUploadError] = useState<string | null>(null)
   const [posterUploading, setPosterUploading] = useState(false)
   const [posterUploadError, setPosterUploadError] = useState<string | null>(null)
+  const [imageUploading, setImageUploading] = useState(false)
   const [videoTracksError, setVideoTracksError] = useState<string | null>(null)
   const [videoFormMode, setVideoFormMode] = useState<"insert" | "edit">("insert")
   const [selectedVideoPos, setSelectedVideoPos] = useState<number | null>(null)
   const [editingVideoPos, setEditingVideoPos] = useState<number | null>(null)
   const videoFileInputRef = useRef<HTMLInputElement | null>(null)
   const posterFileInputRef = useRef<HTMLInputElement | null>(null)
+  const imageFileInputRef = useRef<HTMLInputElement | null>(null)
   const editor = useEditor({
     extensions: [
       StarterKit.configure({
@@ -610,6 +612,42 @@ export function RichTextEditor({ content, onChange }: RichTextEditorProps) {
     const url = window.prompt("Enter image URL")
     if (url) {
       editor.chain().focus().setImage({ src: url }).run()
+    }
+  }
+
+  const uploadImage = async (file: File | null) => {
+    if (!file) return
+    if (!file.type.startsWith("image/")) {
+      window.alert("Please choose a valid image file.")
+      return
+    }
+    setImageUploading(true)
+    try {
+      const payload = new FormData()
+      payload.append("file", file)
+      payload.append("folder", "images")
+      const response = await fetch("/api/admin/uploads", { method: "POST", body: payload })
+      const result = await response.json().catch(() => ({}))
+      if (!response.ok || (!result?.key && !result?.url)) {
+        throw new Error(result?.error || "Image upload failed")
+      }
+      const src =
+        typeof result?.url === "string" && result.url.trim().length > 0
+          ? result.url.trim()
+          : typeof result?.key === "string"
+            ? result.key.trim()
+            : ""
+      if (!src) {
+        throw new Error("Image upload failed")
+      }
+      editor.chain().focus().setImage({ src }).run()
+    } catch (error) {
+      window.alert(error instanceof Error ? error.message : "Image upload failed")
+    } finally {
+      setImageUploading(false)
+      if (imageFileInputRef.current) {
+        imageFileInputRef.current.value = ""
+      }
     }
   }
 
@@ -1269,6 +1307,24 @@ export function RichTextEditor({ content, onChange }: RichTextEditorProps) {
         <Button type="button" size="sm" variant="ghost" onClick={addImage}>
           <ImageIcon className="h-4 w-4" />
         </Button>
+        <Button
+          type="button"
+          size="sm"
+          variant="ghost"
+          title="Upload image"
+          onClick={() => imageFileInputRef.current?.click()}
+          disabled={imageUploading}
+        >
+          <UploadCloud className="h-4 w-4" />
+        </Button>
+        <input
+          ref={imageFileInputRef}
+          id="cms-inline-image-upload"
+          type="file"
+          accept="image/*"
+          className="hidden"
+          onChange={(e) => uploadImage(e.target.files?.[0] || null)}
+        />
         <div className="w-px h-6 bg-border mx-1" />
         <Button
           type="button"
