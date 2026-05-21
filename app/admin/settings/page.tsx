@@ -5,13 +5,13 @@ import { getSession } from "@/lib/auth"
 import { prisma, withRls } from "@/lib/prisma"
 import { getSiteSettings } from "@/lib/site-settings"
 
-function resolveInitialHeroSlides(raw: string | null | undefined, fallback: unknown[]) {
-  if (!raw) return fallback
+function resolveInitialHeroSlides(raw: string | null | undefined) {
+  if (!raw) return []
   try {
     const parsed = JSON.parse(raw)
-    return Array.isArray(parsed) && parsed.length > 0 ? parsed : fallback
+    return Array.isArray(parsed) ? parsed : []
   } catch {
-    return fallback
+    return []
   }
 }
 
@@ -66,7 +66,7 @@ export default async function SettingsPage() {
               layout_width: settings?.layoutWidth ?? 90,
               hero_mode: (settings?.heroMode as "static" | "parallax") || resolved.heroMode || "static",
               hero_static_index: settings?.heroStaticIndex ?? resolved.heroStaticIndex ?? 0,
-              hero_slides: JSON.stringify(resolveInitialHeroSlides(settings?.heroSlides, resolved.heroSlides as unknown[])),
+              hero_slides: JSON.stringify(resolveInitialHeroSlides(settings?.heroSlides)),
               hero_autoplay_seconds: settings?.heroAutoplaySeconds ?? resolved.heroAutoplaySeconds ?? 6,
               hero_height: settings?.heroHeight ?? resolved.heroHeight ?? 560,
               business_hours: settings?.businessHours ?? resolved.businessHours ?? "Mon - Sat, 9:00 AM - 6:00 PM",
@@ -133,6 +133,7 @@ export default async function SettingsPage() {
                 : resolved.homeSections
                   ? JSON.stringify(resolved.homeSections)
                   : undefined,
+              settings_updated_at: settings?.updatedAt ? settings.updatedAt.toISOString() : undefined,
             }}
             pages={pages}
           />

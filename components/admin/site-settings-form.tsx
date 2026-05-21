@@ -72,6 +72,7 @@ type SiteSettings = {
   heading_typography?: string | HeadingTypographySettings | null
   nav_items?: string | null
   home_sections?: string | null
+  settings_updated_at?: string | null
 }
 
 type HeroSlide = {
@@ -661,6 +662,7 @@ export function SiteSettingsForm({ initial, pages }: { initial: SiteSettings; pa
   )
   const [selectedHeaderPage, setSelectedHeaderPage] = useState("")
   const [selectedFooterPage, setSelectedFooterPage] = useState("")
+  const [settingsUpdatedAt, setSettingsUpdatedAt] = useState<string | null>(initial.settings_updated_at || null)
 
   const moveItem = <T,>(items: T[], fromIndex: number, toIndex: number) => {
     if (toIndex < 0 || toIndex >= items.length) return items
@@ -987,6 +989,7 @@ export function SiteSettingsForm({ initial, pages }: { initial: SiteSettings; pa
           heroSlides: formData.heroSlides,
           businessHoursSchedule: formData.businessHoursSchedule,
           businessHoursMode: formData.businessHoursMode,
+          expectedUpdatedAt: settingsUpdatedAt,
         }),
       })
 
@@ -995,6 +998,9 @@ export function SiteSettingsForm({ initial, pages }: { initial: SiteSettings; pa
         throw new Error(result.error || "Failed to save settings")
       }
 
+      if (typeof result.updatedAt === "string" && result.updatedAt.trim()) {
+        setSettingsUpdatedAt(result.updatedAt)
+      }
       setSuccess(true)
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to save settings")

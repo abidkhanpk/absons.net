@@ -162,6 +162,7 @@ export async function PUT(request: Request) {
       seoDefaultCanonicalBase,
       staticSeo,
       headingTypography,
+      expectedUpdatedAt,
     } = body
 
     const session = await getSession()
@@ -185,7 +186,31 @@ export async function PUT(request: Request) {
           ? JSON.stringify(businessHoursSchedule)
           : undefined
 
-    await prisma.siteSettings.update({
+    const expectedUpdatedAtDate =
+      typeof expectedUpdatedAt === "string" && expectedUpdatedAt.trim() ? new Date(expectedUpdatedAt) : null
+    if (expectedUpdatedAtDate && Number.isNaN(expectedUpdatedAtDate.getTime())) {
+      return NextResponse.json({ error: "Invalid settings version token" }, { status: 400 })
+    }
+
+    const existingSettings = await prisma.siteSettings.findUnique({
+      where: { id: "site" },
+      select: { updatedAt: true },
+    })
+    if (!existingSettings) {
+      return NextResponse.json({ error: "Site settings not found" }, { status: 404 })
+    }
+
+    if (expectedUpdatedAtDate && existingSettings.updatedAt.getTime() !== expectedUpdatedAtDate.getTime()) {
+      return NextResponse.json(
+        {
+          error: "Settings were changed in another session. Reload this page before saving.",
+          latestUpdatedAt: existingSettings.updatedAt.toISOString(),
+        },
+        { status: 409 },
+      )
+    }
+
+    const updatedSettings = await prisma.siteSettings.update({
       where: { id: "site" },
       data: {
         siteTitle,
@@ -245,14 +270,16 @@ export async function PUT(request: Request) {
         seoDefaultOgImage: typeof normalizedSeoDefaultOgImage === "undefined" ? undefined : normalizedSeoDefaultOgImage,
         seoDefaultCanonicalBase,
         staticSeo: normalizedStaticSeo ?? (staticSeo ? staticSeo : undefined),
+        updatedAt: new Date(),
       },
+      select: { updatedAt: true },
     })
 
     if (normalizedHeroSlides.wasExplicitlyEmpty) {
       console.warn("Ignored empty heroSlides payload to prevent accidental overwrite.")
     }
 
-    return NextResponse.json({ success: true })
+    return NextResponse.json({ success: true, updatedAt: updatedSettings.updatedAt.toISOString() })
   } catch (error) {
     console.error("Error updating site settings:", error)
     return NextResponse.json({ error: "Failed to update settings" }, { status: 500 })
