@@ -127,6 +127,32 @@ export function PageForm({
     setSlugSegment(normalizeSlugSegment(formData.title))
   }
 
+  const isLocalhostHost = (hostname: string) => {
+    const normalized = hostname.trim().toLowerCase()
+    return normalized === "localhost" || normalized === "127.0.0.1" || normalized === "::1" || normalized === "[::1]"
+  }
+
+  const populateCanonicalFromSlug = () => {
+    if (typeof window === "undefined") return
+    if (!finalSlug) {
+      alert("Set a valid page slug first.")
+      return
+    }
+
+    const hasExistingCanonical = (formData.seoCanonicalUrl || "").trim().length > 0
+    if (hasExistingCanonical && isLocalhostHost(window.location.hostname)) {
+      const proceed = window.confirm(
+        "You are running on localhost. Updating canonical URL now may replace your real domain URL with a localhost URL. Continue?",
+      )
+      if (!proceed) return
+    }
+
+    const normalizedOrigin = window.location.origin.replace(/\/$/, "")
+    const normalizedSlug = finalSlug.replace(/^\/+/, "")
+    const canonical = `${normalizedOrigin}/${normalizedSlug}`
+    setFormData((prev) => ({ ...prev, seoCanonicalUrl: canonical }))
+  }
+
   return (
     <form onSubmit={handleSubmit}>
       <Card className="border-border">
@@ -269,7 +295,12 @@ export function PageForm({
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="seoCanonicalUrl">Canonical URL</Label>
+                <div className="flex items-center justify-between gap-2">
+                  <Label htmlFor="seoCanonicalUrl">Canonical URL</Label>
+                  <Button type="button" size="sm" variant="outline" onClick={populateCanonicalFromSlug}>
+                    Update from Slug
+                  </Button>
+                </div>
                 <Input
                   id="seoCanonicalUrl"
                   value={formData.seoCanonicalUrl}
