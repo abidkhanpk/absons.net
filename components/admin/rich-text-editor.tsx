@@ -14,6 +14,7 @@ import TextAlign from "@tiptap/extension-text-align"
 import CodeMirror from "@uiw/react-codemirror"
 import { html as htmlLang } from "@codemirror/lang-html"
 import fontAwesomeIcons from "@/lib/font-awesome-free-icons.json"
+import { CONTENT_ICON_OPTIONS, type ContentIconName } from "@/lib/content-icons"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { RichContentRenderer } from "@/components/cms/rich-content-renderer"
@@ -119,6 +120,74 @@ const CmsCard = Node.create({
   group: "block",
   content: "block+",
   defining: true,
+  addAttributes() {
+    return {
+      cardTitle: {
+        default: "",
+        parseHTML: (element) => element.getAttribute("data-cms-card-title") || "",
+        renderHTML: (attributes) =>
+          typeof attributes.cardTitle === "string" && attributes.cardTitle.trim()
+            ? { "data-cms-card-title": attributes.cardTitle.trim() }
+            : {},
+      },
+      cardBody: {
+        default: "",
+        parseHTML: (element) => element.getAttribute("data-cms-card-body") || "",
+        renderHTML: (attributes) =>
+          typeof attributes.cardBody === "string" && attributes.cardBody.trim()
+            ? { "data-cms-card-body": attributes.cardBody.trim() }
+            : {},
+      },
+      cardImage: {
+        default: "",
+        parseHTML: (element) => element.getAttribute("data-cms-card-image") || "",
+        renderHTML: (attributes) =>
+          typeof attributes.cardImage === "string" && attributes.cardImage.trim()
+            ? { "data-cms-card-image": attributes.cardImage.trim() }
+            : {},
+      },
+      cardImageAlt: {
+        default: "",
+        parseHTML: (element) => element.getAttribute("data-cms-card-image-alt") || "",
+        renderHTML: (attributes) =>
+          typeof attributes.cardImageAlt === "string" && attributes.cardImageAlt.trim()
+            ? { "data-cms-card-image-alt": attributes.cardImageAlt.trim() }
+            : {},
+      },
+      cardImageWidth: {
+        default: "",
+        parseHTML: (element) => element.getAttribute("data-cms-card-image-width") || "",
+        renderHTML: (attributes) =>
+          typeof attributes.cardImageWidth === "string" && attributes.cardImageWidth.trim()
+            ? { "data-cms-card-image-width": attributes.cardImageWidth.trim() }
+            : {},
+      },
+      cardImageHeight: {
+        default: "",
+        parseHTML: (element) => element.getAttribute("data-cms-card-image-height") || "",
+        renderHTML: (attributes) =>
+          typeof attributes.cardImageHeight === "string" && attributes.cardImageHeight.trim()
+            ? { "data-cms-card-image-height": attributes.cardImageHeight.trim() }
+            : {},
+      },
+      cardImageLink: {
+        default: "",
+        parseHTML: (element) => element.getAttribute("data-cms-card-image-link") || "",
+        renderHTML: (attributes) =>
+          typeof attributes.cardImageLink === "string" && attributes.cardImageLink.trim()
+            ? { "data-cms-card-image-link": attributes.cardImageLink.trim() }
+            : {},
+      },
+      cardIcon: {
+        default: "",
+        parseHTML: (element) => element.getAttribute("data-cms-card-icon") || "",
+        renderHTML: (attributes) =>
+          typeof attributes.cardIcon === "string" && attributes.cardIcon.trim()
+            ? { "data-cms-card-icon": attributes.cardIcon.trim() }
+            : {},
+      },
+    }
+  },
   parseHTML() {
     return [{ tag: "article[data-cms-card]" }]
   },
@@ -315,6 +384,61 @@ const CmsImage = Image.extend({
   },
 })
 
+const CARD_ICON_TO_FA_CLASS: Record<ContentIconName, string> = {
+  GraduationCap: "fa-solid fa-graduation-cap",
+  BookOpen: "fa-solid fa-book-open",
+  School: "fa-solid fa-school",
+  Award: "fa-solid fa-award",
+  Activity: "fa-solid fa-heart-pulse",
+  Package: "fa-solid fa-box",
+  Users: "fa-solid fa-users",
+  Briefcase: "fa-solid fa-briefcase",
+  Building2: "fa-solid fa-building",
+  Landmark: "fa-solid fa-landmark",
+  Target: "fa-solid fa-bullseye",
+  ShieldCheck: "fa-solid fa-shield-halved",
+  Handshake: "fa-solid fa-handshake",
+  Lightbulb: "fa-solid fa-lightbulb",
+  Rocket: "fa-solid fa-rocket",
+  Workflow: "fa-solid fa-diagram-project",
+  Settings: "fa-solid fa-gear",
+  Cog: "fa-solid fa-cog",
+  Wrench: "fa-solid fa-wrench",
+  Monitor: "fa-solid fa-desktop",
+  Cpu: "fa-solid fa-microchip",
+  Database: "fa-solid fa-database",
+  Cloud: "fa-solid fa-cloud",
+  BarChart3: "fa-solid fa-chart-column",
+  LineChart: "fa-solid fa-chart-line",
+  PieChart: "fa-solid fa-chart-pie",
+  FileText: "fa-solid fa-file-lines",
+  CheckCircle2: "fa-solid fa-circle-check",
+  Calendar: "fa-solid fa-calendar",
+  MessageSquare: "fa-solid fa-message",
+  Mail: "fa-solid fa-envelope",
+  Phone: "fa-solid fa-phone",
+  ShoppingCart: "fa-solid fa-cart-shopping",
+  Truck: "fa-solid fa-truck",
+  Boxes: "fa-solid fa-boxes-stacked",
+  Globe: "fa-solid fa-globe",
+}
+
+const CARD_FA_CLASS_TO_ICON = Object.entries(CARD_ICON_TO_FA_CLASS).reduce<Record<string, ContentIconName>>((acc, [name, className]) => {
+  const key = className.trim().toLowerCase()
+  if (key) {
+    acc[key] = name as ContentIconName
+  }
+  return acc
+}, {})
+
+const escapeHtml = (value: string) =>
+  value
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;")
+
 export function RichTextEditor({ content, onChange }: RichTextEditorProps) {
   const [mode, setMode] = useState<"visual" | "source" | "preview">("visual")
   const [sourceHtml, setSourceHtml] = useState(content || "")
@@ -338,6 +462,21 @@ export function RichTextEditor({ content, onChange }: RichTextEditorProps) {
   const [imageFormMode, setImageFormMode] = useState<"insert" | "edit">("insert")
   const [selectedImagePos, setSelectedImagePos] = useState<number | null>(null)
   const [editingImagePos, setEditingImagePos] = useState<number | null>(null)
+  const [selectedAccordionPos, setSelectedAccordionPos] = useState<number | null>(null)
+  const [showCardForm, setShowCardForm] = useState(false)
+  const [cardFormMode, setCardFormMode] = useState<"insert" | "edit">("insert")
+  const [selectedCardPos, setSelectedCardPos] = useState<number | null>(null)
+  const [editingCardPos, setEditingCardPos] = useState<number | null>(null)
+  const [cardTitle, setCardTitle] = useState("")
+  const [cardBody, setCardBody] = useState("")
+  const [cardImageSource, setCardImageSource] = useState("")
+  const [cardImageAltText, setCardImageAltText] = useState("")
+  const [cardImageWidth, setCardImageWidth] = useState("")
+  const [cardImageHeight, setCardImageHeight] = useState("")
+  const [cardImageLinkUrl, setCardImageLinkUrl] = useState("")
+  const [cardIconName, setCardIconName] = useState<ContentIconName | "">("")
+  const [cardImageUploading, setCardImageUploading] = useState(false)
+  const [cardFormError, setCardFormError] = useState<string | null>(null)
   const [showVideoForm, setShowVideoForm] = useState(false)
   const [videoUrl, setVideoUrl] = useState("")
   const [videoPoster, setVideoPoster] = useState("")
@@ -374,6 +513,7 @@ export function RichTextEditor({ content, onChange }: RichTextEditorProps) {
   const videoFileInputRef = useRef<HTMLInputElement | null>(null)
   const posterFileInputRef = useRef<HTMLInputElement | null>(null)
   const imageFileInputRef = useRef<HTMLInputElement | null>(null)
+  const cardImageFileInputRef = useRef<HTMLInputElement | null>(null)
   const toImageDimensionInput = (value: unknown) => {
     if (typeof value === "number" && Number.isFinite(value)) return String(value)
     if (typeof value === "string") return value
@@ -386,6 +526,7 @@ export function RichTextEditor({ content, onChange }: RichTextEditorProps) {
     setPendingButtonLabel("")
     setPendingButtonHref("")
     setShowVideoForm(false)
+    setShowCardForm(false)
     setImageSource(typeof attrs.src === "string" ? attrs.src : "")
     setImageAltText(typeof attrs.alt === "string" ? attrs.alt : "")
     setImageTitleText(typeof attrs.title === "string" ? attrs.title : "")
@@ -397,6 +538,333 @@ export function RichTextEditor({ content, onChange }: RichTextEditorProps) {
     setImageFormMode("edit")
     setEditingImagePos(nodePos)
     setShowImageForm(true)
+  }
+
+  const isContentIconName = (value: string): value is ContentIconName =>
+    CONTENT_ICON_OPTIONS.includes(value as ContentIconName)
+
+  const normalizeCardIconNameFromClass = (value: string) => {
+    const normalized = value.trim().toLowerCase()
+    if (!normalized) return ""
+    const exact = CARD_FA_CLASS_TO_ICON[normalized]
+    if (exact) return exact
+    const tokens = new Set(normalized.split(/\s+/).filter(Boolean))
+    for (const [name, className] of Object.entries(CARD_ICON_TO_FA_CLASS)) {
+      const required = className.toLowerCase().split(/\s+/).filter(Boolean)
+      if (required.every((token) => tokens.has(token))) {
+        return name as ContentIconName
+      }
+    }
+    return ""
+  }
+
+  const buildCardHtml = (params: {
+    title: string
+    body: string
+    imageSource: string
+    imageAltText: string
+    imageWidth: string
+    imageHeight: string
+    imageLinkUrl: string
+    iconName: ContentIconName | ""
+  }) => {
+    const titleText = params.title.trim() || "Card title"
+    const bodyText = params.body.trim() || "Card description text."
+    const imageSource = params.imageSource.trim()
+    const imageAltText = params.imageAltText.trim()
+    const imageWidth = params.imageWidth.trim()
+    const imageHeight = params.imageHeight.trim()
+    const imageLinkUrl = params.imageLinkUrl.trim()
+    const iconName = imageSource ? "" : params.iconName
+    const iconClass = iconName ? CARD_ICON_TO_FA_CLASS[iconName] || "" : ""
+
+    const mediaHtml = imageSource
+      ? (() => {
+          const src = escapeHtml(imageSource)
+          const alt = imageAltText ? ` alt="${escapeHtml(imageAltText)}"` : ""
+          const width = imageWidth && /^\d+$/.test(imageWidth) ? ` width="${imageWidth}"` : ""
+          const height = imageHeight && /^\d+$/.test(imageHeight) ? ` height="${imageHeight}"` : ""
+          const link = imageLinkUrl ? ` data-image-link="${escapeHtml(imageLinkUrl)}"` : ""
+          return `<p><img src="${src}"${alt}${width}${height}${link} class="max-w-full h-auto rounded-lg" /></p>`
+        })()
+      : iconClass
+        ? `<p><span data-cms-fa="${escapeHtml(iconClass)}" class="${escapeHtml(iconClass)} text-2xl" aria-hidden="true"></span></p>`
+        : ""
+
+    const cardAttrs = [
+      `data-cms-card="true"`,
+      `data-cms-card-title="${escapeHtml(titleText)}"`,
+      `data-cms-card-body="${escapeHtml(bodyText)}"`,
+      imageSource ? `data-cms-card-image="${escapeHtml(imageSource)}"` : "",
+      imageAltText ? `data-cms-card-image-alt="${escapeHtml(imageAltText)}"` : "",
+      imageWidth && /^\d+$/.test(imageWidth) ? `data-cms-card-image-width="${imageWidth}"` : "",
+      imageHeight && /^\d+$/.test(imageHeight) ? `data-cms-card-image-height="${imageHeight}"` : "",
+      imageLinkUrl ? `data-cms-card-image-link="${escapeHtml(imageLinkUrl)}"` : "",
+      iconName ? `data-cms-card-icon="${escapeHtml(iconName)}"` : "",
+    ]
+      .filter(Boolean)
+      .join(" ")
+
+    return `<article ${cardAttrs}>${mediaHtml}<h3>${escapeHtml(titleText)}</h3><p>${escapeHtml(bodyText)}</p></article>`
+  }
+
+  const resetCardForm = () => {
+    setCardTitle("")
+    setCardBody("")
+    setCardImageSource("")
+    setCardImageAltText("")
+    setCardImageWidth("")
+    setCardImageHeight("")
+    setCardImageLinkUrl("")
+    setCardIconName("")
+    setCardFormError(null)
+    setCardImageUploading(false)
+  }
+
+  const closeCardForm = () => {
+    setShowCardForm(false)
+    setCardFormMode("insert")
+    setEditingCardPos(null)
+    resetCardForm()
+    if (cardImageFileInputRef.current) {
+      cardImageFileInputRef.current.value = ""
+    }
+  }
+
+  const startInsertCardFlow = () => {
+    setShowIconPicker(false)
+    setShowImageForm(false)
+    setShowVideoForm(false)
+    setPendingButtonVariant(null)
+    setPendingButtonLabel("")
+    setPendingButtonHref("")
+    resetCardForm()
+    setCardFormMode("insert")
+    setEditingCardPos(null)
+    setShowCardForm(true)
+  }
+
+  const extractCardDataFromNode = (nodePos: number) => {
+    const node = editor.state.doc.nodeAt(nodePos)
+    if (!node || node.type.name !== "cmsCard") return null
+    const attrs = node.attrs as Record<string, unknown>
+
+    let nextTitle = typeof attrs.cardTitle === "string" ? attrs.cardTitle.trim() : ""
+    let nextBody = typeof attrs.cardBody === "string" ? attrs.cardBody.trim() : ""
+    let nextImageSource = typeof attrs.cardImage === "string" ? attrs.cardImage.trim() : ""
+    let nextImageAlt = typeof attrs.cardImageAlt === "string" ? attrs.cardImageAlt.trim() : ""
+    let nextImageWidth = typeof attrs.cardImageWidth === "string" ? attrs.cardImageWidth.trim() : ""
+    let nextImageHeight = typeof attrs.cardImageHeight === "string" ? attrs.cardImageHeight.trim() : ""
+    let nextImageLink = typeof attrs.cardImageLink === "string" ? attrs.cardImageLink.trim() : ""
+    let nextIconName: ContentIconName | "" =
+      typeof attrs.cardIcon === "string" && isContentIconName(attrs.cardIcon.trim()) ? attrs.cardIcon.trim() : ""
+
+    const bodyParts: string[] = []
+    node.forEach((blockNode) => {
+      if (blockNode.type.name === "heading" && !nextTitle) {
+        const headingText = blockNode.textContent.trim()
+        if (headingText) nextTitle = headingText
+        return
+      }
+      if (blockNode.type.name !== "paragraph") return
+
+      let hasMedia = false
+      blockNode.forEach((inlineNode) => {
+        if (inlineNode.type.name === "image" && !nextImageSource) {
+          const imageAttrs = inlineNode.attrs as Record<string, unknown>
+          nextImageSource = typeof imageAttrs.src === "string" ? imageAttrs.src.trim() : ""
+          nextImageAlt = typeof imageAttrs.alt === "string" ? imageAttrs.alt.trim() : ""
+          nextImageWidth = toImageDimensionInput(imageAttrs.width)
+          nextImageHeight = toImageDimensionInput(imageAttrs.height)
+          nextImageLink = typeof imageAttrs.linkHref === "string" ? imageAttrs.linkHref.trim() : ""
+          hasMedia = true
+        } else if (inlineNode.type.name === "cmsFaIcon" && !nextIconName) {
+          const className = typeof inlineNode.attrs?.class === "string" ? inlineNode.attrs.class : ""
+          const mapped = normalizeCardIconNameFromClass(className)
+          if (mapped) {
+            nextIconName = mapped
+          }
+          hasMedia = true
+        }
+      })
+
+      const text = blockNode.textContent.trim()
+      if (!hasMedia && text) {
+        bodyParts.push(text)
+      }
+    })
+
+    if (!nextTitle) {
+      nextTitle = "Card title"
+    }
+    if (!nextBody) {
+      nextBody = bodyParts.join("\n\n") || "Card description text."
+    }
+
+    return {
+      title: nextTitle,
+      body: nextBody,
+      imageSource: nextImageSource,
+      imageAltText: nextImageAlt,
+      imageWidth: nextImageWidth,
+      imageHeight: nextImageHeight,
+      imageLinkUrl: nextImageLink,
+      iconName: nextIconName,
+    }
+  }
+
+  const startEditCardFlow = () => {
+    if (selectedCardPos === null) return
+    const existing = extractCardDataFromNode(selectedCardPos)
+    if (!existing) return
+
+    setShowIconPicker(false)
+    setShowImageForm(false)
+    setShowVideoForm(false)
+    setCardTitle(existing.title)
+    setCardBody(existing.body)
+    setCardImageSource(existing.imageSource)
+    setCardImageAltText(existing.imageAltText)
+    setCardImageWidth(existing.imageWidth)
+    setCardImageHeight(existing.imageHeight)
+    setCardImageLinkUrl(existing.imageLinkUrl)
+    setCardIconName(existing.iconName)
+    setCardFormError(null)
+    setCardFormMode("edit")
+    setEditingCardPos(selectedCardPos)
+    setShowCardForm(true)
+  }
+
+  const submitCardForm = () => {
+    const imageSource = cardImageSource.trim()
+    const imageWidth = cardImageWidth.trim()
+    const imageHeight = cardImageHeight.trim()
+
+    if (imageWidth && !/^\d+$/.test(imageWidth)) {
+      setCardFormError("Card image width must be a positive number in pixels.")
+      return
+    }
+    if (imageHeight && !/^\d+$/.test(imageHeight)) {
+      setCardFormError("Card image height must be a positive number in pixels.")
+      return
+    }
+
+    const html = buildCardHtml({
+      title: cardTitle,
+      body: cardBody,
+      imageSource,
+      imageAltText: cardImageAltText,
+      imageWidth,
+      imageHeight,
+      imageLinkUrl: cardImageLinkUrl,
+      iconName: cardIconName,
+    })
+
+    if (cardFormMode === "edit" && editingCardPos !== null) {
+      const node = editor.state.doc.nodeAt(editingCardPos)
+      if (!node || node.type.name !== "cmsCard") {
+        setCardFormError("Could not update the selected card. Please select the card again.")
+        return
+      }
+      const updated = editor
+        .chain()
+        .focus()
+        .insertContentAt({ from: editingCardPos, to: editingCardPos + node.nodeSize }, html)
+        .run()
+      if (!updated) {
+        setCardFormError("Could not update the selected card.")
+        return
+      }
+    } else {
+      const inserted = editor.chain().focus().insertContent(`${html}<p></p>`).run()
+      if (!inserted) {
+        setCardFormError("Could not insert card at the current cursor position.")
+        return
+      }
+    }
+
+    closeCardForm()
+  }
+
+  const uploadCardImage = async (file: File | null) => {
+    if (!file) return
+    if (!file.type.startsWith("image/")) {
+      setCardFormError("Please choose a valid image file.")
+      return
+    }
+    setCardImageUploading(true)
+    setCardFormError(null)
+    try {
+      const payload = new FormData()
+      payload.append("file", file)
+      payload.append("folder", "images")
+      const response = await fetch("/api/admin/uploads", { method: "POST", body: payload })
+      const result = await response.json().catch(() => ({}))
+      if (!response.ok || (!result?.key && !result?.url)) {
+        throw new Error(result?.error || "Image upload failed")
+      }
+      const src =
+        typeof result?.key === "string" && result.key.trim().length > 0
+          ? result.key.trim()
+          : typeof result?.url === "string"
+            ? result.url.trim()
+            : ""
+      if (!src) {
+        throw new Error("Image upload failed")
+      }
+      setCardImageSource(src)
+    } catch (error) {
+      setCardFormError(error instanceof Error ? error.message : "Image upload failed")
+    } finally {
+      setCardImageUploading(false)
+      if (cardImageFileInputRef.current) {
+        cardImageFileInputRef.current.value = ""
+      }
+    }
+  }
+
+  const startEditAccordionFlow = () => {
+    if (selectedAccordionPos === null) return
+    const node = editor.state.doc.nodeAt(selectedAccordionPos)
+    if (!node || node.type.name !== "accordionDetails") return
+
+    const summaryNode = node.firstChild
+    const currentTitle =
+      summaryNode && summaryNode.type.name === "accordionSummary"
+        ? summaryNode.textContent.trim() || "Accordion title"
+        : "Accordion title"
+
+    const bodyParts: string[] = []
+    for (let index = 1; index < node.childCount; index += 1) {
+      const child = node.child(index)
+      const text = child.textContent.trim()
+      if (text) {
+        bodyParts.push(text)
+      }
+    }
+    const currentBody = bodyParts.join("\n\n") || "Accordion content goes here."
+
+    const nextTitleRaw = window.prompt("Accordion title", currentTitle)
+    if (nextTitleRaw === null) return
+    const nextTitle = nextTitleRaw.trim() || "Accordion title"
+    const nextBodyRaw = window.prompt("Accordion content", currentBody)
+    if (nextBodyRaw === null) return
+    const nextBody = nextBodyRaw.trim() || "Accordion content goes here."
+
+    const replacement =
+      `<details data-cms-accordion="true" class="rounded-md border border-border p-3">` +
+      `<summary data-cms-accordion-summary="true" class="cursor-pointer font-semibold">${escapeHtml(nextTitle)}</summary>` +
+      `<p class="mt-2 text-muted-foreground">${escapeHtml(nextBody)}</p>` +
+      `</details>`
+
+    const updated = editor
+      .chain()
+      .focus()
+      .insertContentAt({ from: selectedAccordionPos, to: selectedAccordionPos + node.nodeSize }, replacement)
+      .run()
+    if (!updated) {
+      window.alert("Could not update the selected accordion.")
+    }
   }
 
   const editor = useEditor({
@@ -575,6 +1043,74 @@ export function RichTextEditor({ content, onChange }: RichTextEditorProps) {
   useEffect(() => {
     if (!editor) return
 
+    const updateSelectedAccordion = () => {
+      let foundPos: number | null = null
+
+      editor.state.doc.nodesBetween(editor.state.selection.from, editor.state.selection.to, (node, pos) => {
+        if (node.type.name !== "accordionDetails") return true
+        foundPos = pos
+        return false
+      })
+
+      if (foundPos === null) {
+        const { $from } = editor.state.selection
+        for (let depth = $from.depth; depth >= 0; depth -= 1) {
+          const node = $from.node(depth)
+          if (node.type.name !== "accordionDetails") continue
+          foundPos = depth > 0 ? $from.before(depth) : 0
+          break
+        }
+      }
+
+      setSelectedAccordionPos(foundPos)
+    }
+
+    updateSelectedAccordion()
+    editor.on("selectionUpdate", updateSelectedAccordion)
+    editor.on("transaction", updateSelectedAccordion)
+    return () => {
+      editor.off("selectionUpdate", updateSelectedAccordion)
+      editor.off("transaction", updateSelectedAccordion)
+    }
+  }, [editor])
+
+  useEffect(() => {
+    if (!editor) return
+
+    const updateSelectedCard = () => {
+      let foundPos: number | null = null
+
+      editor.state.doc.nodesBetween(editor.state.selection.from, editor.state.selection.to, (node, pos) => {
+        if (node.type.name !== "cmsCard") return true
+        foundPos = pos
+        return false
+      })
+
+      if (foundPos === null) {
+        const { $from } = editor.state.selection
+        for (let depth = $from.depth; depth >= 0; depth -= 1) {
+          const node = $from.node(depth)
+          if (node.type.name !== "cmsCard") continue
+          foundPos = depth > 0 ? $from.before(depth) : 0
+          break
+        }
+      }
+
+      setSelectedCardPos(foundPos)
+    }
+
+    updateSelectedCard()
+    editor.on("selectionUpdate", updateSelectedCard)
+    editor.on("transaction", updateSelectedCard)
+    return () => {
+      editor.off("selectionUpdate", updateSelectedCard)
+      editor.off("transaction", updateSelectedCard)
+    }
+  }, [editor])
+
+  useEffect(() => {
+    if (!editor) return
+
     const readCssVarFromStyle = (styleText: string | null | undefined, variableName: string, fallback: string) => {
       if (!styleText) return fallback
       const match = styleText.match(new RegExp(`${variableName}\\s*:\\s*([^;]+)`, "i"))
@@ -744,6 +1280,7 @@ export function RichTextEditor({ content, onChange }: RichTextEditorProps) {
     setPendingButtonLabel("")
     setPendingButtonHref("")
     setShowVideoForm(false)
+    setShowCardForm(false)
     setImageSource("")
     setImageAltText("")
     setImageTitleText("")
@@ -998,6 +1535,7 @@ export function RichTextEditor({ content, onChange }: RichTextEditorProps) {
   const startInsertVideoFlow = () => {
     setShowIconPicker(false)
     setShowImageForm(false)
+    setShowCardForm(false)
     setPendingButtonVariant(null)
     resetVideoForm()
     setVideoUploading(false)
@@ -1111,6 +1649,7 @@ export function RichTextEditor({ content, onChange }: RichTextEditorProps) {
     setVideoFormMode("edit")
     setEditingVideoPos(selectedVideoPos)
     setShowImageForm(false)
+    setShowCardForm(false)
     setShowVideoForm(true)
   }
 
@@ -1210,6 +1749,7 @@ export function RichTextEditor({ content, onChange }: RichTextEditorProps) {
   const startInsertButtonFlow = (variant: "primary" | "outline") => {
     setShowVideoForm(false)
     setShowImageForm(false)
+    setShowCardForm(false)
     const label = window.prompt("Button label", "Get Started")?.trim()
     if (!label) return
     const href = window.prompt("Button URL", "/contact")?.trim() || "/"
@@ -1268,6 +1808,10 @@ export function RichTextEditor({ content, onChange }: RichTextEditorProps) {
   }
 
   const insertAccordion = () => {
+    setShowIconPicker(false)
+    setShowImageForm(false)
+    setShowVideoForm(false)
+    setShowCardForm(false)
     const groupId = `cms-accordion-${Date.now()}`
     const countRaw = window.prompt("How many accordion items?", "1")?.trim() || "1"
     const count = Math.min(Math.max(Number.parseInt(countRaw || "1", 10) || 1, 1), 10)
@@ -1277,7 +1821,7 @@ export function RichTextEditor({ content, onChange }: RichTextEditorProps) {
       const idx = i + 1
       const title = window.prompt(`Accordion title ${idx}`, `Accordion title ${idx}`)?.trim() || `Accordion title ${idx}`
       const body = window.prompt(`Accordion content ${idx}`, "Accordion content goes here.")?.trim() || "Accordion content goes here."
-      html += `<details data-cms-accordion="true" name="${groupId}" class="rounded-md border border-border p-3"><summary data-cms-accordion-summary="true" class="cursor-pointer font-semibold">${title}</summary><p class="mt-2 text-muted-foreground">${body}</p></details>`
+      html += `<details data-cms-accordion="true" name="${groupId}" class="rounded-md border border-border p-3"><summary data-cms-accordion-summary="true" class="cursor-pointer font-semibold">${escapeHtml(title)}</summary><p class="mt-2 text-muted-foreground">${escapeHtml(body)}</p></details>`
     }
 
     editor
@@ -1288,13 +1832,7 @@ export function RichTextEditor({ content, onChange }: RichTextEditorProps) {
   }
 
   const insertCard = () => {
-    const title = window.prompt("Card title", "Card title")?.trim() || "Card title"
-    const body = window.prompt("Card description", "Card description text.")?.trim() || "Card description text."
-    editor
-      .chain()
-      .focus()
-      .insertContent(`<article data-cms-card="true"><h3>${title}</h3><p>${body}</p></article><p></p>`)
-      .run()
+    startInsertCardFlow()
   }
 
   const insertSection = () => {
@@ -1604,10 +2142,20 @@ export function RichTextEditor({ content, onChange }: RichTextEditorProps) {
           <Columns2 className="h-4 w-4 mr-1" />
           Accordion
         </Button>
+        {selectedAccordionPos !== null ? (
+          <Button type="button" size="sm" variant="outline" onClick={startEditAccordionFlow}>
+            Edit Accordion
+          </Button>
+        ) : null}
         <Button type="button" size="sm" variant="outline" onClick={insertCard}>
           <SquareStack className="h-4 w-4 mr-1" />
           Card
         </Button>
+        {selectedCardPos !== null ? (
+          <Button type="button" size="sm" variant="outline" onClick={startEditCardFlow}>
+            Edit Card
+          </Button>
+        ) : null}
         <Button type="button" size="sm" variant="outline" onClick={insertSection}>
           <Columns2 className="h-4 w-4 mr-1" />
           Section
@@ -1749,6 +2297,104 @@ export function RichTextEditor({ content, onChange }: RichTextEditorProps) {
             </Button>
             <Button type="button" size="sm" onClick={insertImageFromForm} disabled={imageUploading}>
               {imageFormMode === "edit" ? "Update Image" : "Insert Image"}
+            </Button>
+          </div>
+        </div>
+      )}
+      {showCardForm && (
+        <div className="p-3 border-b border-input bg-muted/20 space-y-3">
+          <p className="text-sm font-medium">{cardFormMode === "edit" ? "Edit Card" : "Insert Card"}</p>
+          <div className="grid gap-3 md:grid-cols-2">
+            <div className="space-y-1.5">
+              <label className="text-xs font-medium text-muted-foreground">Card Title</label>
+              <Input value={cardTitle} onChange={(e) => setCardTitle(e.target.value)} placeholder="Card title" />
+            </div>
+            <div className="space-y-1.5">
+              <label className="text-xs font-medium text-muted-foreground">Icon</label>
+              <select
+                className="h-9 w-full rounded-md border border-input bg-background px-3 text-sm"
+                value={cardIconName}
+                onChange={(e) => setCardIconName(e.target.value && isContentIconName(e.target.value) ? e.target.value : "")}
+                disabled={cardImageSource.trim().length > 0}
+              >
+                <option value="">None</option>
+                {CONTENT_ICON_OPTIONS.map((iconOption) => (
+                  <option key={iconOption} value={iconOption}>
+                    {iconOption}
+                  </option>
+                ))}
+              </select>
+              {cardImageSource.trim().length > 0 ? (
+                <p className="text-[11px] text-muted-foreground">Image is currently set, so icon is ignored.</p>
+              ) : null}
+            </div>
+            <div className="space-y-1.5 md:col-span-2">
+              <label className="text-xs font-medium text-muted-foreground">Card Description</label>
+              <textarea
+                value={cardBody}
+                onChange={(e) => setCardBody(e.target.value)}
+                placeholder="Card description text."
+                className="min-h-[90px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+              />
+            </div>
+            <div className="space-y-1.5 md:col-span-2">
+              <label className="text-xs font-medium text-muted-foreground">Image URL or File Key (optional)</label>
+              <Input
+                value={cardImageSource}
+                onChange={(e) => setCardImageSource(e.target.value)}
+                placeholder="https://example.com/image.jpg or images/file.jpg"
+              />
+              <label
+                htmlFor="cms-card-image-upload"
+                className="inline-flex cursor-pointer items-center gap-2 text-xs text-primary hover:underline"
+              >
+                <UploadCloud className="h-3.5 w-3.5" />
+                Upload image file
+              </label>
+              <input
+                ref={cardImageFileInputRef}
+                id="cms-card-image-upload"
+                type="file"
+                accept="image/*"
+                className="hidden"
+                onChange={(e) => uploadCardImage(e.target.files?.[0] || null)}
+              />
+            </div>
+            <div className="space-y-1.5 md:col-span-2">
+              <label className="text-xs font-medium text-muted-foreground">Image Click Link (optional)</label>
+              <Input
+                value={cardImageLinkUrl}
+                onChange={(e) => setCardImageLinkUrl(e.target.value)}
+                placeholder="https://example.com/page or /contact"
+              />
+            </div>
+            <div className="space-y-1.5">
+              <label className="text-xs font-medium text-muted-foreground">Image Alt Text (optional)</label>
+              <Input
+                value={cardImageAltText}
+                onChange={(e) => setCardImageAltText(e.target.value)}
+                placeholder="Describe the card image"
+              />
+            </div>
+            <div className="grid gap-3 grid-cols-2">
+              <div className="space-y-1.5">
+                <label className="text-xs font-medium text-muted-foreground">Image Width (px)</label>
+                <Input value={cardImageWidth} onChange={(e) => setCardImageWidth(e.target.value)} placeholder="320" />
+              </div>
+              <div className="space-y-1.5">
+                <label className="text-xs font-medium text-muted-foreground">Image Height (px)</label>
+                <Input value={cardImageHeight} onChange={(e) => setCardImageHeight(e.target.value)} placeholder="200" />
+              </div>
+            </div>
+            {cardImageUploading ? <p className="md:col-span-2 text-xs text-muted-foreground">Uploading image...</p> : null}
+            {cardFormError ? <p className="md:col-span-2 text-xs text-destructive">{cardFormError}</p> : null}
+          </div>
+          <div className="flex items-center justify-end gap-2">
+            <Button type="button" size="sm" variant="outline" onClick={closeCardForm}>
+              Cancel
+            </Button>
+            <Button type="button" size="sm" onClick={submitCardForm} disabled={cardImageUploading}>
+              {cardFormMode === "edit" ? "Update Card" : "Insert Card"}
             </Button>
           </div>
         </div>
