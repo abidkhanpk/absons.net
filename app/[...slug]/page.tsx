@@ -9,12 +9,21 @@ import { RichContentRenderer } from "@/components/cms/rich-content-renderer"
 export const dynamic = "force-dynamic"
 export const revalidate = 0
 
-export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }) {
+function resolveSlugFromParams(slugParts: string[] | undefined) {
+  const parts = Array.isArray(slugParts) ? slugParts.filter(Boolean) : []
+  return parts.join("/")
+}
+
+export async function generateMetadata({ params }: { params: Promise<{ slug: string[] }> }) {
   const { slug } = await params
+  const resolvedSlug = resolveSlugFromParams(slug)
+  if (!resolvedSlug) {
+    return buildSeoMetadata(await getSiteSettings(), { title: "Page Not Found", noIndex: true, noFollow: true })
+  }
   const settings = await getSiteSettings()
   const approvalRequired = settings.editorApprovalRequired ?? true
   const page = await prisma.page.findFirst({
-    where: approvalRequired ? { slug, published: true, approved: true } : { slug, published: true },
+    where: approvalRequired ? { slug: resolvedSlug, published: true, approved: true } : { slug: resolvedSlug, published: true },
   })
 
   if (!page) {
@@ -35,12 +44,14 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   })
 }
 
-export default async function ContentPage({ params }: { params: Promise<{ slug: string }> }) {
+export default async function ContentPage({ params }: { params: Promise<{ slug: string[] }> }) {
   const { slug } = await params
+  const resolvedSlug = resolveSlugFromParams(slug)
+  if (!resolvedSlug) return notFound()
   const siteSettings = await getSiteSettings()
   const approvalRequired = siteSettings.editorApprovalRequired ?? true
   const page = await prisma.page.findFirst({
-    where: approvalRequired ? { slug, published: true, approved: true } : { slug, published: true },
+    where: approvalRequired ? { slug: resolvedSlug, published: true, approved: true } : { slug: resolvedSlug, published: true },
   })
   if (!page) return notFound()
 

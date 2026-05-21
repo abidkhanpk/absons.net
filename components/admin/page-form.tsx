@@ -12,6 +12,7 @@ import { Switch } from "@/components/ui/switch"
 import { RichTextEditor } from "@/components/admin/rich-text-editor"
 import { Textarea } from "@/components/ui/textarea"
 import { ImageUrlUploadField } from "@/components/admin/image-url-upload-field"
+import { buildPageSlug, normalizeSlugPrefix, normalizeSlugSegment, splitPageSlug } from "@/lib/page-slug"
 
 type PageRecord = {
   id: string
@@ -37,12 +38,23 @@ export function PageForm({
   page,
   currentUserRole,
   editorApprovalRequired,
+  slugPrefixOptions = [],
 }: {
   page?: PageRecord
   currentUserRole: string
   editorApprovalRequired: boolean
+  slugPrefixOptions?: string[]
 }) {
   const router = useRouter()
+  const normalizedPrefixOptions = Array.from(
+    new Set(slugPrefixOptions.map((value) => normalizeSlugPrefix(value)).filter(Boolean)),
+  ).sort((a, b) => a.localeCompare(b))
+  const initialSlugParts = splitPageSlug(page?.slug || "")
+  const initialPrefixSelection = !initialSlugParts.prefix
+    ? "__none__"
+    : normalizedPrefixOptions.includes(initialSlugParts.prefix)
+      ? initialSlugParts.prefix
+      : "__custom__"
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [formData, setFormData] = useState({
     title: page?.title || "",
@@ -59,20 +71,43 @@ export function PageForm({
     seoNoFollow: page?.seoNoFollow ?? false,
     resubmissionNote: page?.resubmissionNote || "",
   })
+  const [slugPrefixSelection, setSlugPrefixSelection] = useState(initialPrefixSelection)
+  const [customSlugPrefix, setCustomSlugPrefix] = useState(initialPrefixSelection === "__custom__" ? initialSlugParts.prefix : "")
+  const [slugSegment, setSlugSegment] = useState(initialSlugParts.segment || "")
   const showRejectionNotice = Boolean(page?.rejectedAt)
   const showRejectionReason =
     showRejectionNotice && (currentUserRole !== "editor" || Boolean(page?.rejectionNotifiedAt))
   const rejectionReason = showRejectionReason ? page?.rejectedReason : null
 
+  const selectedPrefixRaw =
+    slugPrefixSelection === "__none__"
+      ? ""
+      : slugPrefixSelection === "__custom__"
+        ? customSlugPrefix
+        : slugPrefixSelection
+  const normalizedSlugPrefix = normalizeSlugPrefix(selectedPrefixRaw)
+  const normalizedSlugSegment = normalizeSlugSegment(slugSegment)
+  const finalSlug = buildPageSlug(normalizedSlugPrefix, normalizedSlugSegment)
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    if (!finalSlug) {
+      alert("Slug segment is required and can only contain letters, numbers, and hyphens.")
+      return
+    }
     setIsSubmitting(true)
 
     try {
+      const payload = {
+        ...formData,
+        slug: finalSlug,
+        slugPrefix: normalizedSlugPrefix,
+        slugSegment: normalizedSlugSegment,
+      }
       const response = await fetch("/api/admin/pages", {
         method: page ? "PUT" : "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(page ? { id: page.id, ...formData } : formData),
+        body: JSON.stringify(page ? { id: page.id, ...payload } : payload),
       })
 
       const result = await response.json().catch(() => ({}))
@@ -89,11 +124,7 @@ export function PageForm({
   }
 
   const generateSlug = () => {
-    const slug = formData.title
-      .toLowerCase()
-      .replace(/[^a-z0-9]+/g, "-")
-      .replace(/^-|-$/g, "")
-    setFormData({ ...formData, slug })
+    setSlugSegment(normalizeSlugSegment(formData.title))
   }
 
   return (
@@ -136,20 +167,54 @@ export function PageForm({
 
           <div className="space-y-2">
             <div className="flex items-center justify-between">
-              <Label htmlFor="slug">
-                Slug <span className="text-destructive">*</span>
+              <Label htmlFor="slugSegment">
+                Page URL <span className="text-destructive">*</span>
               </Label>
               <Button type="button" variant="outline" size="sm" onClick={generateSlug}>
                 Generate from Title
               </Button>
             </div>
-            <Input
-              id="slug"
-              required
-              value={formData.slug}
-              onChange={(e) => setFormData({ ...formData, slug: e.target.value })}
-              placeholder="page-url-slug"
-            />
+            <div className="grid gap-3 md:grid-cols-2">
+              <div className="space-y-1.5">
+                <Label htmlFor="slugPrefixSelection">Prefix</Label>
+                <select
+                  id="slugPrefixSelection"
+                  value={slugPrefixSelection}
+                  onChange={(e) => setSlugPrefixSelection(e.target.value)}
+                  className="h-10 w-full rounded-md border border-input bg-background px-3 text-sm"
+                >
+                  <option value="__none__">No Prefix</option>
+                  {normalizedPrefixOptions.map((option) => (
+                    <option key={option} value={option}>
+                      {option}
+                    </option>
+                  ))}
+                  <option value="__custom__">Add New Prefix</option>
+                </select>
+                {slugPrefixSelection === "__custom__" ? (
+                  <Input
+                    value={customSlugPrefix}
+                    onChange={(e) => setCustomSlugPrefix(normalizeSlugPrefix(e.target.value))}
+                    placeholder="trainings or services/condition-monitoring"
+                  />
+                ) : null}
+              </div>
+              <div className="space-y-1.5">
+                <Label htmlFor="slugSegment">Slug Segment</Label>
+                <Input
+                  id="slugSegment"
+                  required
+                  value={slugSegment}
+                  onChange={(e) => setSlugSegment(normalizeSlugSegment(e.target.value))}
+                  placeholder="rotor-balancing"
+                />
+                <p className="text-xs text-muted-foreground">Segment cannot contain `/`.</p>
+              </div>
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="slugPreview">Final URL Slug</Label>
+              <Input id="slugPreview" readOnly value={finalSlug ? `/${finalSlug}` : ""} placeholder="/trainings/rotor-balancing" />
+            </div>
           </div>
 
           <div className="space-y-2">

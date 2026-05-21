@@ -1,7 +1,9 @@
 import { NextResponse } from "next/server"
+import { Prisma } from "@prisma/client"
 import { getSession } from "@/lib/auth"
 import { withRls, prisma } from "@/lib/prisma"
 import { normalizeAssetDbValue } from "@/lib/asset-key"
+import { buildPageSlug, splitPageSlug } from "@/lib/page-slug"
 
 async function requireEditorAccess() {
   const session = await getSession()
@@ -18,6 +20,19 @@ async function isEditorApprovalRequired() {
   return settings?.editorApprovalRequired ?? true
 }
 
+function resolvePageSlugInput(body: Record<string, unknown>) {
+  const slugPrefix = typeof body.slugPrefix === "string" ? body.slugPrefix : ""
+  const slugSegment = typeof body.slugSegment === "string" ? body.slugSegment : ""
+  if (slugPrefix || slugSegment) {
+    return buildPageSlug(slugPrefix, slugSegment)
+  }
+
+  const rawSlug = typeof body.slug === "string" ? body.slug : ""
+  if (!rawSlug) return ""
+  const parts = splitPageSlug(rawSlug)
+  return buildPageSlug(parts.prefix, parts.segment)
+}
+
 export async function POST(request: Request) {
   const { session, user, error } = await requireEditorAccess()
   if (error) return error
@@ -26,7 +41,6 @@ export async function POST(request: Request) {
     const body = await request.json()
     const {
       title,
-      slug,
       content,
       published,
       approved,
@@ -39,7 +53,8 @@ export async function POST(request: Request) {
       seoNoFollow,
     } = body
     const normalizedSeoOgImage = normalizeAssetDbValue(seoOgImage)
-    if (!title || !slug || !content) {
+    const resolvedSlug = resolvePageSlugInput(body)
+    if (!title || !resolvedSlug || !content) {
       return NextResponse.json({ error: "Missing required fields" }, { status: 400 })
     }
 
@@ -52,7 +67,7 @@ export async function POST(request: Request) {
       tx.page.create({
         data: {
           title,
-          slug,
+          slug: resolvedSlug,
           content,
           seoTitle,
           seoDescription,
@@ -72,6 +87,9 @@ export async function POST(request: Request) {
 
     return NextResponse.json({ success: true })
   } catch (err) {
+    if (err instanceof Prisma.PrismaClientKnownRequestError && err.code === "P2002") {
+      return NextResponse.json({ error: "A page with this URL slug already exists" }, { status: 409 })
+    }
     console.error("Create page error:", err)
     return NextResponse.json({ error: "Failed to create page" }, { status: 500 })
   }
@@ -86,7 +104,6 @@ export async function PUT(request: Request) {
     const {
       id,
       title,
-      slug,
       content,
       published,
       approved,
@@ -101,6 +118,10 @@ export async function PUT(request: Request) {
     } = body
     const normalizedSeoOgImage = normalizeAssetDbValue(seoOgImage)
     if (!id) return NextResponse.json({ error: "Page id is required" }, { status: 400 })
+    const resolvedSlug = resolvePageSlugInput(body)
+    if (!title || !resolvedSlug || !content) {
+      return NextResponse.json({ error: "Missing required fields" }, { status: 400 })
+    }
 
     const approvalRequired = await isEditorApprovalRequired()
     const isEditor = user?.role === "editor"
@@ -151,7 +172,7 @@ export async function PUT(request: Request) {
         where: { id },
         data: {
           title,
-          slug,
+          slug: resolvedSlug,
           content,
           seoTitle,
           seoDescription,
@@ -169,6 +190,9 @@ export async function PUT(request: Request) {
 
     return NextResponse.json({ success: true })
   } catch (err) {
+    if (err instanceof Prisma.PrismaClientKnownRequestError && err.code === "P2002") {
+      return NextResponse.json({ error: "A page with this URL slug already exists" }, { status: 409 })
+    }
     console.error("Update page error:", err)
     return NextResponse.json({ error: "Failed to update page" }, { status: 500 })
   }
