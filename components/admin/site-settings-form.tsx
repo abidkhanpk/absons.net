@@ -1826,6 +1826,79 @@ export function SiteSettingsForm({ initial, pages }: { initial: SiteSettings; pa
                   <AccordionTrigger className="px-4 py-3 text-sm font-semibold">Header Menu Items</AccordionTrigger>
                   <AccordionContent className="px-4 pb-4">
                     <div className="flex flex-col gap-3">
+                      <div className="space-y-4 rounded-md border border-border/60 bg-muted/30 p-4">
+                        <div className="grid gap-4 md:grid-cols-2">
+                          <div className="space-y-2">
+                            <Label>Menu Alignment</Label>
+                            <Select
+                              value={formData.navAlignment}
+                              onValueChange={(value: "left" | "center" | "right") =>
+                                setFormData({ ...formData, navAlignment: value })
+                              }
+                            >
+                              <SelectTrigger>
+                                <SelectValue placeholder="Select alignment" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="left">Left</SelectItem>
+                                <SelectItem value="center">Center</SelectItem>
+                                <SelectItem value="right">Right</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </div>
+                          <div className="space-y-2">
+                            <Label htmlFor="navLoginText">Login Link Text</Label>
+                            <Input
+                              id="navLoginText"
+                              value={formData.navLoginText}
+                              onChange={(e) => setFormData({ ...formData, navLoginText: e.target.value })}
+                            />
+                            <div className="flex items-center gap-3 pt-1">
+                              <input
+                                id="showLoginLink"
+                                type="checkbox"
+                                checked={formData.showLoginLink}
+                                onChange={(e) => setFormData({ ...formData, showLoginLink: e.target.checked })}
+                                className="h-4 w-4"
+                              />
+                              <Label htmlFor="showLoginLink" className="text-sm text-muted-foreground font-normal">
+                                Show login link in navigation
+                              </Label>
+                            </div>
+                          </div>
+                          <div className="space-y-2 md:col-span-2">
+                            <Label htmlFor="navCtaText">CTA Button Text</Label>
+                            <Input
+                              id="navCtaText"
+                              value={formData.navCtaText}
+                              onChange={(e) => setFormData({ ...formData, navCtaText: e.target.value })}
+                              placeholder="Get Started"
+                            />
+                            <Label htmlFor="navCtaHref" className="pt-2">
+                              CTA Link
+                            </Label>
+                            <Input
+                              id="navCtaHref"
+                              value={formData.navCtaHref}
+                              onChange={(e) => setFormData({ ...formData, navCtaHref: e.target.value })}
+                              placeholder="/contact"
+                            />
+                            <div className="flex items-center gap-3 pt-1">
+                              <input
+                                id="navCtaEnabled"
+                                type="checkbox"
+                                checked={formData.navCtaEnabled}
+                                onChange={(e) => setFormData({ ...formData, navCtaEnabled: e.target.checked })}
+                                className="h-4 w-4"
+                              />
+                              <Label htmlFor="navCtaEnabled" className="text-sm text-muted-foreground font-normal">
+                                Show CTA button
+                              </Label>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
                       <div className="flex flex-col gap-2 md:flex-row md:items-center">
                         <Select value={selectedHeaderPage} onValueChange={setSelectedHeaderPage}>
                           <SelectTrigger className="md:w-80">
@@ -2065,74 +2138,6 @@ export function SiteSettingsForm({ initial, pages }: { initial: SiteSettings; pa
                   </AccordionContent>
                 </AccordionItem>
               </Accordion>
-            </div>
-            <div className="space-y-2">
-              <Label>Menu Alignment</Label>
-              <Select
-                value={formData.navAlignment}
-                onValueChange={(value: "left" | "center" | "right") =>
-                  setFormData({ ...formData, navAlignment: value })
-                }
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select alignment" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="left">Left</SelectItem>
-                  <SelectItem value="center">Center</SelectItem>
-                  <SelectItem value="right">Right</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="navLoginText">Login Link Text</Label>
-              <Input
-                id="navLoginText"
-                value={formData.navLoginText}
-                onChange={(e) => setFormData({ ...formData, navLoginText: e.target.value })}
-              />
-              <div className="flex items-center gap-3 pt-1">
-                <input
-                  id="showLoginLink"
-                  type="checkbox"
-                  checked={formData.showLoginLink}
-                  onChange={(e) => setFormData({ ...formData, showLoginLink: e.target.checked })}
-                  className="h-4 w-4"
-                />
-                <Label htmlFor="showLoginLink" className="text-sm text-muted-foreground font-normal">
-                  Show login link in navigation
-                </Label>
-              </div>
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="navCtaText">CTA Button Text</Label>
-              <Input
-                id="navCtaText"
-                value={formData.navCtaText}
-                onChange={(e) => setFormData({ ...formData, navCtaText: e.target.value })}
-                placeholder="Get Started"
-              />
-              <Label htmlFor="navCtaHref" className="pt-2">
-                CTA Link
-              </Label>
-              <Input
-                id="navCtaHref"
-                value={formData.navCtaHref}
-                onChange={(e) => setFormData({ ...formData, navCtaHref: e.target.value })}
-                placeholder="/contact"
-              />
-              <div className="flex items-center gap-3 pt-1">
-                <input
-                  id="navCtaEnabled"
-                  type="checkbox"
-                  checked={formData.navCtaEnabled}
-                  onChange={(e) => setFormData({ ...formData, navCtaEnabled: e.target.checked })}
-                  className="h-4 w-4"
-                />
-                <Label htmlFor="navCtaEnabled" className="text-sm text-muted-foreground font-normal">
-                  Show CTA button
-                </Label>
-              </div>
             </div>
           </div>
 
