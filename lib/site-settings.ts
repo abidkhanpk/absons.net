@@ -25,6 +25,15 @@ export type SiteSettings = {
   showTestimonials: boolean
   navItems: NavItem[]
   footerNavItems: NavItem[]
+  footerSecondaryNavItems: NavItem[]
+  footerQuickLinksTitle: string
+  footerSecondaryTitle: string
+  footerContactTitle: string
+  footerShowSecondaryColumn: boolean
+  footerShowContactColumn: boolean
+  footerShowCompanyInfo: boolean
+  footerCompanyName: string
+  footerCompanyDescription: string
   homeSections: HomeSection[]
   businessHours: string
   businessDays: string
@@ -199,6 +208,20 @@ const defaultSettings: SiteSettings = {
     { id: "blog", label: "Blog", href: "/blog", enabled: true },
     { id: "contact", label: "Contact", href: "/contact", enabled: true },
   ],
+  footerSecondaryNavItems: [
+    { id: "school-management", label: "School Management", href: "/services", enabled: true },
+    { id: "quran-academy", label: "Quran Academy Solutions", href: "/services", enabled: true },
+    { id: "vibration-analysis", label: "Vibration Analysis", href: "/training", enabled: true },
+    { id: "order-supply", label: "Order Supply", href: "/services", enabled: true },
+  ],
+  footerQuickLinksTitle: "Quick Links",
+  footerSecondaryTitle: "Services",
+  footerContactTitle: "Contact Info",
+  footerShowSecondaryColumn: true,
+  footerShowContactColumn: true,
+  footerShowCompanyInfo: true,
+  footerCompanyName: "Site",
+  footerCompanyDescription: "Professional software solutions and training services for educational institutions and organizations.",
   homeSections: [
     {
       id: "services",
@@ -496,28 +519,80 @@ function parseNavItems(raw: unknown, fallback: NavItem[] = defaultSettings.navIt
   }
 }
 
-function parseNavItemsGroup(raw: unknown) {
+function parseNavItemsGroup(raw: unknown, fallbackCompanyName: string) {
+  const defaultFooterMeta = {
+    quickLinksTitle: defaultSettings.footerQuickLinksTitle,
+    secondaryTitle: defaultSettings.footerSecondaryTitle,
+    contactTitle: defaultSettings.footerContactTitle,
+    secondary: defaultSettings.footerSecondaryNavItems,
+    showSecondary: defaultSettings.footerShowSecondaryColumn,
+    showContact: defaultSettings.footerShowContactColumn,
+    showCompany: defaultSettings.footerShowCompanyInfo,
+    companyName: fallbackCompanyName || defaultSettings.footerCompanyName,
+    companyDescription: defaultSettings.footerCompanyDescription,
+  }
+
+  const parseFooterMeta = (rawMeta: unknown) => {
+    if (!rawMeta || typeof rawMeta !== "object" || Array.isArray(rawMeta)) return defaultFooterMeta
+    const meta = rawMeta as Record<string, unknown>
+    return {
+      quickLinksTitle:
+        typeof meta.quickLinksTitle === "string" && meta.quickLinksTitle.trim()
+          ? meta.quickLinksTitle.trim()
+          : defaultFooterMeta.quickLinksTitle,
+      secondaryTitle:
+        typeof meta.secondaryTitle === "string" && meta.secondaryTitle.trim()
+          ? meta.secondaryTitle.trim()
+          : defaultFooterMeta.secondaryTitle,
+      contactTitle:
+        typeof meta.contactTitle === "string" && meta.contactTitle.trim()
+          ? meta.contactTitle.trim()
+          : defaultFooterMeta.contactTitle,
+      secondary: parseNavItems(meta.secondary, defaultSettings.footerSecondaryNavItems),
+      showSecondary: typeof meta.showSecondary === "boolean" ? meta.showSecondary : defaultFooterMeta.showSecondary,
+      showContact: typeof meta.showContact === "boolean" ? meta.showContact : defaultFooterMeta.showContact,
+      showCompany: typeof meta.showCompany === "boolean" ? meta.showCompany : defaultFooterMeta.showCompany,
+      companyName:
+        typeof meta.companyName === "string" && meta.companyName.trim()
+          ? meta.companyName.trim()
+          : defaultFooterMeta.companyName,
+      companyDescription:
+        typeof meta.companyDescription === "string" && meta.companyDescription.trim()
+          ? meta.companyDescription.trim()
+          : defaultFooterMeta.companyDescription,
+    }
+  }
+
   try {
     if (!raw) {
-      return { main: defaultSettings.navItems, footer: defaultSettings.footerNavItems }
+      return { main: defaultSettings.navItems, footer: defaultSettings.footerNavItems, footerMeta: defaultFooterMeta }
     }
     if (Array.isArray(raw)) {
       const normalized = parseNavItems(raw, defaultSettings.navItems)
-      return { main: normalized, footer: parseNavItems(raw, defaultSettings.footerNavItems) }
+      return {
+        main: normalized,
+        footer: parseNavItems(raw, defaultSettings.footerNavItems),
+        footerMeta: defaultFooterMeta,
+      }
     }
     const parsed = typeof raw === "string" ? JSON.parse(raw) : raw
     if (Array.isArray(parsed)) {
       const normalized = parseNavItems(parsed, defaultSettings.navItems)
-      return { main: normalized, footer: parseNavItems(parsed, defaultSettings.footerNavItems) }
+      return {
+        main: normalized,
+        footer: parseNavItems(parsed, defaultSettings.footerNavItems),
+        footerMeta: defaultFooterMeta,
+      }
     }
     if (parsed && typeof parsed === "object") {
       const main = parseNavItems((parsed as { main?: unknown }).main, defaultSettings.navItems)
       const footer = parseNavItems((parsed as { footer?: unknown }).footer, defaultSettings.footerNavItems)
-      return { main, footer }
+      const footerMeta = parseFooterMeta((parsed as { footerMeta?: unknown }).footerMeta)
+      return { main, footer, footerMeta }
     }
-    return { main: defaultSettings.navItems, footer: defaultSettings.footerNavItems }
+    return { main: defaultSettings.navItems, footer: defaultSettings.footerNavItems, footerMeta: defaultFooterMeta }
   } catch {
-    return { main: defaultSettings.navItems, footer: defaultSettings.footerNavItems }
+    return { main: defaultSettings.navItems, footer: defaultSettings.footerNavItems, footerMeta: defaultFooterMeta }
   }
 }
 
@@ -833,7 +908,7 @@ export async function getSiteSettings(): Promise<SiteSettings> {
       },
     )
 
-    const navItemsGroup = parseNavItemsGroup(settings.navItems)
+    const navItemsGroup = parseNavItemsGroup(settings.navItems, settings.siteTitle ?? defaultSettings.siteTitle)
 
     return {
       siteTitle: settings.siteTitle ?? defaultSettings.siteTitle,
@@ -854,6 +929,15 @@ export async function getSiteSettings(): Promise<SiteSettings> {
       showTestimonials: resolvedVisibility.testimonials,
       navItems: navItemsGroup.main,
       footerNavItems: navItemsGroup.footer,
+      footerSecondaryNavItems: navItemsGroup.footerMeta.secondary,
+      footerQuickLinksTitle: navItemsGroup.footerMeta.quickLinksTitle,
+      footerSecondaryTitle: navItemsGroup.footerMeta.secondaryTitle,
+      footerContactTitle: navItemsGroup.footerMeta.contactTitle,
+      footerShowSecondaryColumn: navItemsGroup.footerMeta.showSecondary,
+      footerShowContactColumn: navItemsGroup.footerMeta.showContact,
+      footerShowCompanyInfo: navItemsGroup.footerMeta.showCompany,
+      footerCompanyName: navItemsGroup.footerMeta.companyName,
+      footerCompanyDescription: navItemsGroup.footerMeta.companyDescription,
       homeSections,
       businessHoursSchedule: parseBusinessHoursSchedule(settings.businessHoursSchedule),
       showBusinessHours: settings.showBusinessHours ?? defaultSettings.showBusinessHours,

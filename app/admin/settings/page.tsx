@@ -127,6 +127,17 @@ export default async function SettingsPage() {
               nav_items: JSON.stringify({
                 main: resolved.navItems,
                 footer: resolved.footerNavItems,
+                footerMeta: {
+                  quickLinksTitle: resolved.footerQuickLinksTitle,
+                  secondaryTitle: resolved.footerSecondaryTitle,
+                  contactTitle: resolved.footerContactTitle,
+                  secondary: resolved.footerSecondaryNavItems,
+                  showSecondary: resolved.footerShowSecondaryColumn,
+                  showContact: resolved.footerShowContactColumn,
+                  showCompany: resolved.footerShowCompanyInfo,
+                  companyName: resolved.footerCompanyName,
+                  companyDescription: resolved.footerCompanyDescription,
+                },
               }),
               home_sections: settings?.homeSections
                 ? JSON.stringify(settings.homeSections)

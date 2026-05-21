@@ -127,6 +127,18 @@ type NavItem = {
   enabled: boolean
 }
 
+type FooterMetaSettings = {
+  quickLinksTitle: string
+  secondaryTitle: string
+  contactTitle: string
+  secondary: NavItem[]
+  showSecondary: boolean
+  showContact: boolean
+  showCompany: boolean
+  companyName: string
+  companyDescription: string
+}
+
 type HomeSection = {
   id:
     | "services"
@@ -262,26 +274,75 @@ function safeParseNavItems(raw: unknown, fallback: NavItem[]): NavItem[] {
   }
 }
 
-function safeParseNavItemsGroup(raw: string | null | undefined, fallback: NavItem[]) {
+function safeParseNavItemsGroup(
+  raw: string | null | undefined,
+  fallback: NavItem[],
+  footerSecondaryFallback: NavItem[],
+  fallbackCompanyName: string,
+): { main: NavItem[]; footer: NavItem[]; footerMeta: FooterMetaSettings } {
+  const defaultFooterMeta: FooterMetaSettings = {
+    quickLinksTitle: "Quick Links",
+    secondaryTitle: "Services",
+    contactTitle: "Contact Info",
+    secondary: footerSecondaryFallback,
+    showSecondary: true,
+    showContact: true,
+    showCompany: true,
+    companyName: fallbackCompanyName || "Site",
+    companyDescription: "Professional software solutions and training services for educational institutions and organizations.",
+  }
+
+  const normalizeFooterMeta = (rawMeta: unknown): FooterMetaSettings => {
+    if (!rawMeta || typeof rawMeta !== "object" || Array.isArray(rawMeta)) return defaultFooterMeta
+    const meta = rawMeta as Record<string, unknown>
+    return {
+      quickLinksTitle:
+        typeof meta.quickLinksTitle === "string" && meta.quickLinksTitle.trim()
+          ? meta.quickLinksTitle.trim()
+          : defaultFooterMeta.quickLinksTitle,
+      secondaryTitle:
+        typeof meta.secondaryTitle === "string" && meta.secondaryTitle.trim()
+          ? meta.secondaryTitle.trim()
+          : defaultFooterMeta.secondaryTitle,
+      contactTitle:
+        typeof meta.contactTitle === "string" && meta.contactTitle.trim()
+          ? meta.contactTitle.trim()
+          : defaultFooterMeta.contactTitle,
+      secondary: safeParseNavItems(meta.secondary, footerSecondaryFallback),
+      showSecondary: typeof meta.showSecondary === "boolean" ? meta.showSecondary : defaultFooterMeta.showSecondary,
+      showContact: typeof meta.showContact === "boolean" ? meta.showContact : defaultFooterMeta.showContact,
+      showCompany: typeof meta.showCompany === "boolean" ? meta.showCompany : defaultFooterMeta.showCompany,
+      companyName:
+        typeof meta.companyName === "string" && meta.companyName.trim()
+          ? meta.companyName.trim()
+          : defaultFooterMeta.companyName,
+      companyDescription:
+        typeof meta.companyDescription === "string" && meta.companyDescription.trim()
+          ? meta.companyDescription.trim()
+          : defaultFooterMeta.companyDescription,
+    }
+  }
+
   if (!raw) {
-    return { main: fallback, footer: fallback }
+    return { main: fallback, footer: fallback, footerMeta: defaultFooterMeta }
   }
   try {
     const parsed = JSON.parse(raw)
     if (Array.isArray(parsed)) {
       const normalized = safeParseNavItems(parsed, fallback)
-      return { main: normalized, footer: normalized }
+      return { main: normalized, footer: normalized, footerMeta: defaultFooterMeta }
     }
     if (parsed && typeof parsed === "object") {
       return {
         main: safeParseNavItems((parsed as { main?: unknown }).main, fallback),
         footer: safeParseNavItems((parsed as { footer?: unknown }).footer, fallback),
+        footerMeta: normalizeFooterMeta((parsed as { footerMeta?: unknown }).footerMeta),
       }
     }
   } catch {
-    return { main: fallback, footer: fallback }
+    return { main: fallback, footer: fallback, footerMeta: defaultFooterMeta }
   }
-  return { main: fallback, footer: fallback }
+  return { main: fallback, footer: fallback, footerMeta: defaultFooterMeta }
 }
 
 function safeParseHomeSections(
@@ -537,6 +598,12 @@ export function SiteSettingsForm({ initial, pages }: { initial: SiteSettings; pa
     { id: "blog", label: "Blog", href: "/blog", enabled: true },
     { id: "contact", label: "Contact", href: "/contact", enabled: true },
   ]
+  const defaultFooterSecondaryNavItems: NavItem[] = [
+    { id: "school-management", label: "School Management", href: "/services", enabled: true },
+    { id: "quran-academy", label: "Quran Academy Solutions", href: "/services", enabled: true },
+    { id: "vibration-analysis", label: "Vibration Analysis", href: "/training", enabled: true },
+    { id: "order-supply", label: "Order Supply", href: "/services", enabled: true },
+  ]
   const defaultNavItemIds = new Set(defaultNavItems.map((item) => item.id))
   const defaultHomeFallback = {
     services: initial.show_services ?? true,
@@ -586,9 +653,11 @@ export function SiteSettingsForm({ initial, pages }: { initial: SiteSettings; pa
         }
       : section,
   )
-  const { main: initialNavItems, footer: initialFooterNavItems } = safeParseNavItemsGroup(
+  const { main: initialNavItems, footer: initialFooterNavItems, footerMeta: initialFooterMeta } = safeParseNavItemsGroup(
     initial.nav_items,
     defaultNavItems,
+    defaultFooterSecondaryNavItems,
+    initial.site_title || "Site",
   )
   const initialWhyChooseItems = safeParseWhyChooseItems(initial.why_choose_items, defaultWhyChooseItems)
 
@@ -650,6 +719,15 @@ export function SiteSettingsForm({ initial, pages }: { initial: SiteSettings; pa
     headingTypography: safeParseHeadingTypography(initial.heading_typography),
     navItems: initialNavItems,
     footerNavItems: initialFooterNavItems,
+    footerSecondaryNavItems: initialFooterMeta.secondary,
+    footerQuickLinksTitle: initialFooterMeta.quickLinksTitle,
+    footerSecondaryTitle: initialFooterMeta.secondaryTitle,
+    footerContactTitle: initialFooterMeta.contactTitle,
+    footerShowSecondaryColumn: initialFooterMeta.showSecondary,
+    footerShowContactColumn: initialFooterMeta.showContact,
+    footerShowCompanyInfo: initialFooterMeta.showCompany,
+    footerCompanyName: initialFooterMeta.companyName,
+    footerCompanyDescription: initialFooterMeta.companyDescription,
     homeSections: initialHomeSections,
   })
   const [isSaving, setIsSaving] = useState(false)
@@ -662,6 +740,7 @@ export function SiteSettingsForm({ initial, pages }: { initial: SiteSettings; pa
   )
   const [selectedHeaderPage, setSelectedHeaderPage] = useState("")
   const [selectedFooterPage, setSelectedFooterPage] = useState("")
+  const [selectedFooterSecondaryPage, setSelectedFooterSecondaryPage] = useState("")
   const [settingsUpdatedAt, setSettingsUpdatedAt] = useState<string | null>(initial.settings_updated_at || null)
 
   const moveItem = <T,>(items: T[], fromIndex: number, toIndex: number) => {
@@ -698,6 +777,16 @@ export function SiteSettingsForm({ initial, pages }: { initial: SiteSettings; pa
       return {
         ...prev,
         footerNavItems,
+      }
+    })
+  }
+
+  const moveFooterSecondaryNavItem = (index: number, direction: -1 | 1) => {
+    setFormData((prev) => {
+      const footerSecondaryNavItems = moveItem(prev.footerSecondaryNavItems, index, index + direction)
+      return {
+        ...prev,
+        footerSecondaryNavItems,
       }
     })
   }
@@ -826,6 +915,15 @@ export function SiteSettingsForm({ initial, pages }: { initial: SiteSettings; pa
     })
   }
 
+  const toggleFooterSecondaryNavItem = (id: NavItem["id"], enabled: boolean) => {
+    setFormData((prev) => ({
+      ...prev,
+      footerSecondaryNavItems: prev.footerSecondaryNavItems.map((item) =>
+        item.id === id ? { ...item, enabled } : item,
+      ),
+    }))
+  }
+
   const updateNavItem = (id: NavItem["id"], updates: Partial<NavItem>) => {
     setFormData((prev) => ({
       ...prev,
@@ -837,6 +935,15 @@ export function SiteSettingsForm({ initial, pages }: { initial: SiteSettings; pa
     setFormData((prev) => ({
       ...prev,
       footerNavItems: prev.footerNavItems.map((item) => (item.id === id ? { ...item, ...updates } : item)),
+    }))
+  }
+
+  const updateFooterSecondaryNavItem = (id: NavItem["id"], updates: Partial<NavItem>) => {
+    setFormData((prev) => ({
+      ...prev,
+      footerSecondaryNavItems: prev.footerSecondaryNavItems.map((item) =>
+        item.id === id ? { ...item, ...updates } : item,
+      ),
     }))
   }
 
@@ -904,6 +1011,13 @@ export function SiteSettingsForm({ initial, pages }: { initial: SiteSettings; pa
     })
   }
 
+  const addFooterSecondaryNavItem = (item: NavItem) => {
+    setFormData((prev) => {
+      if (prev.footerSecondaryNavItems.some((existing) => existing.id === item.id)) return prev
+      return { ...prev, footerSecondaryNavItems: [...prev.footerSecondaryNavItems, item] }
+    })
+  }
+
   const removeNavItem = (id: NavItem["id"]) => {
     setFormData((prev) => ({
       ...prev,
@@ -915,6 +1029,13 @@ export function SiteSettingsForm({ initial, pages }: { initial: SiteSettings; pa
     setFormData((prev) => ({
       ...prev,
       footerNavItems: prev.footerNavItems.filter((item) => item.id !== id),
+    }))
+  }
+
+  const removeFooterSecondaryNavItem = (id: NavItem["id"]) => {
+    setFormData((prev) => ({
+      ...prev,
+      footerSecondaryNavItems: prev.footerSecondaryNavItems.filter((item) => item.id !== id),
     }))
   }
 
@@ -950,6 +1071,13 @@ export function SiteSettingsForm({ initial, pages }: { initial: SiteSettings; pa
     }
   }
 
+  const addPageToFooterSecondary = (pageId: string) => {
+    const page = pages.find((entry) => entry.id === pageId)
+    if (!page) return
+    addFooterSecondaryNavItem(createCustomNavItem(page.title, `/${page.slug}`))
+    setSelectedFooterSecondaryPage("")
+  }
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsSaving(true)
@@ -966,6 +1094,17 @@ export function SiteSettingsForm({ initial, pages }: { initial: SiteSettings; pa
           ...formData,
           navItems: formData.navItems,
           footerNavItems: formData.footerNavItems,
+          footerMeta: {
+            quickLinksTitle: formData.footerQuickLinksTitle,
+            secondaryTitle: formData.footerSecondaryTitle,
+            contactTitle: formData.footerContactTitle,
+            secondary: formData.footerSecondaryNavItems,
+            showSecondary: formData.footerShowSecondaryColumn,
+            showContact: formData.footerShowContactColumn,
+            showCompany: formData.footerShowCompanyInfo,
+            companyName: formData.footerCompanyName,
+            companyDescription: formData.footerCompanyDescription,
+          },
           homeSections: formData.homeSections,
           editorApprovalRequired: formData.editorApprovalRequired,
           whyChooseTitle: whyChooseSection?.title || formData.whyChooseTitle,
@@ -2045,6 +2184,89 @@ export function SiteSettingsForm({ initial, pages }: { initial: SiteSettings; pa
                   <AccordionTrigger className="px-4 py-3 text-sm font-semibold">Footer Menu Items</AccordionTrigger>
                   <AccordionContent className="px-4 pb-4">
                     <div className="flex flex-col gap-3">
+                      <div className="space-y-4 rounded-md border border-border/60 bg-muted/30 p-4">
+                        <div className="grid gap-4 md:grid-cols-2">
+                          <div className="space-y-2">
+                            <Label htmlFor="footerQuickLinksTitle">Quick Links Column Title</Label>
+                            <Input
+                              id="footerQuickLinksTitle"
+                              value={formData.footerQuickLinksTitle}
+                              onChange={(e) => setFormData({ ...formData, footerQuickLinksTitle: e.target.value })}
+                              placeholder="Quick Links"
+                            />
+                          </div>
+                          <div className="space-y-2">
+                            <Label htmlFor="footerSecondaryTitle">Second Column Title</Label>
+                            <Input
+                              id="footerSecondaryTitle"
+                              value={formData.footerSecondaryTitle}
+                              onChange={(e) => setFormData({ ...formData, footerSecondaryTitle: e.target.value })}
+                              placeholder="Services"
+                            />
+                          </div>
+                          <div className="space-y-2">
+                            <Label htmlFor="footerContactTitle">Contact Column Title</Label>
+                            <Input
+                              id="footerContactTitle"
+                              value={formData.footerContactTitle}
+                              onChange={(e) => setFormData({ ...formData, footerContactTitle: e.target.value })}
+                              placeholder="Contact Info"
+                            />
+                          </div>
+                          <div className="space-y-2">
+                            <Label htmlFor="footerCompanyName">Footer Company Name</Label>
+                            <Input
+                              id="footerCompanyName"
+                              value={formData.footerCompanyName}
+                              onChange={(e) => setFormData({ ...formData, footerCompanyName: e.target.value })}
+                              placeholder={formData.siteTitle || "Site"}
+                            />
+                          </div>
+                          <div className="space-y-2 md:col-span-2">
+                            <Label htmlFor="footerCompanyDescription">Footer Company Description</Label>
+                            <Textarea
+                              id="footerCompanyDescription"
+                              value={formData.footerCompanyDescription}
+                              onChange={(e) => setFormData({ ...formData, footerCompanyDescription: e.target.value })}
+                              rows={3}
+                              placeholder="Company description shown in the first footer column"
+                            />
+                          </div>
+                        </div>
+                        <div className="grid gap-3 md:grid-cols-3">
+                          <div className="flex items-center gap-3 rounded-md border border-border/60 bg-background px-3 py-2">
+                            <Switch
+                              id="footerShowCompanyInfo"
+                              checked={formData.footerShowCompanyInfo}
+                              onCheckedChange={(checked) => setFormData({ ...formData, footerShowCompanyInfo: checked })}
+                            />
+                            <Label htmlFor="footerShowCompanyInfo" className="text-sm font-normal">
+                              Show company block
+                            </Label>
+                          </div>
+                          <div className="flex items-center gap-3 rounded-md border border-border/60 bg-background px-3 py-2">
+                            <Switch
+                              id="footerShowSecondaryColumn"
+                              checked={formData.footerShowSecondaryColumn}
+                              onCheckedChange={(checked) => setFormData({ ...formData, footerShowSecondaryColumn: checked })}
+                            />
+                            <Label htmlFor="footerShowSecondaryColumn" className="text-sm font-normal">
+                              Show second column
+                            </Label>
+                          </div>
+                          <div className="flex items-center gap-3 rounded-md border border-border/60 bg-background px-3 py-2">
+                            <Switch
+                              id="footerShowContactColumn"
+                              checked={formData.footerShowContactColumn}
+                              onCheckedChange={(checked) => setFormData({ ...formData, footerShowContactColumn: checked })}
+                            />
+                            <Label htmlFor="footerShowContactColumn" className="text-sm font-normal">
+                              Show contact column
+                            </Label>
+                          </div>
+                        </div>
+                      </div>
+
                       <div className="flex flex-col gap-2 md:flex-row md:items-center">
                         <Select value={selectedFooterPage} onValueChange={setSelectedFooterPage}>
                           <SelectTrigger className="md:w-80">
@@ -2159,6 +2381,122 @@ export function SiteSettingsForm({ initial, pages }: { initial: SiteSettings; pa
                           </div>
                         </div>
                       ))}
+
+                      <div className="mt-2 space-y-3 rounded-md border border-border/60 bg-muted/30 p-4">
+                        <div className="text-sm font-semibold">Second Footer Column Links</div>
+                        <div className="flex flex-col gap-2 md:flex-row md:items-center">
+                          <Select value={selectedFooterSecondaryPage} onValueChange={setSelectedFooterSecondaryPage}>
+                            <SelectTrigger className="md:w-80">
+                              <SelectValue placeholder="Add a page to the second column" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {pages.length === 0 ? (
+                                <SelectItem value="none" disabled>
+                                  No pages available
+                                </SelectItem>
+                              ) : (
+                                pages.map((page) => (
+                                  <SelectItem key={page.id} value={page.id}>
+                                    {page.title} {page.published ? "" : "(draft)"}
+                                  </SelectItem>
+                                ))
+                              )}
+                            </SelectContent>
+                          </Select>
+                          <div className="flex gap-2">
+                            <Button
+                              type="button"
+                              variant="outline"
+                              onClick={() => addPageToFooterSecondary(selectedFooterSecondaryPage)}
+                              disabled={!selectedFooterSecondaryPage || selectedFooterSecondaryPage === "none"}
+                            >
+                              Add Page
+                            </Button>
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              onClick={() => addFooterSecondaryNavItem(createCustomNavItem("New Item", "/"))}
+                            >
+                              Add Custom Link
+                            </Button>
+                          </div>
+                        </div>
+
+                        {formData.footerSecondaryNavItems.map((item, index) => (
+                          <div
+                            key={`footer-secondary-${item.id}`}
+                            className="flex flex-col gap-3 rounded-md border border-border/60 bg-muted/40 px-3 py-3 md:flex-row md:items-center md:justify-between"
+                          >
+                            <div className="flex flex-1 flex-col gap-2 md:flex-row md:items-center">
+                              <div className="flex items-center gap-3">
+                                <Switch
+                                  id={`footer-secondary-nav-item-${item.id}`}
+                                  checked={item.enabled}
+                                  onCheckedChange={(checked) => toggleFooterSecondaryNavItem(item.id, checked)}
+                                />
+                                <Label htmlFor={`footer-secondary-nav-item-${item.id}`} className="text-sm text-muted-foreground font-normal">
+                                  Visible
+                                </Label>
+                              </div>
+                              <div className="flex flex-1 flex-col gap-2 md:flex-row md:items-center">
+                                <div className="flex-1">
+                                  <Label htmlFor={`footer-secondary-label-${item.id}`} className="sr-only">
+                                    Second column label
+                                  </Label>
+                                  <Input
+                                    id={`footer-secondary-label-${item.id}`}
+                                    value={item.label}
+                                    onChange={(e) => updateFooterSecondaryNavItem(item.id, { label: e.target.value })}
+                                    placeholder="Label"
+                                  />
+                                </div>
+                                <div className="flex-1">
+                                  <Label htmlFor={`footer-secondary-href-${item.id}`} className="sr-only">
+                                    Second column link
+                                  </Label>
+                                  <Input
+                                    id={`footer-secondary-href-${item.id}`}
+                                    value={item.href}
+                                    onChange={(e) => updateFooterSecondaryNavItem(item.id, { href: e.target.value })}
+                                    placeholder="/path"
+                                  />
+                                </div>
+                              </div>
+                            </div>
+                            <div className="flex items-center gap-1 self-end md:self-auto">
+                              <Button
+                                type="button"
+                                variant="ghost"
+                                size="icon"
+                                onClick={() => removeFooterSecondaryNavItem(item.id)}
+                                aria-label={`Remove ${item.label}`}
+                              >
+                                <Trash2 className="h-4 w-4 text-destructive" />
+                              </Button>
+                              <Button
+                                type="button"
+                                variant="ghost"
+                                size="icon"
+                                onClick={() => moveFooterSecondaryNavItem(index, -1)}
+                                disabled={index === 0}
+                                aria-label={`Move ${item.label} up`}
+                              >
+                                <ArrowUp className="h-4 w-4" />
+                              </Button>
+                              <Button
+                                type="button"
+                                variant="ghost"
+                                size="icon"
+                                onClick={() => moveFooterSecondaryNavItem(index, 1)}
+                                disabled={index === formData.footerSecondaryNavItems.length - 1}
+                                aria-label={`Move ${item.label} down`}
+                              >
+                                <ArrowDown className="h-4 w-4" />
+                              </Button>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
                     </div>
                   </AccordionContent>
                 </AccordionItem>

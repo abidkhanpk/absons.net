@@ -46,6 +46,53 @@ function normalizeHomeSections(raw: unknown) {
     .filter((entry): entry is Record<string, unknown> => Boolean(entry))
 }
 
+function normalizeFooterMeta(raw: unknown) {
+  if (!raw || typeof raw !== "object" || Array.isArray(raw)) return undefined
+  const base = raw as Record<string, unknown>
+  const quickLinksTitle =
+    typeof base.quickLinksTitle === "string" && base.quickLinksTitle.trim() ? base.quickLinksTitle.trim() : "Quick Links"
+  const secondaryTitle =
+    typeof base.secondaryTitle === "string" && base.secondaryTitle.trim() ? base.secondaryTitle.trim() : "Services"
+  const contactTitle =
+    typeof base.contactTitle === "string" && base.contactTitle.trim() ? base.contactTitle.trim() : "Contact Info"
+  const showSecondary = typeof base.showSecondary === "boolean" ? base.showSecondary : true
+  const showContact = typeof base.showContact === "boolean" ? base.showContact : true
+  const showCompany = typeof base.showCompany === "boolean" ? base.showCompany : true
+  const companyName =
+    typeof base.companyName === "string" && base.companyName.trim() ? base.companyName.trim() : "Site"
+  const companyDescription =
+    typeof base.companyDescription === "string" && base.companyDescription.trim()
+      ? base.companyDescription.trim()
+      : "Professional software solutions and training services for educational institutions and organizations."
+  const secondary =
+    Array.isArray(base.secondary)
+      ? base.secondary
+          .filter((entry): entry is Record<string, unknown> => Boolean(entry) && typeof entry === "object")
+          .map((entry, idx) => ({
+            id:
+              typeof entry.id === "string" && entry.id.trim()
+                ? entry.id.trim()
+                : `footer-secondary-${idx + 1}`,
+            label: typeof entry.label === "string" ? entry.label.trim() : "",
+            href: typeof entry.href === "string" ? entry.href.trim() : "",
+            enabled: typeof entry.enabled === "boolean" ? entry.enabled : true,
+          }))
+          .filter((entry) => entry.label && entry.href)
+      : []
+
+  return {
+    quickLinksTitle,
+    secondaryTitle,
+    contactTitle,
+    showSecondary,
+    showContact,
+    showCompany,
+    companyName,
+    companyDescription,
+    secondary,
+  }
+}
+
 function normalizeHeroSlides(raw: unknown): { serialized?: string; wasExplicitlyEmpty: boolean } {
   if (typeof raw === "undefined") return { serialized: undefined, wasExplicitlyEmpty: false }
 
@@ -123,6 +170,7 @@ export async function PUT(request: Request) {
       navCtaEnabled,
       navItems,
       footerNavItems,
+      footerMeta,
       layoutMode,
       layoutWidth,
       heroSlides,
@@ -200,7 +248,7 @@ export async function PUT(request: Request) {
 
     const existingSettings = await prisma.siteSettings.findUnique({
       where: { id: "site" },
-      select: { updatedAt: true },
+      select: { updatedAt: true, navItems: true },
     })
     if (!existingSettings) {
       return NextResponse.json({ error: "Site settings not found" }, { status: 404 })
@@ -216,6 +264,18 @@ export async function PUT(request: Request) {
       )
     }
 
+    const normalizedFooterMetaFromPayload = normalizeFooterMeta(
+      typeof footerMeta === "undefined" && navItems && typeof navItems === "object" && !Array.isArray(navItems)
+        ? (navItems as Record<string, unknown>).footerMeta
+        : footerMeta,
+    )
+    const normalizedFooterMetaFromExisting = normalizeFooterMeta(
+      existingSettings.navItems && typeof existingSettings.navItems === "object" && !Array.isArray(existingSettings.navItems)
+        ? (existingSettings.navItems as Record<string, unknown>).footerMeta
+        : undefined,
+    )
+    const normalizedFooterMeta = normalizedFooterMetaFromPayload ?? normalizedFooterMetaFromExisting
+
     const updateData = {
       siteTitle,
       logoUrl: typeof normalizedLogoUrl === "undefined" ? undefined : normalizedLogoUrl,
@@ -230,11 +290,15 @@ export async function PUT(request: Request) {
       navCtaEnabled,
       navItems:
         Array.isArray(navItems) && Array.isArray(footerNavItems)
-          ? { main: navItems, footer: footerNavItems }
+          ? normalizedFooterMeta
+            ? { main: navItems, footer: footerNavItems, footerMeta: normalizedFooterMeta }
+            : { main: navItems, footer: footerNavItems }
           : Array.isArray(navItems)
             ? navItems
             : typeof navItems === "object" && navItems !== null
-              ? navItems
+              ? normalizedFooterMeta
+                ? { ...(navItems as Record<string, unknown>), footerMeta: normalizedFooterMeta }
+                : navItems
               : undefined,
       layoutMode,
       layoutWidth,

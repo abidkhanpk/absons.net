@@ -4,25 +4,38 @@ import type { SiteSettings } from "@/lib/site-settings"
 
 export function Footer({ settings }: { settings: SiteSettings }) {
   const navItems = (settings.footerNavItems || []).filter((item) => item.enabled !== false)
+  const secondaryItems = (settings.footerSecondaryNavItems || []).filter((item) => item.enabled !== false)
+  const showCompany = settings.footerShowCompanyInfo !== false
+  const showSecondary = settings.footerShowSecondaryColumn !== false
+  const showContact = settings.footerShowContactColumn !== false
+  const columnCount = [showCompany, true, showSecondary, showContact].filter(Boolean).length
+  const gridColsClass =
+    columnCount >= 4 ? "md:grid-cols-4" : columnCount === 3 ? "md:grid-cols-3" : columnCount === 2 ? "md:grid-cols-2" : "md:grid-cols-1"
+  const companyName = settings.footerCompanyName || settings.siteTitle || "Site"
+  const companyDescription =
+    settings.footerCompanyDescription ||
+    "Professional software solutions and training services for educational institutions and organizations."
 
   return (
     <footer className="bg-muted/30 border-t border-border">
       <div className="container mx-auto px-4 lg:px-8 py-12">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
-          <div className="space-y-4">
-            <div className="flex items-center gap-2">
-              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary text-primary-foreground font-bold text-lg">
-                {settings.siteTitle?.slice(0, 2).toUpperCase() || "AS"}
+        <div className={`grid grid-cols-1 ${gridColsClass} gap-8`}>
+          {showCompany ? (
+            <div className="space-y-4">
+              <div className="flex items-center gap-2">
+                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary text-primary-foreground font-bold text-lg">
+                  {companyName?.slice(0, 2).toUpperCase() || "AS"}
+                </div>
+                <span className="font-bold text-lg">{companyName}</span>
               </div>
-              <span className="font-bold text-lg">{settings.siteTitle || "Site"}</span>
+              <p className="text-sm text-muted-foreground leading-relaxed">
+                {companyDescription}
+              </p>
             </div>
-            <p className="text-sm text-muted-foreground leading-relaxed">
-              Professional software solutions and training services for educational institutions and organizations.
-            </p>
-          </div>
+          ) : null}
 
           <div>
-            <h3 className="font-semibold mb-4">Quick Links</h3>
+            <h3 className="font-semibold mb-4">{settings.footerQuickLinksTitle || "Quick Links"}</h3>
             <ul className="space-y-3">
               {navItems.map((item) => (
                 <li key={item.id}>
@@ -34,61 +47,40 @@ export function Footer({ settings }: { settings: SiteSettings }) {
             </ul>
           </div>
 
-          <div>
-            <h3 className="font-semibold mb-4">Services</h3>
-            <ul className="space-y-3">
-              <li>
-                <Link
-                  href="/services"
-                  className="text-sm text-muted-foreground hover:text-foreground transition-colors"
-                >
-                  School Management
-                </Link>
-              </li>
-              <li>
-                <Link
-                  href="/services"
-                  className="text-sm text-muted-foreground hover:text-foreground transition-colors"
-                >
-                  Quran Academy Solutions
-                </Link>
-              </li>
-              <li>
-                <Link
-                  href="/training"
-                  className="text-sm text-muted-foreground hover:text-foreground transition-colors"
-                >
-                  Vibration Analysis
-                </Link>
-              </li>
-              <li>
-                <Link
-                  href="/services"
-                  className="text-sm text-muted-foreground hover:text-foreground transition-colors"
-                >
-                  Order Supply
-                </Link>
-              </li>
-            </ul>
-          </div>
+          {showSecondary ? (
+            <div>
+              <h3 className="font-semibold mb-4">{settings.footerSecondaryTitle || "Services"}</h3>
+              <ul className="space-y-3">
+                {secondaryItems.map((item) => (
+                  <li key={item.id}>
+                    <Link href={item.href} className="text-sm text-muted-foreground hover:text-foreground transition-colors">
+                      {item.label}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ) : null}
 
-          <div>
-            <h3 className="font-semibold mb-4">Contact Info</h3>
-            <ul className="space-y-3">
-              <li className="flex items-start gap-2">
-                <Mail className="h-4 w-4 mt-1 text-muted-foreground flex-shrink-0" />
-                <span className="text-sm text-muted-foreground">{settings.contactEmail || "info@absonsolutions.com"}</span>
-              </li>
-              <li className="flex items-start gap-2">
-                <Phone className="h-4 w-4 mt-1 text-muted-foreground flex-shrink-0" />
-                <span className="text-sm text-muted-foreground">{settings.contactPhone || "+92 XXX XXXXXXX"}</span>
-              </li>
-              <li className="flex items-start gap-2">
-                <MapPin className="h-4 w-4 mt-1 text-muted-foreground flex-shrink-0" />
-                <span className="text-sm text-muted-foreground">{settings.contactAddress || "Pakistan"}</span>
-              </li>
-            </ul>
-          </div>
+          {showContact ? (
+            <div>
+              <h3 className="font-semibold mb-4">{settings.footerContactTitle || "Contact Info"}</h3>
+              <ul className="space-y-3">
+                <li className="flex items-start gap-2">
+                  <Mail className="h-4 w-4 mt-1 text-muted-foreground flex-shrink-0" />
+                  <span className="text-sm text-muted-foreground">{settings.contactEmail || "info@absonsolutions.com"}</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <Phone className="h-4 w-4 mt-1 text-muted-foreground flex-shrink-0" />
+                  <span className="text-sm text-muted-foreground">{settings.contactPhone || "+92 XXX XXXXXXX"}</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <MapPin className="h-4 w-4 mt-1 text-muted-foreground flex-shrink-0" />
+                  <span className="text-sm text-muted-foreground">{settings.contactAddress || "Pakistan"}</span>
+                </li>
+              </ul>
+            </div>
+          ) : null}
         </div>
 
         <div className="mt-12 pt-8 border-t border-border text-center">
