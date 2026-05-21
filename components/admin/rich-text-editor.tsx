@@ -56,6 +56,12 @@ interface RichTextEditorProps {
   onChange: (content: string) => void
 }
 
+const PRIMARY_BUTTON_CLASS =
+  "inline-flex items-center gap-2 justify-center rounded-md bg-primary px-4 py-2 text-white no-underline hover:opacity-90"
+const OUTLINE_BUTTON_CLASS = "inline-flex items-center gap-2 justify-center rounded-md border border-border bg-background px-4 py-2 no-underline"
+
+const getButtonClass = (variant: "primary" | "outline") => (variant === "primary" ? PRIMARY_BUTTON_CLASS : OUTLINE_BUTTON_CLASS)
+
 const CmsLink = Link.extend({
   addAttributes() {
     return {
@@ -293,6 +299,22 @@ const CmsFaIcon = Node.create({
   },
 })
 
+const CmsImage = Image.extend({
+  addAttributes() {
+    return {
+      ...this.parent?.(),
+      linkHref: {
+        default: null,
+        parseHTML: (element) => element.getAttribute("data-image-link"),
+        renderHTML: (attributes) => {
+          const value = typeof attributes.linkHref === "string" ? attributes.linkHref.trim() : ""
+          return value ? { "data-image-link": value } : {}
+        },
+      },
+    }
+  },
+})
+
 export function RichTextEditor({ content, onChange }: RichTextEditorProps) {
   const [mode, setMode] = useState<"visual" | "source" | "preview">("visual")
   const [sourceHtml, setSourceHtml] = useState(content || "")
@@ -306,6 +328,16 @@ export function RichTextEditor({ content, onChange }: RichTextEditorProps) {
   const [sourceSeed, setSourceSeed] = useState("")
   const [ignoreSourceInitChange, setIgnoreSourceInitChange] = useState(false)
   const [isCursorInTable, setIsCursorInTable] = useState(false)
+  const [showImageForm, setShowImageForm] = useState(false)
+  const [imageSource, setImageSource] = useState("")
+  const [imageAltText, setImageAltText] = useState("")
+  const [imageTitleText, setImageTitleText] = useState("")
+  const [imageWidth, setImageWidth] = useState("")
+  const [imageHeight, setImageHeight] = useState("")
+  const [imageLinkUrl, setImageLinkUrl] = useState("")
+  const [imageFormMode, setImageFormMode] = useState<"insert" | "edit">("insert")
+  const [selectedImagePos, setSelectedImagePos] = useState<number | null>(null)
+  const [editingImagePos, setEditingImagePos] = useState<number | null>(null)
   const [showVideoForm, setShowVideoForm] = useState(false)
   const [videoUrl, setVideoUrl] = useState("")
   const [videoPoster, setVideoPoster] = useState("")
@@ -334,6 +366,7 @@ export function RichTextEditor({ content, onChange }: RichTextEditorProps) {
   const [posterUploading, setPosterUploading] = useState(false)
   const [posterUploadError, setPosterUploadError] = useState<string | null>(null)
   const [imageUploading, setImageUploading] = useState(false)
+  const [imageUploadError, setImageUploadError] = useState<string | null>(null)
   const [videoTracksError, setVideoTracksError] = useState<string | null>(null)
   const [videoFormMode, setVideoFormMode] = useState<"insert" | "edit">("insert")
   const [selectedVideoPos, setSelectedVideoPos] = useState<number | null>(null)
@@ -341,6 +374,31 @@ export function RichTextEditor({ content, onChange }: RichTextEditorProps) {
   const videoFileInputRef = useRef<HTMLInputElement | null>(null)
   const posterFileInputRef = useRef<HTMLInputElement | null>(null)
   const imageFileInputRef = useRef<HTMLInputElement | null>(null)
+  const toImageDimensionInput = (value: unknown) => {
+    if (typeof value === "number" && Number.isFinite(value)) return String(value)
+    if (typeof value === "string") return value
+    return ""
+  }
+
+  const openImageFormForNode = (attrs: Record<string, unknown>, nodePos: number) => {
+    setShowIconPicker(false)
+    setPendingButtonVariant(null)
+    setPendingButtonLabel("")
+    setPendingButtonHref("")
+    setShowVideoForm(false)
+    setImageSource(typeof attrs.src === "string" ? attrs.src : "")
+    setImageAltText(typeof attrs.alt === "string" ? attrs.alt : "")
+    setImageTitleText(typeof attrs.title === "string" ? attrs.title : "")
+    setImageWidth(toImageDimensionInput(attrs.width))
+    setImageHeight(toImageDimensionInput(attrs.height))
+    setImageLinkUrl(typeof attrs.linkHref === "string" ? attrs.linkHref : "")
+    setImageUploadError(null)
+    setImageUploading(false)
+    setImageFormMode("edit")
+    setEditingImagePos(nodePos)
+    setShowImageForm(true)
+  }
+
   const editor = useEditor({
     extensions: [
       StarterKit.configure({
@@ -351,7 +409,7 @@ export function RichTextEditor({ content, onChange }: RichTextEditorProps) {
       CmsLink.configure({
         openOnClick: false,
       }),
-      Image.configure({
+      CmsImage.configure({
         HTMLAttributes: {
           class: "max-w-full h-auto rounded-lg",
         },
@@ -402,7 +460,7 @@ export function RichTextEditor({ content, onChange }: RichTextEditorProps) {
     editorProps: {
       attributes: {
         class:
-          "prose prose-sm max-w-none min-h-[300px] p-4 border border-input rounded-b-md focus:outline-none focus:ring-2 focus:ring-ring",
+          "prose prose-sm max-w-none h-[520px] overflow-y-auto overflow-x-hidden p-4 border border-input rounded-b-md focus:outline-none focus:ring-2 focus:ring-ring",
       },
     },
     immediatelyRender: false,
@@ -466,6 +524,51 @@ export function RichTextEditor({ content, onChange }: RichTextEditorProps) {
     return () => {
       editor.off("selectionUpdate", updateSelectedVideo)
       editor.off("transaction", updateSelectedVideo)
+    }
+  }, [editor])
+
+  useEffect(() => {
+    if (!editor) return
+
+    const updateSelectedImage = () => {
+      let foundPos: number | null = null
+
+      editor.state.doc.nodesBetween(editor.state.selection.from, editor.state.selection.to, (node, pos) => {
+        if (node.type.name !== "image") return true
+        foundPos = pos
+        return false
+      })
+
+      const selection = editor.state.selection
+
+      if (foundPos === null && selection.empty) {
+        const { $from, from } = selection
+        if ($from.nodeBefore?.type.name === "image") {
+          foundPos = from - $from.nodeBefore.nodeSize
+        } else if ($from.nodeAfter?.type.name === "image") {
+          foundPos = from
+        }
+      }
+
+      if (foundPos === null) {
+        const { $from } = selection
+        for (let depth = $from.depth; depth >= 0; depth -= 1) {
+          const node = $from.node(depth)
+          if (node.type.name !== "image") continue
+          foundPos = depth > 0 ? $from.before(depth) : 0
+          break
+        }
+      }
+
+      setSelectedImagePos(foundPos)
+    }
+
+    updateSelectedImage()
+    editor.on("selectionUpdate", updateSelectedImage)
+    editor.on("transaction", updateSelectedImage)
+    return () => {
+      editor.off("selectionUpdate", updateSelectedImage)
+      editor.off("transaction", updateSelectedImage)
     }
   }, [editor])
 
@@ -562,6 +665,11 @@ export function RichTextEditor({ content, onChange }: RichTextEditorProps) {
   ]
   const iconPool = faIcons.length > 0 ? faIcons : fallbackIcons
   const filteredIcons = iconPool.filter((icon) => icon.name.includes(iconSearch.trim().toLowerCase()))
+  const isLinkActive = editor.isActive("link")
+  const activeLinkAttrs = (isLinkActive ? (editor.getAttributes("link") as Record<string, unknown>) : {}) as Record<string, unknown>
+  const activeLinkIsButton =
+    activeLinkAttrs["data-cms-button"] === true ||
+    (typeof activeLinkAttrs["data-cms-button"] === "string" && activeLinkAttrs["data-cms-button"].toLowerCase() === "true")
 
   const getSelectedVideoAlign = (): "left" | "center" | "right" => {
     if (selectedVideoPos === null) return "left"
@@ -608,20 +716,131 @@ export function RichTextEditor({ content, onChange }: RichTextEditorProps) {
     }
   }
 
-  const addImage = () => {
-    const url = window.prompt("Enter image URL")
-    if (url) {
-      editor.chain().focus().setImage({ src: url }).run()
+  const editSelectedLinkUrl = () => {
+    if (!editor.isActive("link")) return
+    const currentAttrs = editor.getAttributes("link") as Record<string, unknown>
+    const currentHref = typeof currentAttrs.href === "string" ? currentAttrs.href : ""
+    const entered = window.prompt("Edit URL", currentHref)
+    if (entered === null) return
+    const nextHref = entered.trim()
+    if (!nextHref) {
+      editor.chain().focus().extendMarkRange("link").unsetLink().run()
+      return
     }
+    editor
+      .chain()
+      .focus()
+      .extendMarkRange("link")
+      .setLink({
+        ...currentAttrs,
+        href: nextHref,
+      })
+      .run()
+  }
+
+  const startInsertImageFlow = () => {
+    setShowIconPicker(false)
+    setPendingButtonVariant(null)
+    setPendingButtonLabel("")
+    setPendingButtonHref("")
+    setShowVideoForm(false)
+    setImageSource("")
+    setImageAltText("")
+    setImageTitleText("")
+    setImageWidth("")
+    setImageHeight("")
+    setImageLinkUrl("")
+    setImageUploadError(null)
+    setImageFormMode("insert")
+    setEditingImagePos(null)
+    setShowImageForm(true)
+  }
+
+  const startEditImageFlow = () => {
+    if (selectedImagePos === null) return
+    const node = editor.state.doc.nodeAt(selectedImagePos)
+    if (!node || node.type.name !== "image") return
+    editor.commands.setNodeSelection(selectedImagePos)
+    openImageFormForNode((node.attrs || {}) as Record<string, unknown>, selectedImagePos)
+  }
+
+  const closeImageForm = () => {
+    setShowImageForm(false)
+    setImageUploadError(null)
+    setImageUploading(false)
+    setImageFormMode("insert")
+    setEditingImagePos(null)
+    if (imageFileInputRef.current) {
+      imageFileInputRef.current.value = ""
+    }
+  }
+
+  const insertImageFromForm = () => {
+    const src = imageSource.trim()
+    if (!src) {
+      setImageUploadError("Image URL or uploaded image is required.")
+      return
+    }
+    const widthRaw = imageWidth.trim()
+    const heightRaw = imageHeight.trim()
+    if (widthRaw && !/^\d+$/.test(widthRaw)) {
+      setImageUploadError("Width must be a positive number in pixels.")
+      return
+    }
+    if (heightRaw && !/^\d+$/.test(heightRaw)) {
+      setImageUploadError("Height must be a positive number in pixels.")
+      return
+    }
+
+    const imageAttrs: { src: string; alt?: string; title?: string; width?: string; height?: string; linkHref?: string } = { src }
+    const alt = imageAltText.trim()
+    const title = imageTitleText.trim()
+    const linkHref = imageLinkUrl.trim()
+    if (alt) imageAttrs.alt = alt
+    if (title) imageAttrs.title = title
+    if (widthRaw) imageAttrs.width = widthRaw
+    if (heightRaw) imageAttrs.height = heightRaw
+    if (linkHref) imageAttrs.linkHref = linkHref
+
+    if (imageFormMode === "edit" && editingImagePos !== null) {
+      const updated = editor
+        .chain()
+        .focus()
+        .command(({ tr, dispatch }) => {
+          const node = tr.doc.nodeAt(editingImagePos)
+          if (!node || node.type.name !== "image") return false
+          tr.setNodeMarkup(editingImagePos, undefined, {
+            ...node.attrs,
+            src: imageAttrs.src,
+            alt: imageAttrs.alt || null,
+            title: imageAttrs.title || null,
+            width: imageAttrs.width || null,
+            height: imageAttrs.height || null,
+            linkHref: imageAttrs.linkHref || null,
+          })
+          if (dispatch) dispatch(tr)
+          return true
+        })
+        .run()
+      if (!updated) {
+        setImageUploadError("Could not update the selected image. Please select the image again.")
+        return
+      }
+      editor.commands.setNodeSelection(editingImagePos)
+    } else {
+      editor.chain().focus().setImage(imageAttrs).run()
+    }
+    closeImageForm()
   }
 
   const uploadImage = async (file: File | null) => {
     if (!file) return
     if (!file.type.startsWith("image/")) {
-      window.alert("Please choose a valid image file.")
+      setImageUploadError("Please choose a valid image file.")
       return
     }
     setImageUploading(true)
+    setImageUploadError(null)
     try {
       const payload = new FormData()
       payload.append("file", file)
@@ -632,17 +851,17 @@ export function RichTextEditor({ content, onChange }: RichTextEditorProps) {
         throw new Error(result?.error || "Image upload failed")
       }
       const src =
-        typeof result?.url === "string" && result.url.trim().length > 0
-          ? result.url.trim()
-          : typeof result?.key === "string"
-            ? result.key.trim()
+        typeof result?.key === "string" && result.key.trim().length > 0
+          ? result.key.trim()
+          : typeof result?.url === "string"
+            ? result.url.trim()
             : ""
       if (!src) {
         throw new Error("Image upload failed")
       }
-      editor.chain().focus().setImage({ src }).run()
+      setImageSource(src)
     } catch (error) {
-      window.alert(error instanceof Error ? error.message : "Image upload failed")
+      setImageUploadError(error instanceof Error ? error.message : "Image upload failed")
     } finally {
       setImageUploading(false)
       if (imageFileInputRef.current) {
@@ -778,6 +997,7 @@ export function RichTextEditor({ content, onChange }: RichTextEditorProps) {
 
   const startInsertVideoFlow = () => {
     setShowIconPicker(false)
+    setShowImageForm(false)
     setPendingButtonVariant(null)
     resetVideoForm()
     setVideoUploading(false)
@@ -890,6 +1110,7 @@ export function RichTextEditor({ content, onChange }: RichTextEditorProps) {
     setVideoTracksError(null)
     setVideoFormMode("edit")
     setEditingVideoPos(selectedVideoPos)
+    setShowImageForm(false)
     setShowVideoForm(true)
   }
 
@@ -988,6 +1209,7 @@ export function RichTextEditor({ content, onChange }: RichTextEditorProps) {
 
   const startInsertButtonFlow = (variant: "primary" | "outline") => {
     setShowVideoForm(false)
+    setShowImageForm(false)
     const label = window.prompt("Button label", "Get Started")?.trim()
     if (!label) return
     const href = window.prompt("Button URL", "/contact")?.trim() || "/"
@@ -999,13 +1221,35 @@ export function RichTextEditor({ content, onChange }: RichTextEditorProps) {
     setShowIconPicker(true)
   }
 
+  const editSelectedButton = (variant: "primary" | "outline") => {
+    if (!editor.isActive("link")) return
+    const currentAttrs = editor.getAttributes("link") as Record<string, unknown>
+    const isButton =
+      currentAttrs["data-cms-button"] === true ||
+      (typeof currentAttrs["data-cms-button"] === "string" && currentAttrs["data-cms-button"].toLowerCase() === "true")
+    if (!isButton) return
+    const currentHref = typeof currentAttrs.href === "string" ? currentAttrs.href : ""
+    const entered = window.prompt("Button URL", currentHref)
+    if (entered === null) return
+    const nextHref = entered.trim()
+    if (!nextHref) return
+    editor
+      .chain()
+      .focus()
+      .extendMarkRange("link")
+      .setLink({
+        ...currentAttrs,
+        href: nextHref,
+        class: getButtonClass(variant),
+        "data-cms-button": "true",
+      })
+      .run()
+  }
+
   const insertButtonWithIcon = () => {
     if (!pendingButtonVariant || !pendingButtonLabel) return
     const buttonLabel = pendingButtonLabel.trim() || "Button"
-    const classes =
-      pendingButtonVariant === "primary"
-        ? "inline-flex items-center gap-2 justify-center rounded-md bg-primary px-4 py-2 text-white no-underline hover:opacity-90"
-        : "inline-flex items-center gap-2 justify-center rounded-md border border-border bg-background px-4 py-2 no-underline"
+    const classes = getButtonClass(pendingButtonVariant)
     const iconMeta = iconPool.find((icon) => icon.className === selectedIconClass)
     const iconHtml = iconMeta
       ? `<span data-cms-fa="${iconMeta.className}" class="${iconMeta.className}" aria-hidden="true"></span>`
@@ -1280,6 +1524,11 @@ export function RichTextEditor({ content, onChange }: RichTextEditorProps) {
         <Button type="button" size="sm" variant={editor.isActive("link") ? "default" : "ghost"} onClick={setLink}>
           <LinkIcon className="h-4 w-4" />
         </Button>
+        {isLinkActive ? (
+          <Button type="button" size="sm" variant="ghost" onClick={editSelectedLinkUrl}>
+            Edit URL
+          </Button>
+        ) : null}
         <Button
           type="button"
           size="sm"
@@ -1304,27 +1553,14 @@ export function RichTextEditor({ content, onChange }: RichTextEditorProps) {
         >
           <AlignRight className="h-4 w-4" />
         </Button>
-        <Button type="button" size="sm" variant="ghost" onClick={addImage}>
+        <Button type="button" size="sm" variant="ghost" onClick={startInsertImageFlow}>
           <ImageIcon className="h-4 w-4" />
         </Button>
-        <Button
-          type="button"
-          size="sm"
-          variant="ghost"
-          title="Upload image"
-          onClick={() => imageFileInputRef.current?.click()}
-          disabled={imageUploading}
-        >
-          <UploadCloud className="h-4 w-4" />
-        </Button>
-        <input
-          ref={imageFileInputRef}
-          id="cms-inline-image-upload"
-          type="file"
-          accept="image/*"
-          className="hidden"
-          onChange={(e) => uploadImage(e.target.files?.[0] || null)}
-        />
+        {selectedImagePos !== null ? (
+          <Button type="button" size="sm" variant="ghost" onClick={startEditImageFlow}>
+            Edit Image
+          </Button>
+        ) : null}
         <div className="w-px h-6 bg-border mx-1" />
         <Button
           type="button"
@@ -1354,6 +1590,16 @@ export function RichTextEditor({ content, onChange }: RichTextEditorProps) {
           <RectangleHorizontal className="h-4 w-4 mr-1" />
           Outline Button
         </Button>
+        {activeLinkIsButton ? (
+          <Button type="button" size="sm" variant="outline" onClick={() => editSelectedButton("primary")}>
+            Edit Primary Button
+          </Button>
+        ) : null}
+        {activeLinkIsButton ? (
+          <Button type="button" size="sm" variant="outline" onClick={() => editSelectedButton("outline")}>
+            Edit Outline Button
+          </Button>
+        ) : null}
         <Button type="button" size="sm" variant="outline" onClick={insertAccordion}>
           <Columns2 className="h-4 w-4 mr-1" />
           Accordion
@@ -1433,6 +1679,78 @@ export function RichTextEditor({ content, onChange }: RichTextEditorProps) {
             <Trash2 className="h-4 w-4 mr-1" />
             Delete Table
           </Button>
+        </div>
+      )}
+      {showImageForm && (
+        <div className="p-3 border-b border-input bg-muted/20 space-y-3">
+          <p className="text-sm font-medium">{imageFormMode === "edit" ? "Edit Image" : "Insert Image"}</p>
+          <div className="space-y-1.5">
+            <label className="text-xs font-medium text-muted-foreground">Image URL or File Key</label>
+            <Input
+              value={imageSource}
+              onChange={(e) => setImageSource(e.target.value)}
+              placeholder="https://example.com/image.jpg or images/file.jpg"
+            />
+            <label
+              htmlFor="cms-inline-image-upload"
+              className="inline-flex cursor-pointer items-center gap-2 text-xs text-primary hover:underline"
+            >
+              <UploadCloud className="h-3.5 w-3.5" />
+              Upload image file
+            </label>
+            <input
+              ref={imageFileInputRef}
+              id="cms-inline-image-upload"
+              type="file"
+              accept="image/*"
+              className="hidden"
+              onChange={(e) => uploadImage(e.target.files?.[0] || null)}
+            />
+            <div className="space-y-1.5">
+              <label className="text-xs font-medium text-muted-foreground">Image Click Link (optional)</label>
+              <Input
+                value={imageLinkUrl}
+                onChange={(e) => setImageLinkUrl(e.target.value)}
+                placeholder="https://example.com/page or /contact"
+              />
+            </div>
+            <div className="grid gap-3 md:grid-cols-2">
+              <div className="space-y-1.5">
+                <label className="text-xs font-medium text-muted-foreground">Alt Text (optional)</label>
+                <Input
+                  value={imageAltText}
+                  onChange={(e) => setImageAltText(e.target.value)}
+                  placeholder="Describe the image"
+                />
+              </div>
+              <div className="space-y-1.5">
+                <label className="text-xs font-medium text-muted-foreground">Title (optional)</label>
+                <Input
+                  value={imageTitleText}
+                  onChange={(e) => setImageTitleText(e.target.value)}
+                  placeholder="Image title"
+                />
+              </div>
+              <div className="space-y-1.5">
+                <label className="text-xs font-medium text-muted-foreground">Width (px, optional)</label>
+                <Input value={imageWidth} onChange={(e) => setImageWidth(e.target.value)} placeholder="640" />
+              </div>
+              <div className="space-y-1.5">
+                <label className="text-xs font-medium text-muted-foreground">Height (px, optional)</label>
+                <Input value={imageHeight} onChange={(e) => setImageHeight(e.target.value)} placeholder="360" />
+              </div>
+            </div>
+            {imageUploading ? <p className="text-xs text-muted-foreground">Uploading image...</p> : null}
+            {imageUploadError ? <p className="text-xs text-destructive">{imageUploadError}</p> : null}
+          </div>
+          <div className="flex items-center justify-end gap-2">
+            <Button type="button" size="sm" variant="outline" onClick={closeImageForm}>
+              Cancel
+            </Button>
+            <Button type="button" size="sm" onClick={insertImageFromForm} disabled={imageUploading}>
+              {imageFormMode === "edit" ? "Update Image" : "Insert Image"}
+            </Button>
+          </div>
         </div>
       )}
       {showIconPicker && (
@@ -1727,7 +2045,7 @@ export function RichTextEditor({ content, onChange }: RichTextEditorProps) {
       <EditorContent editor={editor} />
       </>
       ) : mode === "source" ? (
-        <div className="p-3">
+        <div className="p-3 max-w-full overflow-x-auto">
           <CodeMirror
             value={sourceHtml || sourceSeed || prettyFormatHtml(editor.getHTML())}
             extensions={[htmlLang()]}
@@ -1750,8 +2068,8 @@ export function RichTextEditor({ content, onChange }: RichTextEditorProps) {
               highlightSelectionMatches: true,
             }}
             theme="light"
-            minHeight="420px"
-            className="w-full max-w-full rounded-md overflow-hidden border border-input bg-background text-foreground"
+            height="520px"
+            className="w-full max-w-full min-w-0 rounded-md border border-input bg-background text-foreground"
           />
         </div>
       ) : (

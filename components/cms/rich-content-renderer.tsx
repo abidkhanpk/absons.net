@@ -2,6 +2,7 @@
 
 import { useMemo } from "react"
 import { CmsVideoPlayer, type CmsVideoConfig } from "@/components/cms/cms-video-player"
+import { resolveAssetUrl } from "@/lib/asset-url"
 
 type RenderPart =
   | {
@@ -17,6 +18,8 @@ type RenderPart =
 
 const VIDEO_BLOCK_PATTERN = /<figure\b[^>]*data-cms-video(?:=(['"])true\1)?[^>]*>[\s\S]*?<\/figure>/gi
 const LEADING_PARAGRAPH_PATTERN = /^\s*<p(?:\s+[^>]*)?>([\s\S]*?)<\/p>/i
+const IMG_TAG_PATTERN = /<img\b[^>]*>/gi
+const IMG_SRC_ATTR_PATTERN = /\bsrc=(["'])([\s\S]*?)\1/i
 
 function isVisuallyEmptyParagraph(innerHtml: string) {
   const withoutLineBreaks = innerHtml.replace(/<br\s*\/?>/gi, "")
@@ -41,6 +44,28 @@ function stripLeadingEmptyParagraphs(html: string) {
   }
 }
 
+function resolveInlineImageSources(html: string) {
+  return html.replace(IMG_TAG_PATTERN, (tag) => {
+    const match = tag.match(IMG_SRC_ATTR_PATTERN)
+    let nextTag = tag
+    if (match) {
+      const quote = match[1]
+      const source = decodeHtmlEntities(match[2] || "").trim()
+      if (source) {
+        const resolved = resolveAssetUrl(source) || source
+        if (resolved !== source) {
+          nextTag = tag.replace(IMG_SRC_ATTR_PATTERN, `src=${quote}${resolved}${quote}`)
+        }
+      }
+    }
+
+    const imageLink = getAttr(nextTag, "data-image-link").trim()
+    if (!imageLink) return nextTag
+    const href = escapeHtmlAttribute(imageLink)
+    return `<a href="${href}">${nextTag}</a>`
+  })
+}
+
 function decodeHtmlEntities(value: string) {
   return value
     .replace(/&quot;/g, '"')
@@ -48,6 +73,15 @@ function decodeHtmlEntities(value: string) {
     .replace(/&lt;/g, "<")
     .replace(/&gt;/g, ">")
     .replace(/&amp;/g, "&")
+}
+
+function escapeHtmlAttribute(value: string) {
+  return value
+    .replace(/&/g, "&amp;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
 }
 
 function getAttr(tag: string, attrName: string) {
@@ -168,7 +202,7 @@ function parseVideoBlock(blockHtml: string): CmsVideoConfig | null {
 }
 
 function splitContent(content: string): RenderPart[] {
-  const html = stripLeadingEmptyParagraphs(content || "")
+  const html = resolveInlineImageSources(stripLeadingEmptyParagraphs(content || ""))
   const pattern = new RegExp(VIDEO_BLOCK_PATTERN.source, "gi")
   const parts: RenderPart[] = []
   let cursor = 0
