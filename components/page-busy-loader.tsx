@@ -79,6 +79,7 @@ export function PageBusyLoader({ logoUrl, siteTitle }: PageBusyLoaderProps) {
   const [visible, setVisible] = useState(false)
   const pendingNavigationRef = useRef(false)
   const hasMountedRef = useRef(false)
+  const fallbackShownPathRef = useRef<string | null>(null)
   const resolvedLogo = useMemo(() => resolveAssetUrl(logoUrl || undefined) || "", [logoUrl])
 
   useEffect(() => {
@@ -192,7 +193,9 @@ export function PageBusyLoader({ logoUrl, siteTitle }: PageBusyLoaderProps) {
 
   useEffect(() => {
     if (!hasMountedRef.current) return
+    if (!pathname) return
     if (pendingNavigationRef.current || visible) return
+    if (fallbackShownPathRef.current === pathname) return
 
     let cancelled = false
     let shownAt = 0
@@ -208,6 +211,7 @@ export function PageBusyLoader({ logoUrl, siteTitle }: PageBusyLoaderProps) {
       if (cancelled) return
       if (!hasPendingCriticalMedia(root)) return
 
+      fallbackShownPathRef.current = pathname
       shownAt = Date.now()
       setVisible(true)
 
