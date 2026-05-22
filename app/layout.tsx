@@ -4,6 +4,7 @@ import Script from "next/script"
 import { Analytics } from "@vercel/analytics/next"
 import { ServiceWorkerReset } from "@/components/service-worker-reset"
 import { SiteMotion } from "@/components/site-motion"
+import { PageBusyLoader } from "@/components/page-busy-loader"
 import { getSiteSettings } from "@/lib/site-settings"
 import { buildSeoMetadata } from "@/lib/seo"
 import { resolveAssetUrl } from "@/lib/asset-url"
@@ -238,6 +239,7 @@ async function LayoutWithSettings({ children }: { children: React.ReactNode }) {
     >
       <ServiceWorkerReset />
       <SiteMotion />
+      <PageBusyLoader logoUrl={settings.logoUrl} siteTitle={settings.siteTitle} />
       {analyticsSnippet ? <div dangerouslySetInnerHTML={{ __html: analyticsSnippet }} /> : null}
       {headerSnippet ? <div dangerouslySetInnerHTML={{ __html: headerSnippet }} /> : null}
       {children}
