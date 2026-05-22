@@ -105,10 +105,12 @@ export function SiteMotion() {
     const sectionObserver = new IntersectionObserver(
       (entries) => {
         entries.forEach((entry) => {
-          if (!entry.isIntersecting) return
           const target = entry.target as HTMLElement
-          target.classList.add("is-visible")
-          sectionObserver.unobserve(target)
+          if (entry.isIntersecting) {
+            target.classList.add("is-visible")
+          } else {
+            target.classList.remove("is-visible")
+          }
         })
       },
       {
@@ -127,10 +129,12 @@ export function SiteMotion() {
       cardObserver = new IntersectionObserver(
         (entries) => {
           entries.forEach((entry) => {
-            if (!entry.isIntersecting) return
             const target = entry.target as HTMLElement
-            target.classList.add("is-visible")
-            cardObserver?.unobserve(target)
+            if (entry.isIntersecting) {
+              target.classList.add("is-visible")
+            } else {
+              target.classList.remove("is-visible")
+            }
           })
         },
         {
