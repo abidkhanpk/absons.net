@@ -5,7 +5,7 @@ import { usePathname } from "next/navigation"
 
 const DISABLED_PREFIXES = ["/admin", "/auth"]
 const SECTION_VARIANTS = ["from-left", "from-right", "from-sides", "lift"] as const
-const SECTION_CARD_SELECTOR = "[data-slot='card'], .why-choose-grid-tile"
+const SECTION_CARD_SELECTOR = "[data-slot='card'], .why-choose-grid-tile, .why-choose-tile"
 const NS_INTRO_DELAY_BASE_MS = 100
 const NS_INTRO_DELAY_STEP_MS = 100
 const NS_CARD_DELAY_BASE_MS = 300

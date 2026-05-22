@@ -1,6 +1,5 @@
 "use client"
 
-import { useEffect, useState } from "react"
 import { WhyChooseSection } from "@/components/home/why-choose-section"
 
 type WhyChooseItem = {
@@ -21,13 +20,5 @@ type WhyChooseSectionClientProps = {
 }
 
 export function WhyChooseSectionClient(props: WhyChooseSectionClientProps) {
-  const [mounted, setMounted] = useState(false)
-
-  useEffect(() => {
-    setMounted(true)
-  }, [])
-
-  if (!mounted) return null
-
   return <WhyChooseSection {...props} />
 }
