@@ -269,9 +269,9 @@ export default async function HomePage() {
   }
   const homeSectionBlocks = {
     services: (
-      <section className="py-20 bg-background">
+      <section className="py-12 md:py-14 bg-background">
         <div className="container mx-auto px-4 lg:px-8">
-          <div className="text-center mb-12">
+          <div className="text-center mb-8 md:mb-10">
             <h2 className="text-3xl md:text-4xl font-bold mb-4">{getSectionConfig("services").title}</h2>
             <p className="text-lg text-muted-foreground max-w-2xl mx-auto text-pretty leading-relaxed">
               {getSectionConfig("services").subtitle}
@@ -314,7 +314,7 @@ export default async function HomePage() {
             (service) => service.id,
           )}
 
-          <div className="text-center mt-8">
+          <div className="text-center mt-6">
             <Button asChild variant="outline" size="lg">
               <Link href="/services">View All Services</Link>
             </Button>
@@ -323,9 +323,9 @@ export default async function HomePage() {
       </section>
     ),
     products: (
-      <section className="py-20 bg-muted/30">
+      <section className="py-12 md:py-14 bg-muted/30">
         <div className="container mx-auto px-4 lg:px-8">
-          <div className="text-center mb-12">
+          <div className="text-center mb-8 md:mb-10">
             <h2 className="text-3xl md:text-4xl font-bold mb-4">{getSectionConfig("products").title}</h2>
             <p className="text-lg text-muted-foreground max-w-2xl mx-auto text-pretty leading-relaxed">
               {getSectionConfig("products").subtitle}
@@ -381,9 +381,9 @@ export default async function HomePage() {
       </section>
     ),
     pricing: (
-      <section className="py-20 bg-background">
+      <section className="py-12 md:py-14 bg-background">
         <div className="container mx-auto px-4 lg:px-8">
-          <div className="text-center mb-12">
+          <div className="text-center mb-8 md:mb-10">
             <h2 className="text-3xl md:text-4xl font-bold mb-4">{getSectionConfig("pricing").title}</h2>
             <p className="text-lg text-muted-foreground max-w-2xl mx-auto text-pretty leading-relaxed">
               {getSectionConfig("pricing").subtitle}
@@ -432,9 +432,9 @@ export default async function HomePage() {
     ),
     training:
       trainings && trainings.length > 0 ? (
-        <section className="py-20 bg-muted/30">
+        <section className="py-12 md:py-14 bg-muted/30">
           <div className="container mx-auto px-4 lg:px-8">
-            <div className="text-center mb-12">
+            <div className="text-center mb-8 md:mb-10">
               <h2 className="text-3xl md:text-4xl font-bold mb-4">{getSectionConfig("training").title}</h2>
               <p className="text-lg text-muted-foreground max-w-2xl mx-auto text-pretty leading-relaxed">
                 {getSectionConfig("training").subtitle}
@@ -472,7 +472,7 @@ export default async function HomePage() {
               ),
               (course) => course.id,
             )}
-            <div className="text-center mt-8">
+            <div className="text-center mt-6">
               <Button asChild variant="outline" size="lg">
                 <Link href="/training">View All Training</Link>
               </Button>
@@ -482,9 +482,9 @@ export default async function HomePage() {
       ) : null,
     departments:
       departments && departments.length > 0 ? (
-        <section className="py-20 bg-background">
+        <section className="py-12 md:py-14 bg-background">
           <div className="container mx-auto px-4 lg:px-8">
-            <div className="text-center mb-12">
+            <div className="text-center mb-8 md:mb-10">
               <h2 className="text-3xl md:text-4xl font-bold mb-4">{getSectionConfig("departments").title}</h2>
               <p className="text-lg text-muted-foreground max-w-2xl mx-auto text-pretty leading-relaxed">
                 {getSectionConfig("departments").subtitle}
@@ -527,7 +527,7 @@ export default async function HomePage() {
               (department) => department.id,
             )}
 
-            <div className="text-center mt-8">
+            <div className="text-center mt-6">
               <Button asChild variant="outline" size="lg">
                 <Link href="/departments">View All Departments</Link>
               </Button>
@@ -537,9 +537,9 @@ export default async function HomePage() {
       ) : null,
     testimonials:
       testimonials && testimonials.length > 0 ? (
-        <section className="py-20 bg-background">
+        <section className="py-12 md:py-14 bg-background">
           <div className="container mx-auto px-4 lg:px-8">
-            <div className="text-center mb-12">
+            <div className="text-center mb-8 md:mb-10">
               <h2 className="text-3xl md:text-4xl font-bold mb-4">{getSectionConfig("testimonials").title}</h2>
               <p className="text-lg text-muted-foreground max-w-2xl mx-auto text-pretty leading-relaxed">
                 {getSectionConfig("testimonials").subtitle}
@@ -591,9 +591,9 @@ export default async function HomePage() {
       ) : null,
     "who-we-serve":
       whoWeServeItems && whoWeServeItems.length > 0 ? (
-        <section className="py-20 bg-muted/30">
+        <section className="py-12 md:py-14 bg-muted/30">
           <div className="container mx-auto px-4 lg:px-8">
-            <div className="text-center mb-12">
+            <div className="text-center mb-8 md:mb-10">
               <h2 className="text-3xl md:text-4xl font-bold mb-4">{getSectionConfig("who-we-serve").title}</h2>
               <p className="text-lg text-muted-foreground max-w-2xl mx-auto text-pretty leading-relaxed">
                 {getSectionConfig("who-we-serve").subtitle}
@@ -635,7 +635,7 @@ export default async function HomePage() {
       />
     ),
     cta: (
-      <section className="py-20 bg-primary text-primary-foreground">
+      <section className="py-12 md:py-14 bg-primary text-primary-foreground">
         <div className="container mx-auto px-4 lg:px-8">
           <div className="max-w-3xl mx-auto text-center space-y-6">
             <h2 className="text-3xl md:text-4xl font-bold text-balance">{getSectionConfig("cta").title}</h2>
