@@ -47,9 +47,9 @@ export default async function TrainingPage() {
         <section className="bg-gradient-to-br from-primary/10 via-background to-accent/10 border-b border-border">
           <div className="container mx-auto px-4 lg:px-8 py-16">
             <div className="max-w-3xl mx-auto text-center space-y-4">
-              <h1 className="text-4xl md:text-5xl font-bold text-balance">Vibration Analysis Training</h1>
+              <h1 className="text-4xl md:text-5xl font-bold text-balance">Training</h1>
               <p className="text-lg text-muted-foreground text-pretty leading-relaxed">
-                Professional certification programs from Mobius Institute of Australia
+                Elevate your skills with our expert-led vibration analysis training programs and certifications.
               </p>
             </div>
           </div>
@@ -61,12 +61,10 @@ export default async function TrainingPage() {
             <div className="max-w-4xl mx-auto space-y-6">
               <h2 className="text-3xl font-bold">World-Class Certification Programs</h2>
               <p className="text-lg text-muted-foreground leading-relaxed">
-                {siteTitle} is proud to offer comprehensive vibration analysis training programs in partnership with the
-                Mobius Institute of Australia. Our courses prepare professionals for internationally recognized
-                certifications in predictive maintenance and machinery diagnostics.
+                {siteTitle} offers comprehensive training programs designed to equip professionals with the knowledge and skills needed to excel in reliability and condition monitoring. Our courses cover a wide range of topics, from fundamental principles to advanced techniques, ensuring that participants gain a deep understanding of the subject matter.
               </p>
               <p className="text-lg text-muted-foreground leading-relaxed">
-                Whether you're new to vibration analysis or looking to advance your expertise, our structured programs
+                Whether you're a new professional or looking to advance your expertise, our structured programs
                 provide the knowledge and hands-on experience needed to excel in the field.
               </p>
             </div>
@@ -79,45 +77,33 @@ export default async function TrainingPage() {
             <div className="mb-10">
               <h2 className="text-3xl font-bold mb-3">Available Courses</h2>
               <p className="text-lg text-muted-foreground leading-relaxed">
-                Structured certification tracks from beginner to expert level
+                Explore our range of training courses designed to meet the needs of professionals at all levels. Each course is crafted to provide in-depth knowledge and practical skills, ensuring you can apply what you learn directly to your work.
               </p>
             </div>
 
             <div className="space-y-6">
               {courses?.map((course) => (
                 <Card key={course.id} className="border-border hover:shadow-lg transition-shadow">
-                  <CardContent className="p-6 md:p-8">
-                    <div className="grid md:grid-cols-4 gap-6">
-                      <div className="md:col-span-3 space-y-4">
-                        {course.featuredImage ? (
-                          <img
-                            src={resolveAssetUrl(course.featuredImage)}
-                            alt={course.title}
-                            className="w-full h-52 object-cover rounded-md border border-border/60"
-                          />
-                        ) : null}
-                        <div className="flex flex-wrap items-center gap-3">
-                          <h3 className="text-2xl font-bold">{course.title}</h3>
-                          <Badge variant="secondary">{course.level}</Badge>
+                  <CardContent className="p-6 md:p-7">
+                    <div className="space-y-5">
+                      {course.featuredImage ? (
+                        <img
+                          src={resolveAssetUrl(course.featuredImage)}
+                          alt={course.title}
+                          className="w-full h-56 object-cover rounded-md border border-border/60"
+                        />
+                      ) : null}
+
+                      <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
+                        <div className="min-w-0 flex-1 space-y-3">
+                          <div className="flex flex-wrap items-center gap-3">
+                            <h3 className="text-2xl font-bold text-balance">{course.title}</h3>
+                            <Badge variant="secondary">{course.level}</Badge>
+                          </div>
+                          <p className="text-muted-foreground leading-relaxed">{course.description}</p>
                         </div>
-                        <p className="text-muted-foreground leading-relaxed">{course.description}</p>
-                        <div className="flex flex-wrap gap-4 text-sm text-muted-foreground">
-                          <div className="flex items-center gap-2">
-                            <Clock className="h-4 w-4" />
-                            <span>{course.duration}</span>
-                          </div>
-                          <div className="flex items-center gap-2">
-                            <Award className="h-4 w-4" />
-                            <span>{course.provider}</span>
-                          </div>
-                          <div className="flex items-center gap-2">
-                            <TrendingUp className="h-4 w-4" />
-                            <span>{course.level} Level</span>
-                          </div>
-                        </div>
-                      </div>
-                      <div className="flex items-center">
-                        <Button asChild className="w-full md:w-auto">
+
+                        <Button asChild className="w-full md:w-auto md:shrink-0">
                           <Link
                             href={resolveItemLink(course.linkUrl, "/contact")}
                             {...getItemLinkTargetProps(course.linkUrl)}
@@ -125,6 +111,25 @@ export default async function TrainingPage() {
                             {course.linkLabel || "Enroll Now"}
                           </Link>
                         </Button>
+                      </div>
+
+                      <div className="flex flex-wrap gap-x-5 gap-y-2 border-t border-border/60 pt-3 text-sm text-muted-foreground">
+                        {course.duration ? (
+                          <div className="flex items-center gap-2">
+                            <Clock className="h-4 w-4" />
+                            <span>{course.duration}</span>
+                          </div>
+                        ) : null}
+                        {course.provider ? (
+                          <div className="flex items-center gap-2">
+                            <Award className="h-4 w-4" />
+                            <span>{course.provider}</span>
+                          </div>
+                        ) : null}
+                        <div className="flex items-center gap-2">
+                          <TrendingUp className="h-4 w-4" />
+                          <span>{course.level} Level</span>
+                        </div>
                       </div>
                     </div>
                   </CardContent>
