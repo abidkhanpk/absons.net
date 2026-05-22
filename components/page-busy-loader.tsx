@@ -13,6 +13,8 @@ const MAX_WAIT_MS = 4500
 const VIEWPORT_PRELOAD_MULTIPLIER = 1.2
 const SHOW_DELAY_MS = 220
 const MIN_VISIBLE_MS = 320
+const CLICK_FEEDBACK_DELAY_MS = 90
+const CLICK_FEEDBACK_MAX_MS = 8000
 
 function isLikelyCriticalElement(el: Element) {
   if (!(el instanceof HTMLElement)) return false
@@ -64,6 +66,51 @@ export function PageBusyLoader({ logoUrl, siteTitle }: PageBusyLoaderProps) {
   const pathname = usePathname()
   const [visible, setVisible] = useState(false)
   const resolvedLogo = useMemo(() => resolveAssetUrl(logoUrl || undefined) || "", [logoUrl])
+
+  useEffect(() => {
+    let showTimer = 0
+    let resetTimer = 0
+
+    const isInternalNavigationTarget = (href: string) => {
+      if (!href || href.startsWith("#")) return false
+      if (href.startsWith("mailto:") || href.startsWith("tel:") || href.startsWith("javascript:")) return false
+      try {
+        const url = new URL(href, window.location.href)
+        if (url.origin !== window.location.origin) return false
+        if (url.pathname === window.location.pathname && url.search === window.location.search) return false
+        return true
+      } catch {
+        return false
+      }
+    }
+
+    const onClick = (event: MouseEvent) => {
+      if (event.defaultPrevented) return
+      if (event.button !== 0) return
+      if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return
+      const target = event.target instanceof Element ? event.target.closest("a[href]") : null
+      if (!(target instanceof HTMLAnchorElement)) return
+      if (target.target && target.target !== "_self") return
+      if (target.hasAttribute("download")) return
+      if (!isInternalNavigationTarget(target.href)) return
+
+      window.clearTimeout(showTimer)
+      window.clearTimeout(resetTimer)
+      showTimer = window.setTimeout(() => {
+        setVisible(true)
+      }, CLICK_FEEDBACK_DELAY_MS)
+      resetTimer = window.setTimeout(() => {
+        setVisible(false)
+      }, CLICK_FEEDBACK_MAX_MS)
+    }
+
+    document.addEventListener("click", onClick, true)
+    return () => {
+      document.removeEventListener("click", onClick, true)
+      window.clearTimeout(showTimer)
+      window.clearTimeout(resetTimer)
+    }
+  }, [])
 
   useEffect(() => {
     let cancelled = false
@@ -146,9 +193,9 @@ export function PageBusyLoader({ logoUrl, siteTitle }: PageBusyLoaderProps) {
     >
       <div className="page-busy-loader-logo">
         {resolvedLogo ? (
-          <img src={resolvedLogo} alt={siteTitle || "Site logo"} className="h-16 w-auto object-contain" />
+          <img src={resolvedLogo} alt={siteTitle || "Site logo"} className="h-24 w-auto object-contain" />
         ) : (
-          <div className="flex h-16 w-16 items-center justify-center rounded-lg bg-primary text-primary-foreground text-xl font-bold">
+          <div className="flex h-24 w-24 items-center justify-center rounded-lg bg-primary text-primary-foreground text-3xl font-bold">
             {(siteTitle || "AS").slice(0, 2).toUpperCase()}
           </div>
         )}
