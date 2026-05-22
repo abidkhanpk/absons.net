@@ -13,7 +13,7 @@ const NS_CARD_DELAY_STEP_MS = 200
 const NS_CARD_DELAY_MAX_MS = 1300
 const SECTION_TRIGGER_ROOT_MARGIN = "0px 0px -34% 0px"
 const SECTION_TRIGGER_THRESHOLD = 0.14
-const CARD_TRIGGER_ROOT_MARGIN = "0px 0px -44% 0px"
+const CARD_TRIGGER_ROOT_MARGIN = "0px 0px -50% 0px"
 const CARD_TRIGGER_THRESHOLD = 0.2
 
 export function SiteMotion() {
