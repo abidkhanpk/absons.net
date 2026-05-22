@@ -55,6 +55,7 @@ function normalizeFooterMeta(raw: unknown) {
     typeof base.secondaryTitle === "string" && base.secondaryTitle.trim() ? base.secondaryTitle.trim() : "Services"
   const contactTitle =
     typeof base.contactTitle === "string" && base.contactTitle.trim() ? base.contactTitle.trim() : "Contact Info"
+  const showFooterMenu = typeof base.showFooterMenu === "boolean" ? base.showFooterMenu : true
   const showSecondary = typeof base.showSecondary === "boolean" ? base.showSecondary : true
   const showContact = typeof base.showContact === "boolean" ? base.showContact : true
   const showCompany = typeof base.showCompany === "boolean" ? base.showCompany : true
@@ -86,6 +87,7 @@ function normalizeFooterMeta(raw: unknown) {
     quickLinksTitle,
     secondaryTitle,
     contactTitle,
+    showFooterMenu,
     showSecondary,
     showContact,
     showCompany,

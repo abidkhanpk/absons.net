@@ -29,6 +29,7 @@ export type SiteSettings = {
   footerQuickLinksTitle: string
   footerSecondaryTitle: string
   footerContactTitle: string
+  footerMenuEnabled: boolean
   footerShowSecondaryColumn: boolean
   footerShowContactColumn: boolean
   footerShowCompanyInfo: boolean
@@ -220,6 +221,7 @@ const defaultSettings: SiteSettings = {
   footerQuickLinksTitle: "Quick Links",
   footerSecondaryTitle: "Services",
   footerContactTitle: "Contact Info",
+  footerMenuEnabled: true,
   footerShowSecondaryColumn: true,
   footerShowContactColumn: true,
   footerShowCompanyInfo: true,
@@ -530,6 +532,7 @@ function parseNavItemsGroup(raw: unknown, fallbackCompanyName: string) {
     quickLinksTitle: defaultSettings.footerQuickLinksTitle,
     secondaryTitle: defaultSettings.footerSecondaryTitle,
     contactTitle: defaultSettings.footerContactTitle,
+    showFooterMenu: defaultSettings.footerMenuEnabled,
     secondary: defaultSettings.footerSecondaryNavItems,
     showSecondary: defaultSettings.footerShowSecondaryColumn,
     showContact: defaultSettings.footerShowContactColumn,
@@ -557,6 +560,8 @@ function parseNavItemsGroup(raw: unknown, fallbackCompanyName: string) {
         typeof meta.contactTitle === "string" && meta.contactTitle.trim()
           ? meta.contactTitle.trim()
           : defaultFooterMeta.contactTitle,
+      showFooterMenu:
+        typeof meta.showFooterMenu === "boolean" ? meta.showFooterMenu : defaultFooterMeta.showFooterMenu,
       secondary: parseNavItems(meta.secondary, defaultSettings.footerSecondaryNavItems),
       showSecondary: typeof meta.showSecondary === "boolean" ? meta.showSecondary : defaultFooterMeta.showSecondary,
       showContact: typeof meta.showContact === "boolean" ? meta.showContact : defaultFooterMeta.showContact,
@@ -945,6 +950,7 @@ export async function getSiteSettings(): Promise<SiteSettings> {
       footerQuickLinksTitle: navItemsGroup.footerMeta.quickLinksTitle,
       footerSecondaryTitle: navItemsGroup.footerMeta.secondaryTitle,
       footerContactTitle: navItemsGroup.footerMeta.contactTitle,
+      footerMenuEnabled: navItemsGroup.footerMeta.showFooterMenu,
       footerShowSecondaryColumn: navItemsGroup.footerMeta.showSecondary,
       footerShowContactColumn: navItemsGroup.footerMeta.showContact,
       footerShowCompanyInfo: navItemsGroup.footerMeta.showCompany,

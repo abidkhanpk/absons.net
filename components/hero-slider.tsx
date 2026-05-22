@@ -110,7 +110,7 @@ export function HeroSlider({ slides, mode, staticIndex, autoplaySeconds, height 
   }, [active, mode, staticIndex, layout, height, currentSlide?.title, currentSlide?.subtitle, currentSlide?.ctaText, mobileParallaxFallback])
 
   return (
-    <section className="relative border-b border-border">
+    <section className="relative border-b border-border" data-motion-skip>
       <div ref={frameRef} className="relative overflow-hidden" style={{ ...bgStyle, height: heroFrameHeight }}>
         <div className={layout === "full" && currentSlide?.image ? "bg-black/50" : ""}>
           <div

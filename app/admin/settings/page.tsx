@@ -131,6 +131,7 @@ export default async function SettingsPage() {
                   quickLinksTitle: resolved.footerQuickLinksTitle,
                   secondaryTitle: resolved.footerSecondaryTitle,
                   contactTitle: resolved.footerContactTitle,
+                  showFooterMenu: resolved.footerMenuEnabled,
                   secondary: resolved.footerSecondaryNavItems,
                   showSecondary: resolved.footerShowSecondaryColumn,
                   showContact: resolved.footerShowContactColumn,

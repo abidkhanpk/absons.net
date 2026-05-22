@@ -131,6 +131,7 @@ type FooterMetaSettings = {
   quickLinksTitle: string
   secondaryTitle: string
   contactTitle: string
+  showFooterMenu: boolean
   secondary: NavItem[]
   showSecondary: boolean
   showContact: boolean
@@ -287,6 +288,7 @@ function safeParseNavItemsGroup(
     quickLinksTitle: "Quick Links",
     secondaryTitle: "Services",
     contactTitle: "Contact Info",
+    showFooterMenu: true,
     secondary: footerSecondaryFallback,
     showSecondary: true,
     showContact: true,
@@ -314,6 +316,8 @@ function safeParseNavItemsGroup(
         typeof meta.contactTitle === "string" && meta.contactTitle.trim()
           ? meta.contactTitle.trim()
           : defaultFooterMeta.contactTitle,
+      showFooterMenu:
+        typeof meta.showFooterMenu === "boolean" ? meta.showFooterMenu : defaultFooterMeta.showFooterMenu,
       secondary: safeParseNavItems(meta.secondary, footerSecondaryFallback),
       showSecondary: typeof meta.showSecondary === "boolean" ? meta.showSecondary : defaultFooterMeta.showSecondary,
       showContact: typeof meta.showContact === "boolean" ? meta.showContact : defaultFooterMeta.showContact,
@@ -732,6 +736,7 @@ export function SiteSettingsForm({ initial, pages }: { initial: SiteSettings; pa
     footerQuickLinksTitle: initialFooterMeta.quickLinksTitle,
     footerSecondaryTitle: initialFooterMeta.secondaryTitle,
     footerContactTitle: initialFooterMeta.contactTitle,
+    footerMenuEnabled: initialFooterMeta.showFooterMenu,
     footerShowSecondaryColumn: initialFooterMeta.showSecondary,
     footerShowContactColumn: initialFooterMeta.showContact,
     footerShowCompanyInfo: initialFooterMeta.showCompany,
@@ -1110,6 +1115,7 @@ export function SiteSettingsForm({ initial, pages }: { initial: SiteSettings; pa
             quickLinksTitle: formData.footerQuickLinksTitle,
             secondaryTitle: formData.footerSecondaryTitle,
             contactTitle: formData.footerContactTitle,
+            showFooterMenu: formData.footerMenuEnabled,
             secondary: formData.footerSecondaryNavItems,
             showSecondary: formData.footerShowSecondaryColumn,
             showContact: formData.footerShowContactColumn,
@@ -2270,7 +2276,17 @@ export function SiteSettingsForm({ initial, pages }: { initial: SiteSettings; pa
                             />
                           </div>
                         </div>
-                        <div className="grid gap-3 md:grid-cols-4">
+                        <div className="grid gap-3 md:grid-cols-5">
+                          <div className="flex items-center gap-3 rounded-md border border-border/60 bg-background px-3 py-2">
+                            <Switch
+                              id="footerMenuEnabled"
+                              checked={formData.footerMenuEnabled}
+                              onCheckedChange={(checked) => setFormData({ ...formData, footerMenuEnabled: checked })}
+                            />
+                            <Label htmlFor="footerMenuEnabled" className="text-sm font-normal">
+                              Show footer menu
+                            </Label>
+                          </div>
                           <div className="flex items-center gap-3 rounded-md border border-border/60 bg-background px-3 py-2">
                             <Switch
                               id="footerShowCompanyInfo"

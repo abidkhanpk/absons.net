@@ -3,6 +3,7 @@ import { Geist, Geist_Mono } from "next/font/google"
 import Script from "next/script"
 import { Analytics } from "@vercel/analytics/next"
 import { ServiceWorkerReset } from "@/components/service-worker-reset"
+import { SiteMotion } from "@/components/site-motion"
 import { getSiteSettings } from "@/lib/site-settings"
 import { buildSeoMetadata } from "@/lib/seo"
 import { resolveAssetUrl } from "@/lib/asset-url"
@@ -226,6 +227,7 @@ async function LayoutWithSettings({ children }: { children: React.ReactNode }) {
   return (
     <div style={{ ["--page-container-max" as string]: widthValue, ...headingVars }}>
       <ServiceWorkerReset />
+      <SiteMotion />
       {analyticsSnippet ? <div dangerouslySetInnerHTML={{ __html: analyticsSnippet }} /> : null}
       {headerSnippet ? <div dangerouslySetInnerHTML={{ __html: headerSnippet }} /> : null}
       {children}
