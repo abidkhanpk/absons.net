@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useMemo, useState } from "react"
+import { useEffect, useMemo, useRef, useState } from "react"
 import { usePathname } from "next/navigation"
 import { resolveAssetUrl } from "@/lib/asset-url"
 
@@ -11,7 +11,6 @@ type PageBusyLoaderProps = {
 
 const MAX_WAIT_MS = 4500
 const VIEWPORT_PRELOAD_MULTIPLIER = 1.2
-const SHOW_DELAY_MS = 220
 const MIN_VISIBLE_MS = 320
 const CLICK_FEEDBACK_DELAY_MS = 90
 const CLICK_FEEDBACK_MAX_MS = 8000
@@ -65,6 +64,8 @@ function waitForCriticalMedia(root: ParentNode): Promise<void> {
 export function PageBusyLoader({ logoUrl, siteTitle }: PageBusyLoaderProps) {
   const pathname = usePathname()
   const [visible, setVisible] = useState(false)
+  const pendingNavigationRef = useRef(false)
+  const hasMountedRef = useRef(false)
   const resolvedLogo = useMemo(() => resolveAssetUrl(logoUrl || undefined) || "", [logoUrl])
 
   useEffect(() => {
@@ -94,12 +95,14 @@ export function PageBusyLoader({ logoUrl, siteTitle }: PageBusyLoaderProps) {
       if (target.hasAttribute("download")) return
       if (!isInternalNavigationTarget(target.href)) return
 
+      pendingNavigationRef.current = true
       window.clearTimeout(showTimer)
       window.clearTimeout(resetTimer)
       showTimer = window.setTimeout(() => {
         setVisible(true)
       }, CLICK_FEEDBACK_DELAY_MS)
       resetTimer = window.setTimeout(() => {
+        pendingNavigationRef.current = false
         setVisible(false)
       }, CLICK_FEEDBACK_MAX_MS)
     }
@@ -113,9 +116,15 @@ export function PageBusyLoader({ logoUrl, siteTitle }: PageBusyLoaderProps) {
   }, [])
 
   useEffect(() => {
+    if (!hasMountedRef.current) {
+      hasMountedRef.current = true
+      return
+    }
+
     let cancelled = false
     let shownAt = 0
-    let isShown = false
+    const shouldHandleThisNavigation = pendingNavigationRef.current || visible
+    if (!shouldHandleThisNavigation) return
 
     const sleep = (ms: number) => new Promise<void>((resolve) => window.setTimeout(resolve, ms))
 
@@ -141,28 +150,13 @@ export function PageBusyLoader({ logoUrl, siteTitle }: PageBusyLoaderProps) {
         Promise.all([domReadyPromise, loadPromise, fontsPromise]).then(() => "ready" as const),
         timeoutPromise.then(() => "timeout" as const),
       ])
-
-      const delayResult = await Promise.race([
-        readyPromise,
-        sleep(SHOW_DELAY_MS).then(() => "delay" as const),
-      ])
-
-      if (cancelled) return
-
-      if (delayResult === "delay") {
-        isShown = true
-        shownAt = Date.now()
-        setVisible(true)
-      } else {
-        setVisible(false)
-        return
-      }
+      shownAt = Date.now()
 
       await readyPromise
 
       if (cancelled) return
 
-      if (isShown) {
+      if (visible) {
         const elapsed = Date.now() - shownAt
         if (elapsed < MIN_VISIBLE_MS) {
           await sleep(MIN_VISIBLE_MS - elapsed)
@@ -170,6 +164,7 @@ export function PageBusyLoader({ logoUrl, siteTitle }: PageBusyLoaderProps) {
       }
 
       if (!cancelled) {
+        pendingNavigationRef.current = false
         setVisible(false)
       }
     }
