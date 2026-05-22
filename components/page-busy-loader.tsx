@@ -14,6 +14,7 @@ const VIEWPORT_PRELOAD_MULTIPLIER = 1.2
 const MIN_VISIBLE_MS = 320
 const CLICK_FEEDBACK_DELAY_MS = 90
 const CLICK_FEEDBACK_MAX_MS = 8000
+const NON_CLICK_SHOW_DELAY_MS = 140
 
 function isLikelyCriticalElement(el: Element) {
   if (!(el instanceof HTMLElement)) return false
@@ -59,6 +60,18 @@ function waitForCriticalMedia(root: ParentNode): Promise<void> {
   })
 
   return Promise.all([...imagePromises, ...videoPromises]).then(() => undefined)
+}
+
+function hasPendingCriticalMedia(root: ParentNode) {
+  const pendingImages = Array.from(root.querySelectorAll("img"))
+    .filter(isLikelyCriticalElement)
+    .some((img) => !(img.complete && img.naturalWidth > 0))
+
+  if (pendingImages) return true
+
+  return Array.from(root.querySelectorAll("video"))
+    .filter(isLikelyCriticalElement)
+    .some((video) => video.readyState < 2)
 }
 
 export function PageBusyLoader({ logoUrl, siteTitle }: PageBusyLoaderProps) {
@@ -176,6 +189,56 @@ export function PageBusyLoader({ logoUrl, siteTitle }: PageBusyLoaderProps) {
       setVisible(false)
     }
   }, [pathname])
+
+  useEffect(() => {
+    if (!hasMountedRef.current) return
+    if (pendingNavigationRef.current || visible) return
+
+    let cancelled = false
+    let shownAt = 0
+    const sleep = (ms: number) => new Promise<void>((resolve) => window.setTimeout(resolve, ms))
+
+    const run = async () => {
+      await new Promise<void>((resolve) => requestAnimationFrame(() => requestAnimationFrame(() => resolve())))
+
+      const root = document.getElementById("site-layout-vars") || document.body
+      if (!hasPendingCriticalMedia(root)) return
+
+      await sleep(NON_CLICK_SHOW_DELAY_MS)
+      if (cancelled) return
+      if (!hasPendingCriticalMedia(root)) return
+
+      shownAt = Date.now()
+      setVisible(true)
+
+      const loadPromise = waitForCriticalMedia(root)
+      const fontsPromise = document.fonts?.ready ?? Promise.resolve()
+      const domReadyPromise =
+        document.readyState === "complete"
+          ? Promise.resolve()
+          : new Promise<void>((resolve) => {
+              const done = () => {
+                window.removeEventListener("load", done)
+                resolve()
+              }
+              window.addEventListener("load", done, { once: true })
+            })
+      const timeoutPromise = sleep(MAX_WAIT_MS)
+      await Promise.race([Promise.all([domReadyPromise, loadPromise, fontsPromise]).then(() => undefined), timeoutPromise])
+
+      if (cancelled) return
+      const elapsed = Date.now() - shownAt
+      if (elapsed < MIN_VISIBLE_MS) {
+        await sleep(MIN_VISIBLE_MS - elapsed)
+      }
+      if (!cancelled) setVisible(false)
+    }
+
+    void run()
+    return () => {
+      cancelled = true
+    }
+  }, [pathname, visible])
 
   if (!visible) return null
 
