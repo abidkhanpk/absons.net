@@ -58,12 +58,14 @@ function normalizeFooterMeta(raw: unknown) {
   const showSecondary = typeof base.showSecondary === "boolean" ? base.showSecondary : true
   const showContact = typeof base.showContact === "boolean" ? base.showContact : true
   const showCompany = typeof base.showCompany === "boolean" ? base.showCompany : true
-  const companyName =
-    typeof base.companyName === "string" && base.companyName.trim() ? base.companyName.trim() : "Site"
+  const companyName = typeof base.companyName === "string" ? base.companyName.trim() : ""
   const companyDescription =
     typeof base.companyDescription === "string" && base.companyDescription.trim()
       ? base.companyDescription.trim()
       : "Professional software solutions and training services for educational institutions and organizations."
+  const companyTagline = typeof base.companyTagline === "string" ? base.companyTagline.trim() : ""
+  const showHeaderTagline = typeof base.showHeaderTagline === "boolean" ? base.showHeaderTagline : true
+  const showFooterTagline = typeof base.showFooterTagline === "boolean" ? base.showFooterTagline : true
   const secondary =
     Array.isArray(base.secondary)
       ? base.secondary
@@ -89,6 +91,9 @@ function normalizeFooterMeta(raw: unknown) {
     showCompany,
     companyName,
     companyDescription,
+    companyTagline,
+    showHeaderTagline,
+    showFooterTagline,
     secondary,
   }
 }

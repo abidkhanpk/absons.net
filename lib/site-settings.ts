@@ -34,6 +34,9 @@ export type SiteSettings = {
   footerShowCompanyInfo: boolean
   footerCompanyName: string
   footerCompanyDescription: string
+  companyTagline: string
+  showHeaderTagline: boolean
+  showFooterTagline: boolean
   homeSections: HomeSection[]
   businessHours: string
   businessDays: string
@@ -222,6 +225,9 @@ const defaultSettings: SiteSettings = {
   footerShowCompanyInfo: true,
   footerCompanyName: "Site",
   footerCompanyDescription: "Professional software solutions and training services for educational institutions and organizations.",
+  companyTagline: "",
+  showHeaderTagline: true,
+  showFooterTagline: true,
   homeSections: [
     {
       id: "services",
@@ -528,8 +534,11 @@ function parseNavItemsGroup(raw: unknown, fallbackCompanyName: string) {
     showSecondary: defaultSettings.footerShowSecondaryColumn,
     showContact: defaultSettings.footerShowContactColumn,
     showCompany: defaultSettings.footerShowCompanyInfo,
-    companyName: fallbackCompanyName || defaultSettings.footerCompanyName,
+    companyName: "",
     companyDescription: defaultSettings.footerCompanyDescription,
+    companyTagline: defaultSettings.companyTagline,
+    showHeaderTagline: defaultSettings.showHeaderTagline,
+    showFooterTagline: defaultSettings.showFooterTagline,
   }
 
   const parseFooterMeta = (rawMeta: unknown) => {
@@ -552,14 +561,17 @@ function parseNavItemsGroup(raw: unknown, fallbackCompanyName: string) {
       showSecondary: typeof meta.showSecondary === "boolean" ? meta.showSecondary : defaultFooterMeta.showSecondary,
       showContact: typeof meta.showContact === "boolean" ? meta.showContact : defaultFooterMeta.showContact,
       showCompany: typeof meta.showCompany === "boolean" ? meta.showCompany : defaultFooterMeta.showCompany,
-      companyName:
-        typeof meta.companyName === "string" && meta.companyName.trim()
-          ? meta.companyName.trim()
-          : defaultFooterMeta.companyName,
+      companyName: typeof meta.companyName === "string" ? meta.companyName.trim() : defaultFooterMeta.companyName,
       companyDescription:
         typeof meta.companyDescription === "string" && meta.companyDescription.trim()
           ? meta.companyDescription.trim()
           : defaultFooterMeta.companyDescription,
+      companyTagline:
+        typeof meta.companyTagline === "string" ? meta.companyTagline.trim() : defaultFooterMeta.companyTagline,
+      showHeaderTagline:
+        typeof meta.showHeaderTagline === "boolean" ? meta.showHeaderTagline : defaultFooterMeta.showHeaderTagline,
+      showFooterTagline:
+        typeof meta.showFooterTagline === "boolean" ? meta.showFooterTagline : defaultFooterMeta.showFooterTagline,
     }
   }
 
@@ -938,6 +950,9 @@ export async function getSiteSettings(): Promise<SiteSettings> {
       footerShowCompanyInfo: navItemsGroup.footerMeta.showCompany,
       footerCompanyName: navItemsGroup.footerMeta.companyName,
       footerCompanyDescription: navItemsGroup.footerMeta.companyDescription,
+      companyTagline: navItemsGroup.footerMeta.companyTagline,
+      showHeaderTagline: navItemsGroup.footerMeta.showHeaderTagline,
+      showFooterTagline: navItemsGroup.footerMeta.showFooterTagline,
       homeSections,
       businessHoursSchedule: parseBusinessHoursSchedule(settings.businessHoursSchedule),
       showBusinessHours: settings.showBusinessHours ?? defaultSettings.showBusinessHours,

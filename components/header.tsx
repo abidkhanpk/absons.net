@@ -19,6 +19,8 @@ export function Header({ settings }: HeaderProps) {
   const logoRadius = Math.max(0, Math.min(512, settings.logoRadius ?? 8))
   const showCta = settings.navCtaEnabled !== false
   const navItems = (settings.navItems || []).filter((item) => item.enabled !== false)
+  const companyTagline = typeof settings.companyTagline === "string" ? settings.companyTagline.trim() : ""
+  const showHeaderTagline = settings.showHeaderTagline !== false && Boolean(companyTagline)
 
   const navAlignmentClass = useMemo(() => {
     switch (settings.navAlignment) {
@@ -87,7 +89,10 @@ export function Header({ settings }: HeaderProps) {
                   {settings.siteTitle.slice(0, 2).toUpperCase()}
                 </div>
               )}
-              <span className="font-bold text-lg text-foreground">{settings.siteTitle}</span>
+              <span className="flex flex-col leading-tight">
+                <span className="font-bold text-lg text-foreground">{settings.siteTitle}</span>
+                {showHeaderTagline ? <span className="text-[11px] text-muted-foreground">{companyTagline}</span> : null}
+              </span>
             </Link>
           </div>
 

@@ -137,6 +137,9 @@ export default async function SettingsPage() {
                   showCompany: resolved.footerShowCompanyInfo,
                   companyName: resolved.footerCompanyName,
                   companyDescription: resolved.footerCompanyDescription,
+                  companyTagline: resolved.companyTagline,
+                  showHeaderTagline: resolved.showHeaderTagline,
+                  showFooterTagline: resolved.showFooterTagline,
                 },
               }),
               home_sections: settings?.homeSections

@@ -12,6 +12,8 @@ export function Footer({ settings }: { settings: SiteSettings }) {
   const companyDescription =
     settings.footerCompanyDescription ||
     "Professional software solutions and training services for educational institutions and organizations."
+  const companyTagline = typeof settings.companyTagline === "string" ? settings.companyTagline.trim() : ""
+  const showFooterTagline = settings.showFooterTagline !== false && Boolean(companyTagline)
 
   return (
     <footer className="bg-muted/30 border-t border-border">
@@ -25,6 +27,7 @@ export function Footer({ settings }: { settings: SiteSettings }) {
                 </div>
                 <span className="font-bold text-lg">{companyName}</span>
               </div>
+              {showFooterTagline ? <p className="text-xs text-muted-foreground">{companyTagline}</p> : null}
               <p className="text-sm text-muted-foreground leading-relaxed">
                 {companyDescription}
               </p>

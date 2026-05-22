@@ -137,6 +137,9 @@ type FooterMetaSettings = {
   showCompany: boolean
   companyName: string
   companyDescription: string
+  companyTagline: string
+  showHeaderTagline: boolean
+  showFooterTagline: boolean
 }
 
 type HomeSection = {
@@ -288,8 +291,11 @@ function safeParseNavItemsGroup(
     showSecondary: true,
     showContact: true,
     showCompany: true,
-    companyName: fallbackCompanyName || "Site",
+    companyName: "",
     companyDescription: "Professional software solutions and training services for educational institutions and organizations.",
+    companyTagline: "",
+    showHeaderTagline: true,
+    showFooterTagline: true,
   }
 
   const normalizeFooterMeta = (rawMeta: unknown): FooterMetaSettings => {
@@ -312,14 +318,17 @@ function safeParseNavItemsGroup(
       showSecondary: typeof meta.showSecondary === "boolean" ? meta.showSecondary : defaultFooterMeta.showSecondary,
       showContact: typeof meta.showContact === "boolean" ? meta.showContact : defaultFooterMeta.showContact,
       showCompany: typeof meta.showCompany === "boolean" ? meta.showCompany : defaultFooterMeta.showCompany,
-      companyName:
-        typeof meta.companyName === "string" && meta.companyName.trim()
-          ? meta.companyName.trim()
-          : defaultFooterMeta.companyName,
+      companyName: typeof meta.companyName === "string" ? meta.companyName.trim() : defaultFooterMeta.companyName,
       companyDescription:
         typeof meta.companyDescription === "string" && meta.companyDescription.trim()
           ? meta.companyDescription.trim()
           : defaultFooterMeta.companyDescription,
+      companyTagline:
+        typeof meta.companyTagline === "string" ? meta.companyTagline.trim() : defaultFooterMeta.companyTagline,
+      showHeaderTagline:
+        typeof meta.showHeaderTagline === "boolean" ? meta.showHeaderTagline : defaultFooterMeta.showHeaderTagline,
+      showFooterTagline:
+        typeof meta.showFooterTagline === "boolean" ? meta.showFooterTagline : defaultFooterMeta.showFooterTagline,
     }
   }
 
@@ -728,6 +737,9 @@ export function SiteSettingsForm({ initial, pages }: { initial: SiteSettings; pa
     footerShowCompanyInfo: initialFooterMeta.showCompany,
     footerCompanyName: initialFooterMeta.companyName,
     footerCompanyDescription: initialFooterMeta.companyDescription,
+    companyTagline: initialFooterMeta.companyTagline,
+    showHeaderTagline: initialFooterMeta.showHeaderTagline,
+    showFooterTagline: initialFooterMeta.showFooterTagline,
     homeSections: initialHomeSections,
   })
   const [isSaving, setIsSaving] = useState(false)
@@ -1104,6 +1116,9 @@ export function SiteSettingsForm({ initial, pages }: { initial: SiteSettings; pa
             showCompany: formData.footerShowCompanyInfo,
             companyName: formData.footerCompanyName,
             companyDescription: formData.footerCompanyDescription,
+            companyTagline: formData.companyTagline,
+            showHeaderTagline: formData.showHeaderTagline,
+            showFooterTagline: formData.showFooterTagline,
           },
           homeSections: formData.homeSections,
           editorApprovalRequired: formData.editorApprovalRequired,
@@ -1230,6 +1245,15 @@ export function SiteSettingsForm({ initial, pages }: { initial: SiteSettings; pa
                 value={formData.siteTitle}
                 onChange={(e) => setFormData({ ...formData, siteTitle: e.target.value })}
                 required
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="companyTagline">Company Tagline</Label>
+              <Input
+                id="companyTagline"
+                value={formData.companyTagline}
+                onChange={(e) => setFormData({ ...formData, companyTagline: e.target.value })}
+                placeholder="Trusted Innovation Partner"
               />
             </div>
             <div className="space-y-2">
@@ -2060,6 +2084,16 @@ export function SiteSettingsForm({ initial, pages }: { initial: SiteSettings; pa
                               </Label>
                             </div>
                           </div>
+                          <div className="md:col-span-2 flex items-center gap-3 rounded-md border border-border/60 bg-background px-3 py-2">
+                            <Switch
+                              id="showHeaderTagline"
+                              checked={formData.showHeaderTagline}
+                              onCheckedChange={(checked) => setFormData({ ...formData, showHeaderTagline: checked })}
+                            />
+                            <Label htmlFor="showHeaderTagline" className="text-sm font-normal">
+                              Show tagline in header menu
+                            </Label>
+                          </div>
                         </div>
                       </div>
 
@@ -2219,8 +2253,11 @@ export function SiteSettingsForm({ initial, pages }: { initial: SiteSettings; pa
                               id="footerCompanyName"
                               value={formData.footerCompanyName}
                               onChange={(e) => setFormData({ ...formData, footerCompanyName: e.target.value })}
-                              placeholder={formData.siteTitle || "Site"}
+                              placeholder="Leave blank to use Website Title"
                             />
+                            <p className="text-xs text-muted-foreground">
+                              Optional override for footer only.
+                            </p>
                           </div>
                           <div className="space-y-2 md:col-span-2">
                             <Label htmlFor="footerCompanyDescription">Footer Company Description</Label>
@@ -2233,7 +2270,7 @@ export function SiteSettingsForm({ initial, pages }: { initial: SiteSettings; pa
                             />
                           </div>
                         </div>
-                        <div className="grid gap-3 md:grid-cols-3">
+                        <div className="grid gap-3 md:grid-cols-4">
                           <div className="flex items-center gap-3 rounded-md border border-border/60 bg-background px-3 py-2">
                             <Switch
                               id="footerShowCompanyInfo"
@@ -2262,6 +2299,16 @@ export function SiteSettingsForm({ initial, pages }: { initial: SiteSettings; pa
                             />
                             <Label htmlFor="footerShowContactColumn" className="text-sm font-normal">
                               Show contact column
+                            </Label>
+                          </div>
+                          <div className="flex items-center gap-3 rounded-md border border-border/60 bg-background px-3 py-2">
+                            <Switch
+                              id="showFooterTagline"
+                              checked={formData.showFooterTagline}
+                              onCheckedChange={(checked) => setFormData({ ...formData, showFooterTagline: checked })}
+                            />
+                            <Label htmlFor="showFooterTagline" className="text-sm font-normal">
+                              Show tagline in footer menu
                             </Label>
                           </div>
                         </div>
