@@ -20,9 +20,9 @@ export function Footer({ settings }: { settings: SiteSettings }) {
     <footer className="bg-muted/30 border-t border-border">
       <div className={`container mx-auto px-4 lg:px-8 ${showFooterMenu ? "py-12" : "py-6"}`}>
         {showFooterMenu ? (
-          <div className="grid grid-cols-1 gap-8 md:mx-auto md:w-fit md:grid-flow-col md:auto-cols-[260px]">
+          <div className="grid grid-cols-1 gap-8 md:grid-cols-2 xl:grid-cols-4">
             {showCompany ? (
-              <div className="w-full md:w-[260px] space-y-4">
+              <div className="min-w-0 space-y-4">
                 <div className="flex items-center gap-2">
                   <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary text-primary-foreground font-bold text-lg">
                     {companyName?.slice(0, 2).toUpperCase() || "AS"}
@@ -32,13 +32,13 @@ export function Footer({ settings }: { settings: SiteSettings }) {
                     {showFooterTagline ? <span className="text-[11px] text-muted-foreground">{companyTagline}</span> : null}
                   </span>
                 </div>
-                <p className="text-sm text-muted-foreground leading-relaxed">
+                <p className="text-sm text-muted-foreground leading-relaxed break-words">
                   {companyDescription}
                 </p>
               </div>
             ) : null}
 
-            <div className="w-full md:w-[260px]">
+            <div className="min-w-0">
               <h3 className="font-semibold mb-4">{settings.footerQuickLinksTitle || "Quick Links"}</h3>
               <ul className="space-y-3">
                 {navItems.map((item) => (
@@ -52,7 +52,7 @@ export function Footer({ settings }: { settings: SiteSettings }) {
             </div>
 
             {showSecondary ? (
-              <div className="w-full md:w-[260px]">
+              <div className="min-w-0">
                 <h3 className="font-semibold mb-4">{settings.footerSecondaryTitle || "Services"}</h3>
                 <ul className="space-y-3">
                   {secondaryItems.map((item) => (
@@ -67,7 +67,7 @@ export function Footer({ settings }: { settings: SiteSettings }) {
             ) : null}
 
             {showContact ? (
-              <div className="w-full md:w-[260px]">
+              <div className="min-w-0">
                 <h3 className="font-semibold mb-4">{settings.footerContactTitle || "Contact Info"}</h3>
                 <ul className="space-y-3">
                   <li className="flex items-start gap-2">
