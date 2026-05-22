@@ -58,7 +58,7 @@ export default async function TrainingPage() {
         {/* About Training */}
         <section className="py-16 bg-background">
           <div className="container mx-auto px-4 lg:px-8">
-            <div className="max-w-4xl mx-auto space-y-6">
+            <div className="space-y-6">
               <h2 className="text-3xl font-bold">World-Class Certification Programs</h2>
               <p className="text-lg text-muted-foreground leading-relaxed">
                 {siteTitle} offers comprehensive training programs designed to equip professionals with the knowledge and skills needed to excel in reliability and condition monitoring. Our courses cover a wide range of topics, from fundamental principles to advanced techniques, ensuring that participants gain a deep understanding of the subject matter.
@@ -142,7 +142,7 @@ export default async function TrainingPage() {
         {/* Why Train With Us */}
         <section className="py-16 bg-background">
           <div className="container mx-auto px-4 lg:px-8">
-            <div className="max-w-4xl mx-auto">
+            <div>
               <h2 className="text-3xl font-bold mb-8">Why Train With {siteTitle}</h2>
               <div className="grid md:grid-cols-2 gap-6">
                 <div className="flex gap-3">
