@@ -69,11 +69,11 @@ function normalizeFooterMeta(raw: unknown) {
   const showFooterTagline = typeof base.showFooterTagline === "boolean" ? base.showFooterTagline : true
   const motionEntranceDesktopPercent =
     typeof base.motionEntranceDesktopPercent === "number" && Number.isFinite(base.motionEntranceDesktopPercent)
-      ? Math.min(90, Math.max(10, Math.round(base.motionEntranceDesktopPercent)))
+      ? Math.min(90, Math.max(0, Math.round(base.motionEntranceDesktopPercent)))
       : 34
   const motionEntranceMobilePercent =
     typeof base.motionEntranceMobilePercent === "number" && Number.isFinite(base.motionEntranceMobilePercent)
-      ? Math.min(90, Math.max(10, Math.round(base.motionEntranceMobilePercent)))
+      ? Math.min(90, Math.max(0, Math.round(base.motionEntranceMobilePercent)))
       : 50
   const secondary =
     Array.isArray(base.secondary)

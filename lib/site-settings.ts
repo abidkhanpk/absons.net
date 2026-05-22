@@ -585,11 +585,11 @@ function parseNavItemsGroup(raw: unknown, fallbackCompanyName: string) {
         typeof meta.showFooterTagline === "boolean" ? meta.showFooterTagline : defaultFooterMeta.showFooterTagline,
       motionEntranceDesktopPercent:
         typeof meta.motionEntranceDesktopPercent === "number" && Number.isFinite(meta.motionEntranceDesktopPercent)
-          ? Math.min(90, Math.max(10, Math.round(meta.motionEntranceDesktopPercent)))
+          ? Math.min(90, Math.max(0, Math.round(meta.motionEntranceDesktopPercent)))
           : defaultFooterMeta.motionEntranceDesktopPercent,
       motionEntranceMobilePercent:
         typeof meta.motionEntranceMobilePercent === "number" && Number.isFinite(meta.motionEntranceMobilePercent)
-          ? Math.min(90, Math.max(10, Math.round(meta.motionEntranceMobilePercent)))
+          ? Math.min(90, Math.max(0, Math.round(meta.motionEntranceMobilePercent)))
           : defaultFooterMeta.motionEntranceMobilePercent,
     }
   }

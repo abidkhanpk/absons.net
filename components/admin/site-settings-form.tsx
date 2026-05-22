@@ -339,11 +339,11 @@ function safeParseNavItemsGroup(
         typeof meta.showFooterTagline === "boolean" ? meta.showFooterTagline : defaultFooterMeta.showFooterTagline,
       motionEntranceDesktopPercent:
         typeof meta.motionEntranceDesktopPercent === "number" && Number.isFinite(meta.motionEntranceDesktopPercent)
-          ? Math.min(90, Math.max(10, Math.round(meta.motionEntranceDesktopPercent)))
+          ? Math.min(90, Math.max(0, Math.round(meta.motionEntranceDesktopPercent)))
           : defaultFooterMeta.motionEntranceDesktopPercent,
       motionEntranceMobilePercent:
         typeof meta.motionEntranceMobilePercent === "number" && Number.isFinite(meta.motionEntranceMobilePercent)
-          ? Math.min(90, Math.max(10, Math.round(meta.motionEntranceMobilePercent)))
+          ? Math.min(90, Math.max(0, Math.round(meta.motionEntranceMobilePercent)))
           : defaultFooterMeta.motionEntranceMobilePercent,
     }
   }
@@ -1504,7 +1504,7 @@ export function SiteSettingsForm({ initial, pages }: { initial: SiteSettings; pa
                 <Input
                   id="motionEntranceDesktopPercent"
                   type="number"
-                  min={10}
+                  min={0}
                   max={90}
                   value={formData.motionEntranceDesktopPercent}
                   onChange={(e) => {
@@ -1520,7 +1520,7 @@ export function SiteSettingsForm({ initial, pages }: { initial: SiteSettings; pa
                     setFormData({
                       ...formData,
                       motionEntranceDesktopPercent: Number.isFinite(parsed)
-                        ? Math.min(90, Math.max(10, Math.round(parsed)))
+                        ? Math.min(90, Math.max(0, Math.round(parsed)))
                         : 34,
                     })
                   }}
@@ -1532,7 +1532,7 @@ export function SiteSettingsForm({ initial, pages }: { initial: SiteSettings; pa
                 <Input
                   id="motionEntranceMobilePercent"
                   type="number"
-                  min={10}
+                  min={0}
                   max={90}
                   value={formData.motionEntranceMobilePercent}
                   onChange={(e) => {
@@ -1548,7 +1548,7 @@ export function SiteSettingsForm({ initial, pages }: { initial: SiteSettings; pa
                     setFormData({
                       ...formData,
                       motionEntranceMobilePercent: Number.isFinite(parsed)
-                        ? Math.min(90, Math.max(10, Math.round(parsed)))
+                        ? Math.min(90, Math.max(0, Math.round(parsed)))
                         : 50,
                     })
                   }}

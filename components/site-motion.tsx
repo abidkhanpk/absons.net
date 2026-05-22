@@ -34,8 +34,8 @@ export function SiteMotion() {
     const rootStyles = getComputedStyle(layoutVarsHost)
     const desktopPercentRaw = Number.parseFloat(rootStyles.getPropertyValue("--motion-trigger-desktop-pct"))
     const mobilePercentRaw = Number.parseFloat(rootStyles.getPropertyValue("--motion-trigger-mobile-pct"))
-    const desktopPercent = Number.isFinite(desktopPercentRaw) ? Math.min(90, Math.max(10, desktopPercentRaw)) : 34
-    const mobilePercent = Number.isFinite(mobilePercentRaw) ? Math.min(90, Math.max(10, mobilePercentRaw)) : 50
+    const desktopPercent = Number.isFinite(desktopPercentRaw) ? Math.min(90, Math.max(0, desktopPercentRaw)) : 34
+    const mobilePercent = Number.isFinite(mobilePercentRaw) ? Math.min(90, Math.max(0, mobilePercentRaw)) : 50
     const sectionRootMargin = `0px 0px -${isMobile ? mobilePercent : desktopPercent}% 0px`
     const cardRootMargin = `0px 0px -${mobilePercent}% 0px`
     const mobileCards = Array.from(document.querySelectorAll<HTMLElement>(`main ${SECTION_CARD_SELECTOR}`)).filter(
