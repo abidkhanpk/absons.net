@@ -25,9 +25,11 @@ export function Footer({ settings }: { settings: SiteSettings }) {
                 <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary text-primary-foreground font-bold text-lg">
                   {companyName?.slice(0, 2).toUpperCase() || "AS"}
                 </div>
-                <span className="font-bold text-lg">{companyName}</span>
+                <span className="flex flex-col leading-tight">
+                  <span className="font-bold text-lg">{companyName}</span>
+                  {showFooterTagline ? <span className="text-[11px] text-muted-foreground">{companyTagline}</span> : null}
+                </span>
               </div>
-              {showFooterTagline ? <p className="text-xs text-muted-foreground">{companyTagline}</p> : null}
               <p className="text-sm text-muted-foreground leading-relaxed">
                 {companyDescription}
               </p>
