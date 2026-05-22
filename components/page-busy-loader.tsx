@@ -80,9 +80,16 @@ export function PageBusyLoader({ logoUrl, siteTitle }: PageBusyLoaderProps) {
   const pendingNavigationRef = useRef(false)
   const hasMountedRef = useRef(false)
   const fallbackShownPathRef = useRef<string | null>(null)
+  const isAdminRoute = pathname?.startsWith("/admin") ?? false
   const resolvedLogo = useMemo(() => resolveAssetUrl(logoUrl || undefined) || "", [logoUrl])
 
   useEffect(() => {
+    if (isAdminRoute) {
+      setVisible(false)
+      pendingNavigationRef.current = false
+      return
+    }
+
     let showTimer = 0
     let resetTimer = 0
 
@@ -127,9 +134,10 @@ export function PageBusyLoader({ logoUrl, siteTitle }: PageBusyLoaderProps) {
       window.clearTimeout(showTimer)
       window.clearTimeout(resetTimer)
     }
-  }, [])
+  }, [isAdminRoute])
 
   useEffect(() => {
+    if (isAdminRoute) return
     if (!hasMountedRef.current) {
       hasMountedRef.current = true
       return
@@ -189,9 +197,10 @@ export function PageBusyLoader({ logoUrl, siteTitle }: PageBusyLoaderProps) {
       cancelled = true
       setVisible(false)
     }
-  }, [pathname])
+  }, [pathname, isAdminRoute])
 
   useEffect(() => {
+    if (isAdminRoute) return
     if (!hasMountedRef.current) return
     if (!pathname) return
     if (pendingNavigationRef.current || visible) return
@@ -242,9 +251,9 @@ export function PageBusyLoader({ logoUrl, siteTitle }: PageBusyLoaderProps) {
     return () => {
       cancelled = true
     }
-  }, [pathname, visible])
+  }, [pathname, visible, isAdminRoute])
 
-  if (!visible) return null
+  if (isAdminRoute || !visible) return null
 
   return (
     <div
