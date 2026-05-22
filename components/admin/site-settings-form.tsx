@@ -1248,14 +1248,49 @@ export function SiteSettingsForm({ initial, pages }: { initial: SiteSettings; pa
   return (
     <form className="space-y-6" onSubmit={handleSubmit}>
       <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as typeof activeTab)} className="space-y-6">
-        <TabsList>
-          <TabsTrigger value="general">General</TabsTrigger>
-          <TabsTrigger value="headings">Headings</TabsTrigger>
-          <TabsTrigger value="home-sections">Home Sections</TabsTrigger>
-          <TabsTrigger value="navigation">Navigation & Layout</TabsTrigger>
-          <TabsTrigger value="hero">Hero Slides</TabsTrigger>
-          <TabsTrigger value="contact">Contact</TabsTrigger>
-          <TabsTrigger value="seo">SEO</TabsTrigger>
+        <TabsList className="flex h-auto flex-wrap gap-2 rounded-lg border border-border/70 bg-muted/40 p-1">
+          <TabsTrigger
+            value="general"
+            className="border border-transparent text-muted-foreground transition-all data-[state=active]:border-primary/25 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground hover:bg-background/80 hover:text-foreground"
+          >
+            General
+          </TabsTrigger>
+          <TabsTrigger
+            value="navigation"
+            className="border border-transparent text-muted-foreground transition-all data-[state=active]:border-primary/25 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground hover:bg-background/80 hover:text-foreground"
+          >
+            Menus & Layout
+          </TabsTrigger>
+          <TabsTrigger
+            value="home-sections"
+            className="border border-transparent text-muted-foreground transition-all data-[state=active]:border-primary/25 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground hover:bg-background/80 hover:text-foreground"
+          >
+            Homepage
+          </TabsTrigger>
+          <TabsTrigger
+            value="hero"
+            className="border border-transparent text-muted-foreground transition-all data-[state=active]:border-primary/25 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground hover:bg-background/80 hover:text-foreground"
+          >
+            Hero
+          </TabsTrigger>
+          <TabsTrigger
+            value="contact"
+            className="border border-transparent text-muted-foreground transition-all data-[state=active]:border-primary/25 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground hover:bg-background/80 hover:text-foreground"
+          >
+            Contact
+          </TabsTrigger>
+          <TabsTrigger
+            value="seo"
+            className="border border-transparent text-muted-foreground transition-all data-[state=active]:border-primary/25 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground hover:bg-background/80 hover:text-foreground"
+          >
+            SEO
+          </TabsTrigger>
+          <TabsTrigger
+            value="headings"
+            className="border border-transparent text-muted-foreground transition-all data-[state=active]:border-primary/25 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground hover:bg-background/80 hover:text-foreground"
+          >
+            Headings
+          </TabsTrigger>
         </TabsList>
 
         <TabsContent value="general" className="space-y-6">
@@ -1788,8 +1823,8 @@ export function SiteSettingsForm({ initial, pages }: { initial: SiteSettings; pa
             </div>
           </div>
 
-            <div className="space-y-2">
-              <div className="flex items-center justify-between">
+          <div className="space-y-3 rounded-md border border-border/60 bg-muted/20 p-4">
+            <div className="flex items-center justify-between">
                 <div className="space-y-1">
                   <Label className="font-semibold">Business Hours</Label>
                   <p className="text-xs text-muted-foreground">Choose detailed table or two custom lines.</p>

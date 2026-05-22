@@ -45,8 +45,8 @@ export default async function SettingsPage() {
 
       <Card className="w-full">
         <CardHeader>
-          <CardTitle>Branding & Footer</CardTitle>
-          <CardDescription>Update the website title, logo, and contact information</CardDescription>
+          <CardTitle>Website Configuration</CardTitle>
+          <CardDescription>Manage branding, menus, homepage sections, hero, contact, and SEO settings</CardDescription>
         </CardHeader>
         <CardContent>
           <SiteSettingsForm
