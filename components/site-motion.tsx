@@ -13,8 +13,8 @@ const NS_CARD_DELAY_STEP_MS = 200
 const NS_CARD_DELAY_MAX_MS = 1300
 const SECTION_TRIGGER_ROOT_MARGIN = "0px 0px -34% 0px"
 const SECTION_TRIGGER_THRESHOLD = 0.14
-const CARD_TRIGGER_ROOT_MARGIN = "0px 0px -30% 0px"
-const CARD_TRIGGER_THRESHOLD = 0.12
+const CARD_TRIGGER_ROOT_MARGIN = "0px 0px -44% 0px"
+const CARD_TRIGGER_THRESHOLD = 0.2
 
 export function SiteMotion() {
   const pathname = usePathname()
@@ -31,7 +31,8 @@ export function SiteMotion() {
 
     const sections = Array.from(document.querySelectorAll<HTMLElement>("main section:not([data-motion-skip])"))
     const mobileQuery = window.matchMedia("(max-width: 767px)")
-    const mobileCards = Array.from(document.querySelectorAll<HTMLElement>("main [data-slot='card']")).filter(
+    const isMobile = mobileQuery.matches
+    const mobileCards = Array.from(document.querySelectorAll<HTMLElement>(`main ${SECTION_CARD_SELECTOR}`)).filter(
       (card) => !card.closest(".home-section-scroll-card") && !card.closest(".scrolling-loop"),
     )
 
@@ -73,6 +74,14 @@ export function SiteMotion() {
         (card) => !card.closest(".scrolling-loop") && !card.closest(".home-section-scroll-card"),
       )
       sectionCards.forEach((card, cardIndex) => {
+        if (isMobile) {
+          card.classList.remove("motion-section-card", "motion-section-node")
+          card.classList.add("motion-card-reveal")
+          card.setAttribute("data-motion-card-variant", cardIndex % 2 === 0 ? "from-left" : "from-right")
+          card.style.setProperty("--motion-card-delay", `${Math.min((cardIndex % 4) * 60, 180)}ms`)
+          return
+        }
+
         card.classList.add("motion-section-card", "motion-section-node")
         const delay = Math.min(NS_CARD_DELAY_BASE_MS + cardIndex * NS_CARD_DELAY_STEP_MS, NS_CARD_DELAY_MAX_MS)
         card.style.setProperty("--motion-node-delay", `${delay}ms`)
@@ -87,9 +96,8 @@ export function SiteMotion() {
       }
     })
 
-    if (mobileQuery.matches) {
+    if (isMobile) {
       mobileCards.forEach((card, index) => {
-        if (card.classList.contains("motion-section-node")) return
         card.classList.add("motion-card-reveal")
         card.setAttribute("data-motion-card-variant", index % 2 === 0 ? "from-left" : "from-right")
         card.style.setProperty("--motion-card-delay", `${Math.min((index % 4) * 60, 180)}ms`)
@@ -125,7 +133,7 @@ export function SiteMotion() {
     })
 
     let cardObserver: IntersectionObserver | null = null
-    if (mobileQuery.matches && mobileCards.length > 0) {
+    if (isMobile && mobileCards.length > 0) {
       cardObserver = new IntersectionObserver(
         (entries) => {
           entries.forEach((entry) => {
