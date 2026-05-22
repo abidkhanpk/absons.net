@@ -11,6 +11,10 @@ const NS_INTRO_DELAY_STEP_MS = 100
 const NS_CARD_DELAY_BASE_MS = 300
 const NS_CARD_DELAY_STEP_MS = 200
 const NS_CARD_DELAY_MAX_MS = 1300
+const SECTION_TRIGGER_ROOT_MARGIN = "0px 0px -34% 0px"
+const SECTION_TRIGGER_THRESHOLD = 0.14
+const CARD_TRIGGER_ROOT_MARGIN = "0px 0px -30% 0px"
+const CARD_TRIGGER_THRESHOLD = 0.12
 
 export function SiteMotion() {
   const pathname = usePathname()
@@ -109,8 +113,8 @@ export function SiteMotion() {
       },
       {
         root: null,
-        rootMargin: "0px 0px -10% 0px",
-        threshold: 0,
+        rootMargin: SECTION_TRIGGER_ROOT_MARGIN,
+        threshold: SECTION_TRIGGER_THRESHOLD,
       },
     )
 
@@ -131,8 +135,8 @@ export function SiteMotion() {
         },
         {
           root: null,
-          rootMargin: "0px 0px -10% 0px",
-          threshold: 0,
+          rootMargin: CARD_TRIGGER_ROOT_MARGIN,
+          threshold: CARD_TRIGGER_THRESHOLD,
         },
       )
       mobileCards.forEach((card) => cardObserver?.observe(card))
