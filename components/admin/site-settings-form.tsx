@@ -141,6 +141,8 @@ type FooterMetaSettings = {
   companyTagline: string
   showHeaderTagline: boolean
   showFooterTagline: boolean
+  motionEntranceDesktopPercent: number
+  motionEntranceMobilePercent: number
 }
 
 type HomeSection = {
@@ -298,6 +300,8 @@ function safeParseNavItemsGroup(
     companyTagline: "",
     showHeaderTagline: true,
     showFooterTagline: true,
+    motionEntranceDesktopPercent: 34,
+    motionEntranceMobilePercent: 50,
   }
 
   const normalizeFooterMeta = (rawMeta: unknown): FooterMetaSettings => {
@@ -333,6 +337,14 @@ function safeParseNavItemsGroup(
         typeof meta.showHeaderTagline === "boolean" ? meta.showHeaderTagline : defaultFooterMeta.showHeaderTagline,
       showFooterTagline:
         typeof meta.showFooterTagline === "boolean" ? meta.showFooterTagline : defaultFooterMeta.showFooterTagline,
+      motionEntranceDesktopPercent:
+        typeof meta.motionEntranceDesktopPercent === "number" && Number.isFinite(meta.motionEntranceDesktopPercent)
+          ? Math.min(90, Math.max(10, Math.round(meta.motionEntranceDesktopPercent)))
+          : defaultFooterMeta.motionEntranceDesktopPercent,
+      motionEntranceMobilePercent:
+        typeof meta.motionEntranceMobilePercent === "number" && Number.isFinite(meta.motionEntranceMobilePercent)
+          ? Math.min(90, Math.max(10, Math.round(meta.motionEntranceMobilePercent)))
+          : defaultFooterMeta.motionEntranceMobilePercent,
     }
   }
 
@@ -745,6 +757,8 @@ export function SiteSettingsForm({ initial, pages }: { initial: SiteSettings; pa
     companyTagline: initialFooterMeta.companyTagline,
     showHeaderTagline: initialFooterMeta.showHeaderTagline,
     showFooterTagline: initialFooterMeta.showFooterTagline,
+    motionEntranceDesktopPercent: initialFooterMeta.motionEntranceDesktopPercent,
+    motionEntranceMobilePercent: initialFooterMeta.motionEntranceMobilePercent,
     homeSections: initialHomeSections,
   })
   const [isSaving, setIsSaving] = useState(false)
@@ -1125,6 +1139,8 @@ export function SiteSettingsForm({ initial, pages }: { initial: SiteSettings; pa
             companyTagline: formData.companyTagline,
             showHeaderTagline: formData.showHeaderTagline,
             showFooterTagline: formData.showFooterTagline,
+            motionEntranceDesktopPercent: formData.motionEntranceDesktopPercent,
+            motionEntranceMobilePercent: formData.motionEntranceMobilePercent,
           },
           homeSections: formData.homeSections,
           editorApprovalRequired: formData.editorApprovalRequired,
@@ -1480,6 +1496,67 @@ export function SiteSettingsForm({ initial, pages }: { initial: SiteSettings; pa
         </TabsContent>
 
         <TabsContent value="home-sections" className="space-y-6">
+          <div className="space-y-3 rounded-md border border-border/60 bg-muted/30 p-4">
+            <Label className="font-semibold">Motion Entrance Triggers</Label>
+            <div className="grid gap-4 md:grid-cols-2">
+              <div className="space-y-2">
+                <Label htmlFor="motionEntranceDesktopPercent">Desktop Trigger (%)</Label>
+                <Input
+                  id="motionEntranceDesktopPercent"
+                  type="number"
+                  min={10}
+                  max={90}
+                  value={formData.motionEntranceDesktopPercent}
+                  onChange={(e) => {
+                    const parsed = Number(e.target.value)
+                    if (Number.isNaN(parsed)) return
+                    setFormData({
+                      ...formData,
+                      motionEntranceDesktopPercent: parsed,
+                    })
+                  }}
+                  onBlur={(e) => {
+                    const parsed = Number(e.target.value)
+                    setFormData({
+                      ...formData,
+                      motionEntranceDesktopPercent: Number.isFinite(parsed)
+                        ? Math.min(90, Math.max(10, Math.round(parsed)))
+                        : 34,
+                    })
+                  }}
+                />
+                <p className="text-xs text-muted-foreground">Lower value = earlier entrance.</p>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="motionEntranceMobilePercent">Mobile Trigger (%)</Label>
+                <Input
+                  id="motionEntranceMobilePercent"
+                  type="number"
+                  min={10}
+                  max={90}
+                  value={formData.motionEntranceMobilePercent}
+                  onChange={(e) => {
+                    const parsed = Number(e.target.value)
+                    if (Number.isNaN(parsed)) return
+                    setFormData({
+                      ...formData,
+                      motionEntranceMobilePercent: parsed,
+                    })
+                  }}
+                  onBlur={(e) => {
+                    const parsed = Number(e.target.value)
+                    setFormData({
+                      ...formData,
+                      motionEntranceMobilePercent: Number.isFinite(parsed)
+                        ? Math.min(90, Math.max(10, Math.round(parsed)))
+                        : 50,
+                    })
+                  }}
+                />
+                <p className="text-xs text-muted-foreground">Lower value = earlier entrance.</p>
+              </div>
+            </div>
+          </div>
           <div className="space-y-2">
             <Label className="font-semibold">Home Sections</Label>
             <Accordion type="single" collapsible className="space-y-2 pt-1">

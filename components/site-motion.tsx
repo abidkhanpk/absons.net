@@ -11,9 +11,7 @@ const NS_INTRO_DELAY_STEP_MS = 100
 const NS_CARD_DELAY_BASE_MS = 300
 const NS_CARD_DELAY_STEP_MS = 200
 const NS_CARD_DELAY_MAX_MS = 1300
-const SECTION_TRIGGER_ROOT_MARGIN = "0px 0px -34% 0px"
 const SECTION_TRIGGER_THRESHOLD = 0.14
-const CARD_TRIGGER_ROOT_MARGIN = "0px 0px -50% 0px"
 const CARD_TRIGGER_THRESHOLD = 0.2
 
 export function SiteMotion() {
@@ -32,6 +30,14 @@ export function SiteMotion() {
     const sections = Array.from(document.querySelectorAll<HTMLElement>("main section:not([data-motion-skip])"))
     const mobileQuery = window.matchMedia("(max-width: 767px)")
     const isMobile = mobileQuery.matches
+    const layoutVarsHost = document.getElementById("site-layout-vars") ?? document.documentElement
+    const rootStyles = getComputedStyle(layoutVarsHost)
+    const desktopPercentRaw = Number.parseFloat(rootStyles.getPropertyValue("--motion-trigger-desktop-pct"))
+    const mobilePercentRaw = Number.parseFloat(rootStyles.getPropertyValue("--motion-trigger-mobile-pct"))
+    const desktopPercent = Number.isFinite(desktopPercentRaw) ? Math.min(90, Math.max(10, desktopPercentRaw)) : 34
+    const mobilePercent = Number.isFinite(mobilePercentRaw) ? Math.min(90, Math.max(10, mobilePercentRaw)) : 50
+    const sectionRootMargin = `0px 0px -${isMobile ? mobilePercent : desktopPercent}% 0px`
+    const cardRootMargin = `0px 0px -${mobilePercent}% 0px`
     const mobileCards = Array.from(document.querySelectorAll<HTMLElement>(`main ${SECTION_CARD_SELECTOR}`)).filter(
       (card) => !card.closest(".home-section-scroll-card") && !card.closest(".scrolling-loop"),
     )
@@ -123,7 +129,7 @@ export function SiteMotion() {
       },
       {
         root: null,
-        rootMargin: SECTION_TRIGGER_ROOT_MARGIN,
+        rootMargin: sectionRootMargin,
         threshold: SECTION_TRIGGER_THRESHOLD,
       },
     )
@@ -147,7 +153,7 @@ export function SiteMotion() {
         },
         {
           root: null,
-          rootMargin: CARD_TRIGGER_ROOT_MARGIN,
+          rootMargin: cardRootMargin,
           threshold: CARD_TRIGGER_THRESHOLD,
         },
       )

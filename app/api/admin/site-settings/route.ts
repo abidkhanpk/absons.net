@@ -67,6 +67,14 @@ function normalizeFooterMeta(raw: unknown) {
   const companyTagline = typeof base.companyTagline === "string" ? base.companyTagline.trim() : ""
   const showHeaderTagline = typeof base.showHeaderTagline === "boolean" ? base.showHeaderTagline : true
   const showFooterTagline = typeof base.showFooterTagline === "boolean" ? base.showFooterTagline : true
+  const motionEntranceDesktopPercent =
+    typeof base.motionEntranceDesktopPercent === "number" && Number.isFinite(base.motionEntranceDesktopPercent)
+      ? Math.min(90, Math.max(10, Math.round(base.motionEntranceDesktopPercent)))
+      : 34
+  const motionEntranceMobilePercent =
+    typeof base.motionEntranceMobilePercent === "number" && Number.isFinite(base.motionEntranceMobilePercent)
+      ? Math.min(90, Math.max(10, Math.round(base.motionEntranceMobilePercent)))
+      : 50
   const secondary =
     Array.isArray(base.secondary)
       ? base.secondary
@@ -96,6 +104,8 @@ function normalizeFooterMeta(raw: unknown) {
     companyTagline,
     showHeaderTagline,
     showFooterTagline,
+    motionEntranceDesktopPercent,
+    motionEntranceMobilePercent,
     secondary,
   }
 }

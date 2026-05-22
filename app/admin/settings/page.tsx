@@ -141,6 +141,8 @@ export default async function SettingsPage() {
                   companyTagline: resolved.companyTagline,
                   showHeaderTagline: resolved.showHeaderTagline,
                   showFooterTagline: resolved.showFooterTagline,
+                  motionEntranceDesktopPercent: resolved.motionEntranceDesktopPercent,
+                  motionEntranceMobilePercent: resolved.motionEntranceMobilePercent,
                 },
               }),
               home_sections: settings?.homeSections

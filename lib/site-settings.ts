@@ -38,6 +38,8 @@ export type SiteSettings = {
   companyTagline: string
   showHeaderTagline: boolean
   showFooterTagline: boolean
+  motionEntranceDesktopPercent: number
+  motionEntranceMobilePercent: number
   homeSections: HomeSection[]
   businessHours: string
   businessDays: string
@@ -230,6 +232,8 @@ const defaultSettings: SiteSettings = {
   companyTagline: "",
   showHeaderTagline: true,
   showFooterTagline: true,
+  motionEntranceDesktopPercent: 34,
+  motionEntranceMobilePercent: 50,
   homeSections: [
     {
       id: "services",
@@ -542,6 +546,8 @@ function parseNavItemsGroup(raw: unknown, fallbackCompanyName: string) {
     companyTagline: defaultSettings.companyTagline,
     showHeaderTagline: defaultSettings.showHeaderTagline,
     showFooterTagline: defaultSettings.showFooterTagline,
+    motionEntranceDesktopPercent: defaultSettings.motionEntranceDesktopPercent,
+    motionEntranceMobilePercent: defaultSettings.motionEntranceMobilePercent,
   }
 
   const parseFooterMeta = (rawMeta: unknown) => {
@@ -577,6 +583,14 @@ function parseNavItemsGroup(raw: unknown, fallbackCompanyName: string) {
         typeof meta.showHeaderTagline === "boolean" ? meta.showHeaderTagline : defaultFooterMeta.showHeaderTagline,
       showFooterTagline:
         typeof meta.showFooterTagline === "boolean" ? meta.showFooterTagline : defaultFooterMeta.showFooterTagline,
+      motionEntranceDesktopPercent:
+        typeof meta.motionEntranceDesktopPercent === "number" && Number.isFinite(meta.motionEntranceDesktopPercent)
+          ? Math.min(90, Math.max(10, Math.round(meta.motionEntranceDesktopPercent)))
+          : defaultFooterMeta.motionEntranceDesktopPercent,
+      motionEntranceMobilePercent:
+        typeof meta.motionEntranceMobilePercent === "number" && Number.isFinite(meta.motionEntranceMobilePercent)
+          ? Math.min(90, Math.max(10, Math.round(meta.motionEntranceMobilePercent)))
+          : defaultFooterMeta.motionEntranceMobilePercent,
     }
   }
 
@@ -959,6 +973,8 @@ export async function getSiteSettings(): Promise<SiteSettings> {
       companyTagline: navItemsGroup.footerMeta.companyTagline,
       showHeaderTagline: navItemsGroup.footerMeta.showHeaderTagline,
       showFooterTagline: navItemsGroup.footerMeta.showFooterTagline,
+      motionEntranceDesktopPercent: navItemsGroup.footerMeta.motionEntranceDesktopPercent,
+      motionEntranceMobilePercent: navItemsGroup.footerMeta.motionEntranceMobilePercent,
       homeSections,
       businessHoursSchedule: parseBusinessHoursSchedule(settings.businessHoursSchedule),
       showBusinessHours: settings.showBusinessHours ?? defaultSettings.showBusinessHours,

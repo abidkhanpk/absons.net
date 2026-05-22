@@ -219,13 +219,23 @@ async function LayoutWithSettings({ children }: { children: React.ReactNode }) {
   const settings = await getSiteSettings()
   const layoutMode = settings.layoutMode || "container"
   const widthValue = layoutMode === "full" ? "100%" : `${Math.min(Math.max(settings.layoutWidth || 90, 60), 100)}%`
+  const motionDesktopPercent = Math.min(90, Math.max(10, Math.round(settings.motionEntranceDesktopPercent || 34)))
+  const motionMobilePercent = Math.min(90, Math.max(10, Math.round(settings.motionEntranceMobilePercent || 50)))
   const headingVars = headingTypographyToCssVariables(settings.headingTypography)
   const analyticsSnippet = settings.analyticsScript?.trim()
   const headerSnippet = settings.headerCode?.trim()
   const footerSnippet = settings.footerCode?.trim()
 
   return (
-    <div style={{ ["--page-container-max" as string]: widthValue, ...headingVars }}>
+    <div
+      id="site-layout-vars"
+      style={{
+        ["--page-container-max" as string]: widthValue,
+        ["--motion-trigger-desktop-pct" as string]: String(motionDesktopPercent),
+        ["--motion-trigger-mobile-pct" as string]: String(motionMobilePercent),
+        ...headingVars,
+      }}
+    >
       <ServiceWorkerReset />
       <SiteMotion />
       {analyticsSnippet ? <div dangerouslySetInnerHTML={{ __html: analyticsSnippet }} /> : null}
