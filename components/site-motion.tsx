@@ -5,6 +5,12 @@ import { usePathname } from "next/navigation"
 
 const DISABLED_PREFIXES = ["/admin", "/auth"]
 const SECTION_VARIANTS = ["from-left", "from-right", "from-sides", "lift"] as const
+const SECTION_CARD_SELECTOR = "[data-slot='card'], .why-choose-grid-tile"
+const NS_INTRO_DELAY_BASE_MS = 100
+const NS_INTRO_DELAY_STEP_MS = 100
+const NS_CARD_DELAY_BASE_MS = 300
+const NS_CARD_DELAY_STEP_MS = 200
+const NS_CARD_DELAY_MAX_MS = 1300
 
 export function SiteMotion() {
   const pathname = usePathname()
@@ -31,10 +37,55 @@ export function SiteMotion() {
       section.classList.add("motion-reveal")
       section.setAttribute("data-motion-variant", SECTION_VARIANTS[index % SECTION_VARIANTS.length])
       section.style.setProperty("--motion-delay", `${Math.min(index * 40, 200)}ms`)
+
+      const intro = section.querySelector<HTMLElement>(".text-center")
+      let hasHelixStyleNodes = false
+      if (intro) {
+        const introChildren = Array.from(intro.children).filter((child): child is HTMLElement => child instanceof HTMLElement)
+        introChildren.forEach((child, childIndex) => {
+          child.classList.add("motion-section-node")
+          child.style.setProperty(
+            "--motion-node-delay",
+            `${Math.min(NS_INTRO_DELAY_BASE_MS + childIndex * NS_INTRO_DELAY_STEP_MS, 420)}ms`,
+          )
+          child.style.setProperty("--motion-node-duration", "600ms")
+          child.style.setProperty("--motion-node-x", "0px")
+          child.style.setProperty("--motion-node-y", "60px")
+          hasHelixStyleNodes = true
+        })
+      } else {
+        const fallbackTitle = section.querySelector<HTMLElement>("h1, h2")
+        if (fallbackTitle) {
+          fallbackTitle.classList.add("motion-section-node")
+          fallbackTitle.style.setProperty("--motion-node-delay", `${NS_INTRO_DELAY_BASE_MS}ms`)
+          fallbackTitle.style.setProperty("--motion-node-duration", "600ms")
+          fallbackTitle.style.setProperty("--motion-node-x", "0px")
+          fallbackTitle.style.setProperty("--motion-node-y", "60px")
+          hasHelixStyleNodes = true
+        }
+      }
+
+      const sectionCards = Array.from(section.querySelectorAll<HTMLElement>(SECTION_CARD_SELECTOR)).filter(
+        (card) => !card.closest(".scrolling-loop") && !card.closest(".home-section-scroll-card"),
+      )
+      sectionCards.forEach((card, cardIndex) => {
+        card.classList.add("motion-section-card", "motion-section-node")
+        const delay = Math.min(NS_CARD_DELAY_BASE_MS + cardIndex * NS_CARD_DELAY_STEP_MS, NS_CARD_DELAY_MAX_MS)
+        card.style.setProperty("--motion-node-delay", `${delay}ms`)
+        card.style.setProperty("--motion-node-duration", "700ms")
+        card.style.setProperty("--motion-node-x", "-80px")
+        card.style.setProperty("--motion-node-y", "0px")
+        hasHelixStyleNodes = true
+      })
+
+      if (hasHelixStyleNodes) {
+        section.classList.add("motion-composite")
+      }
     })
 
     if (mobileQuery.matches) {
       mobileCards.forEach((card, index) => {
+        if (card.classList.contains("motion-section-node")) return
         card.classList.add("motion-card-reveal")
         card.setAttribute("data-motion-card-variant", index % 2 === 0 ? "from-left" : "from-right")
         card.style.setProperty("--motion-card-delay", `${Math.min((index % 4) * 60, 180)}ms`)
@@ -45,11 +96,6 @@ export function SiteMotion() {
       sections.forEach((section) => section.classList.add("is-visible"))
       mobileCards.forEach((card) => card.classList.add("is-visible"))
       return
-    }
-
-    const revealNow = (element: HTMLElement, viewportRatio: number) => {
-      const rect = element.getBoundingClientRect()
-      return rect.top <= window.innerHeight * viewportRatio
     }
 
     const sectionObserver = new IntersectionObserver(
@@ -63,19 +109,13 @@ export function SiteMotion() {
       },
       {
         root: null,
-        rootMargin: "0px 0px 24% 0px",
-        threshold: 0.04,
+        rootMargin: "0px 0px -10% 0px",
+        threshold: 0,
       },
     )
 
     const frame = window.requestAnimationFrame(() => {
-      sections.forEach((section) => {
-        if (section.classList.contains("is-visible") || revealNow(section, 0.9)) {
-          section.classList.add("is-visible")
-          return
-        }
-        sectionObserver.observe(section)
-      })
+      sections.forEach((section) => sectionObserver.observe(section))
     })
 
     let cardObserver: IntersectionObserver | null = null
@@ -91,17 +131,11 @@ export function SiteMotion() {
         },
         {
           root: null,
-          rootMargin: "0px 0px 18% 0px",
-          threshold: 0.1,
+          rootMargin: "0px 0px -10% 0px",
+          threshold: 0,
         },
       )
-      mobileCards.forEach((card) => {
-        if (card.classList.contains("is-visible") || revealNow(card, 0.93)) {
-          card.classList.add("is-visible")
-          return
-        }
-        cardObserver?.observe(card)
-      })
+      mobileCards.forEach((card) => cardObserver?.observe(card))
     }
 
     return () => {
