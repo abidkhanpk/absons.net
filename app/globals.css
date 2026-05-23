@@ -1023,20 +1023,3 @@
   font-size: 1rem;
   line-height: 1.6;
 }
-
-@keyframes pageBusyLogoPulse {
-  0%,
-  100% {
-    opacity: 1;
-    transform: scale(1);
-  }
-  50% {
-    opacity: 0.35;
-    transform: scale(0.94);
-  }
-}
-
-.page-busy-loader-logo {
-  animation: pageBusyLogoPulse 1.2s ease-in-out infinite;
-  will-change: opacity, transform;
-}
