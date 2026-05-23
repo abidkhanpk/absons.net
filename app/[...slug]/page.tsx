@@ -5,6 +5,7 @@ import { prisma } from "@/lib/prisma"
 import { getSiteSettings } from "@/lib/site-settings"
 import { buildSeoMetadata } from "@/lib/seo"
 import { RichContentRenderer } from "@/components/cms/rich-content-renderer"
+import { resolveContentKeywordTokens } from "@/lib/content-keywords"
 
 export const dynamic = "force-dynamic"
 export const revalidate = 0
@@ -54,6 +55,7 @@ export default async function ContentPage({ params }: { params: Promise<{ slug: 
     where: approvalRequired ? { slug: resolvedSlug, published: true, approved: true } : { slug: resolvedSlug, published: true },
   })
   if (!page) return notFound()
+  const resolvedContent = resolveContentKeywordTokens(page.content || "", siteSettings)
 
   return (
     <div className="flex flex-col min-h-screen">
@@ -68,7 +70,7 @@ export default async function ContentPage({ params }: { params: Promise<{ slug: 
 
         <section className="cms-page-content-wrap">
           <div className="container mx-auto px-4 lg:px-8">
-            <RichContentRenderer content={page.content} className="prose prose-lg max-w-none" />
+            <RichContentRenderer content={resolvedContent} className="prose prose-lg max-w-none" />
           </div>
         </section>
       </main>

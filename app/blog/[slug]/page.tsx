@@ -9,6 +9,7 @@ import { getSiteSettings } from "@/lib/site-settings"
 import { buildSeoMetadata } from "@/lib/seo"
 import { resolveAssetUrl } from "@/lib/asset-url"
 import { RichContentRenderer } from "@/components/cms/rich-content-renderer"
+import { resolveContentKeywordTokens } from "@/lib/content-keywords"
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params
@@ -47,6 +48,7 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
   if (!post) {
     notFound()
   }
+  const resolvedContent = resolveContentKeywordTokens(post.content || "", siteSettings)
 
   return (
     <div className="flex flex-col min-h-screen">
@@ -83,7 +85,7 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
                 </div>
               </div>
 
-              <RichContentRenderer content={post.content} className="prose prose-lg max-w-none" />
+              <RichContentRenderer content={resolvedContent} className="prose prose-lg max-w-none" />
             </div>
           </div>
         </article>

@@ -15,6 +15,7 @@ import CodeMirror from "@uiw/react-codemirror"
 import { html as htmlLang } from "@codemirror/lang-html"
 import fontAwesomeIcons from "@/lib/font-awesome-free-icons.json"
 import { CONTENT_ICON_OPTIONS, type ContentIconName } from "@/lib/content-icons"
+import { CONTENT_KEYWORD_OPTIONS } from "@/lib/content-keywords"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { RichContentRenderer } from "@/components/cms/rich-content-renderer"
@@ -445,6 +446,7 @@ export function RichTextEditor({ content, onChange }: RichTextEditorProps) {
   const [showIconPicker, setShowIconPicker] = useState(false)
   const [iconSearch, setIconSearch] = useState("")
   const [selectedIconClass, setSelectedIconClass] = useState("")
+  const [selectedKeywordToken, setSelectedKeywordToken] = useState(CONTENT_KEYWORD_OPTIONS[0]?.token ?? "{sitetitle}")
   const [pendingButtonVariant, setPendingButtonVariant] = useState<"primary" | "outline" | null>(null)
   const [pendingButtonLabel, setPendingButtonLabel] = useState("")
   const [pendingButtonHref, setPendingButtonHref] = useState("")
@@ -1849,6 +1851,12 @@ export function RichTextEditor({ content, onChange }: RichTextEditorProps) {
     editor.chain().focus().insertContent(`<hr class="my-8 border-border" />`).run()
   }
 
+  const insertSelectedKeyword = () => {
+    const keywordToken = selectedKeywordToken.trim()
+    if (!keywordToken) return
+    editor.chain().focus().insertContent(keywordToken).run()
+  }
+
   const insertTable = () => {
     const rows = Math.min(Math.max(Number.parseInt(window.prompt("Rows", "2") || "2", 10) || 2, 1), 10)
     const cols = Math.min(Math.max(Number.parseInt(window.prompt("Columns", "3") || "3", 10) || 3, 1), 10)
@@ -2177,6 +2185,22 @@ export function RichTextEditor({ content, onChange }: RichTextEditorProps) {
             Edit Video
           </Button>
         ) : null}
+        <div className="flex items-center gap-2">
+          <select
+            className="h-9 min-w-[160px] rounded-md border border-input bg-background px-3 text-sm"
+            value={selectedKeywordToken}
+            onChange={(event) => setSelectedKeywordToken(event.target.value)}
+          >
+            {CONTENT_KEYWORD_OPTIONS.map((keyword) => (
+              <option key={keyword.token} value={keyword.token}>
+                {keyword.label}
+              </option>
+            ))}
+          </select>
+          <Button type="button" size="sm" variant="outline" onClick={insertSelectedKeyword}>
+            Insert Keyword
+          </Button>
+        </div>
       </div>
       {isCursorInTable && (
         <div className="flex flex-wrap gap-2 p-2 border-b border-input bg-muted/20">
