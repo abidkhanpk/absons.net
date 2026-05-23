@@ -64,6 +64,264 @@ const OUTLINE_BUTTON_CLASS = "inline-flex items-center gap-2 justify-center roun
 
 const getButtonClass = (variant: "primary" | "outline") => (variant === "primary" ? PRIMARY_BUTTON_CLASS : OUTLINE_BUTTON_CLASS)
 
+type SectionPresetId = "plain" | "soft-slate" | "sky-glow" | "sunset-blend" | "emerald-mist" | "midnight-contrast"
+type SectionSpacing = "compact" | "comfortable" | "spacious"
+type SectionRadius = "none" | "lg" | "xl" | "2xl"
+type SectionBorder = "none" | "soft" | "strong"
+type SectionShadow = "none" | "soft" | "lifted"
+
+type SectionPresetOption = {
+  id: SectionPresetId
+  label: string
+  description: string
+  background: string
+  textColor?: string
+  headingColor?: string
+  linkColor?: string
+  accentColor?: string
+  borderColor?: string
+}
+
+const SECTION_PRESET_OPTIONS: SectionPresetOption[] = [
+  {
+    id: "plain",
+    label: "Plain Surface",
+    description: "No background fill, ideal when you only need spacing and structure.",
+    background: "transparent",
+    borderColor: "rgba(148, 163, 184, 0.26)",
+  },
+  {
+    id: "soft-slate",
+    label: "Soft Slate Gradient",
+    description: "Subtle neutral gradient for calm content blocks and readable long-form text.",
+    background: "linear-gradient(135deg, rgba(248, 250, 252, 0.96), rgba(241, 245, 249, 0.94))",
+    textColor: "#0f172a",
+    headingColor: "#020617",
+    linkColor: "#1d4ed8",
+    accentColor: "#475569",
+    borderColor: "rgba(148, 163, 184, 0.4)",
+  },
+  {
+    id: "sky-glow",
+    label: "Sky Glow Gradient",
+    description: "Cool blue highlight for feature callouts and informational sections.",
+    background: "linear-gradient(130deg, rgba(239, 246, 255, 0.98), rgba(224, 242, 254, 0.94) 55%, rgba(219, 234, 254, 0.92))",
+    textColor: "#082f49",
+    headingColor: "#0c4a6e",
+    linkColor: "#0369a1",
+    accentColor: "#0e7490",
+    borderColor: "rgba(14, 116, 144, 0.33)",
+  },
+  {
+    id: "sunset-blend",
+    label: "Sunset Blend",
+    description: "Warm gradient that works well for CTAs without becoming visually harsh.",
+    background: "linear-gradient(135deg, rgba(255, 247, 237, 0.98), rgba(254, 242, 242, 0.95) 52%, rgba(255, 251, 235, 0.94))",
+    textColor: "#7c2d12",
+    headingColor: "#9a3412",
+    linkColor: "#b45309",
+    accentColor: "#c2410c",
+    borderColor: "rgba(194, 65, 12, 0.32)",
+  },
+  {
+    id: "emerald-mist",
+    label: "Emerald Mist",
+    description: "Fresh green gradient suitable for trust, success, or process sections.",
+    background: "linear-gradient(135deg, rgba(240, 253, 250, 0.98), rgba(220, 252, 231, 0.94) 56%, rgba(236, 253, 245, 0.94))",
+    textColor: "#064e3b",
+    headingColor: "#065f46",
+    linkColor: "#047857",
+    accentColor: "#0f766e",
+    borderColor: "rgba(15, 118, 110, 0.33)",
+  },
+  {
+    id: "midnight-contrast",
+    label: "Midnight Contrast",
+    description: "Dark high-contrast gradient for standout blocks and bold statements.",
+    background: "linear-gradient(140deg, rgba(15, 23, 42, 0.97), rgba(30, 41, 59, 0.96) 50%, rgba(14, 116, 144, 0.9))",
+    textColor: "#e2e8f0",
+    headingColor: "#f8fafc",
+    linkColor: "#7dd3fc",
+    accentColor: "#bae6fd",
+    borderColor: "rgba(125, 211, 252, 0.38)",
+  },
+]
+
+const SECTION_SPACING_OPTIONS: Array<{ value: SectionSpacing; label: string }> = [
+  { value: "compact", label: "Compact" },
+  { value: "comfortable", label: "Comfortable" },
+  { value: "spacious", label: "Spacious" },
+]
+
+const SECTION_RADIUS_OPTIONS: Array<{ value: SectionRadius; label: string }> = [
+  { value: "none", label: "No Radius" },
+  { value: "lg", label: "Rounded Large" },
+  { value: "xl", label: "Rounded XL" },
+  { value: "2xl", label: "Rounded 2XL" },
+]
+
+const SECTION_BORDER_OPTIONS: Array<{ value: SectionBorder; label: string }> = [
+  { value: "none", label: "No Border" },
+  { value: "soft", label: "Soft Border" },
+  { value: "strong", label: "Strong Border" },
+]
+
+const SECTION_SHADOW_OPTIONS: Array<{ value: SectionShadow; label: string }> = [
+  { value: "none", label: "No Shadow" },
+  { value: "soft", label: "Soft Shadow" },
+  { value: "lifted", label: "Lifted Shadow" },
+]
+
+const SECTION_SPACING_CLASS: Record<SectionSpacing, string> = {
+  compact: "py-8 px-0",
+  comfortable: "py-10 px-4 md:px-6",
+  spacious: "py-14 px-5 md:px-8",
+}
+
+const SECTION_RADIUS_CLASS: Record<SectionRadius, string> = {
+  none: "rounded-none",
+  lg: "rounded-lg",
+  xl: "rounded-xl",
+  "2xl": "rounded-2xl",
+}
+
+const SECTION_BORDER_CLASS: Record<SectionBorder, string> = {
+  none: "border-0",
+  soft: "border",
+  strong: "border-2",
+}
+
+const SECTION_SHADOW_CLASS: Record<SectionShadow, string> = {
+  none: "",
+  soft: "shadow-sm",
+  lifted: "shadow-lg shadow-black/10",
+}
+
+const FULL_WIDTH_SECTION_CLASS = "-mx-4 md:-mx-6 lg:-mx-8 px-4 md:px-6 lg:px-8"
+
+const SECTION_PRESET_IDS = SECTION_PRESET_OPTIONS.map((option) => option.id)
+const SECTION_SPACING_VALUES = SECTION_SPACING_OPTIONS.map((option) => option.value)
+const SECTION_RADIUS_VALUES = SECTION_RADIUS_OPTIONS.map((option) => option.value)
+const SECTION_BORDER_VALUES = SECTION_BORDER_OPTIONS.map((option) => option.value)
+const SECTION_SHADOW_VALUES = SECTION_SHADOW_OPTIONS.map((option) => option.value)
+
+const DEFAULT_SECTION_NODE_PRESET: SectionPresetId = "plain"
+const DEFAULT_SECTION_NODE_SPACING: SectionSpacing = "compact"
+const DEFAULT_SECTION_NODE_RADIUS: SectionRadius = "none"
+const DEFAULT_SECTION_NODE_BORDER: SectionBorder = "none"
+const DEFAULT_SECTION_NODE_SHADOW: SectionShadow = "none"
+
+const DEFAULT_SECTION_INSERT_PRESET: SectionPresetId = "soft-slate"
+const DEFAULT_SECTION_INSERT_SPACING: SectionSpacing = "spacious"
+const DEFAULT_SECTION_INSERT_RADIUS: SectionRadius = "none"
+const DEFAULT_SECTION_INSERT_BORDER: SectionBorder = "none"
+const DEFAULT_SECTION_INSERT_SHADOW: SectionShadow = "none"
+const DEFAULT_SECTION_INSERT_FULL_WIDTH = true
+
+const includesValue = <T extends string>(pool: readonly T[], value: unknown): value is T => typeof value === "string" && pool.includes(value as T)
+
+const normalizeSectionPreset = (value: unknown): SectionPresetId =>
+  includesValue(SECTION_PRESET_IDS, value) ? value : DEFAULT_SECTION_NODE_PRESET
+
+const normalizeSectionSpacing = (value: unknown): SectionSpacing =>
+  includesValue(SECTION_SPACING_VALUES, value) ? value : DEFAULT_SECTION_NODE_SPACING
+
+const normalizeSectionRadius = (value: unknown): SectionRadius =>
+  includesValue(SECTION_RADIUS_VALUES, value) ? value : DEFAULT_SECTION_NODE_RADIUS
+
+const normalizeSectionBorder = (value: unknown): SectionBorder =>
+  includesValue(SECTION_BORDER_VALUES, value) ? value : DEFAULT_SECTION_NODE_BORDER
+
+const normalizeSectionShadow = (value: unknown): SectionShadow =>
+  includesValue(SECTION_SHADOW_VALUES, value) ? value : DEFAULT_SECTION_NODE_SHADOW
+
+const normalizeSectionFullWidth = (value: unknown) => value === true || value === "true"
+
+const getSectionPreset = (presetId: SectionPresetId) =>
+  SECTION_PRESET_OPTIONS.find((option) => option.id === presetId) || SECTION_PRESET_OPTIONS[0]
+
+const buildSectionClassName = ({
+  fullWidth,
+  spacing,
+  radius,
+  border,
+  shadow,
+}: {
+  fullWidth: boolean
+  spacing: SectionSpacing
+  radius: SectionRadius
+  border: SectionBorder
+  shadow: SectionShadow
+}) =>
+  [
+    "cms-rich-section",
+    "my-8",
+    "transition-colors",
+    fullWidth ? FULL_WIDTH_SECTION_CLASS : "",
+    SECTION_SPACING_CLASS[spacing],
+    SECTION_RADIUS_CLASS[radius],
+    SECTION_BORDER_CLASS[border],
+    SECTION_SHADOW_CLASS[shadow],
+  ]
+    .filter(Boolean)
+    .join(" ")
+
+const buildSectionStyle = ({
+  presetId,
+  border,
+}: {
+  presetId: SectionPresetId
+  border: SectionBorder
+}) => {
+  const preset = getSectionPreset(presetId)
+  const styleParts = [`background:${preset.background};`]
+  if (preset.textColor) {
+    styleParts.push(`color:${preset.textColor};`)
+    styleParts.push(`--tw-prose-body:${preset.textColor};`)
+  }
+  if (preset.headingColor) {
+    styleParts.push(`--tw-prose-headings:${preset.headingColor};`)
+    styleParts.push(`--tw-prose-bold:${preset.headingColor};`)
+  }
+  if (preset.linkColor) {
+    styleParts.push(`--tw-prose-links:${preset.linkColor};`)
+  }
+  if (preset.accentColor) {
+    styleParts.push(`--tw-prose-bullets:${preset.accentColor};`)
+    styleParts.push(`--tw-prose-counters:${preset.accentColor};`)
+    styleParts.push(`--tw-prose-quote-borders:${preset.accentColor};`)
+  }
+  if (border !== "none" && preset.borderColor) {
+    styleParts.push(`border-color:${preset.borderColor};`)
+  }
+  return styleParts.join("")
+}
+
+const buildSectionNodeAttrs = ({
+  preset,
+  fullWidth,
+  spacing,
+  radius,
+  border,
+  shadow,
+}: {
+  preset: SectionPresetId
+  fullWidth: boolean
+  spacing: SectionSpacing
+  radius: SectionRadius
+  border: SectionBorder
+  shadow: SectionShadow
+}) => ({
+  class: buildSectionClassName({ fullWidth, spacing, radius, border, shadow }),
+  style: buildSectionStyle({ presetId: preset, border }),
+  preset,
+  fullWidth,
+  spacing,
+  radius,
+  border,
+  shadow,
+})
+
 const CmsLink = Link.extend({
   addAttributes() {
     return {
@@ -194,6 +452,85 @@ const CmsCard = Node.create({
   },
   renderHTML({ HTMLAttributes }) {
     return ["article", mergeAttributes(HTMLAttributes, { "data-cms-card": "true" }), 0]
+  },
+})
+
+const CmsSection = Node.create({
+  name: "cmsSection",
+  group: "block",
+  content: "block+",
+  defining: true,
+  addAttributes() {
+    return {
+      class: {
+        default: buildSectionClassName({
+          fullWidth: false,
+          spacing: DEFAULT_SECTION_NODE_SPACING,
+          radius: DEFAULT_SECTION_NODE_RADIUS,
+          border: DEFAULT_SECTION_NODE_BORDER,
+          shadow: DEFAULT_SECTION_NODE_SHADOW,
+        }),
+        parseHTML: (element) =>
+          element.getAttribute("class") ||
+          buildSectionClassName({
+            fullWidth: false,
+            spacing: DEFAULT_SECTION_NODE_SPACING,
+            radius: DEFAULT_SECTION_NODE_RADIUS,
+            border: DEFAULT_SECTION_NODE_BORDER,
+            shadow: DEFAULT_SECTION_NODE_SHADOW,
+          }),
+        renderHTML: (attributes) => (typeof attributes.class === "string" && attributes.class.trim() ? { class: attributes.class } : {}),
+      },
+      style: {
+        default: buildSectionStyle({
+          presetId: DEFAULT_SECTION_NODE_PRESET,
+          border: DEFAULT_SECTION_NODE_BORDER,
+        }),
+        parseHTML: (element) =>
+          element.getAttribute("style") ||
+          buildSectionStyle({
+            presetId: DEFAULT_SECTION_NODE_PRESET,
+            border: DEFAULT_SECTION_NODE_BORDER,
+          }),
+        renderHTML: (attributes) => (typeof attributes.style === "string" && attributes.style.trim() ? { style: attributes.style } : {}),
+      },
+      preset: {
+        default: DEFAULT_SECTION_NODE_PRESET,
+        parseHTML: (element) => normalizeSectionPreset(element.getAttribute("data-cms-section-preset")),
+        renderHTML: (attributes) => ({ "data-cms-section-preset": normalizeSectionPreset(attributes.preset) }),
+      },
+      fullWidth: {
+        default: false,
+        parseHTML: (element) => normalizeSectionFullWidth(element.getAttribute("data-cms-section-full-width")),
+        renderHTML: (attributes) => ({ "data-cms-section-full-width": normalizeSectionFullWidth(attributes.fullWidth) ? "true" : "false" }),
+      },
+      spacing: {
+        default: DEFAULT_SECTION_NODE_SPACING,
+        parseHTML: (element) => normalizeSectionSpacing(element.getAttribute("data-cms-section-spacing")),
+        renderHTML: (attributes) => ({ "data-cms-section-spacing": normalizeSectionSpacing(attributes.spacing) }),
+      },
+      radius: {
+        default: DEFAULT_SECTION_NODE_RADIUS,
+        parseHTML: (element) => normalizeSectionRadius(element.getAttribute("data-cms-section-radius")),
+        renderHTML: (attributes) => ({ "data-cms-section-radius": normalizeSectionRadius(attributes.radius) }),
+      },
+      border: {
+        default: DEFAULT_SECTION_NODE_BORDER,
+        parseHTML: (element) => normalizeSectionBorder(element.getAttribute("data-cms-section-border")),
+        renderHTML: (attributes) => ({ "data-cms-section-border": normalizeSectionBorder(attributes.border) }),
+      },
+      shadow: {
+        default: DEFAULT_SECTION_NODE_SHADOW,
+        parseHTML: (element) => normalizeSectionShadow(element.getAttribute("data-cms-section-shadow")),
+        renderHTML: (attributes) => ({ "data-cms-section-shadow": normalizeSectionShadow(attributes.shadow) }),
+      },
+    }
+  },
+  parseHTML() {
+    return [{ tag: "section[data-cms-section]" }, { tag: "section" }]
+  },
+  renderHTML({ HTMLAttributes }) {
+    return ["section", mergeAttributes(HTMLAttributes, { "data-cms-section": "true" }), 0]
   },
 })
 
@@ -465,6 +802,17 @@ export function RichTextEditor({ content, onChange }: RichTextEditorProps) {
   const [selectedImagePos, setSelectedImagePos] = useState<number | null>(null)
   const [editingImagePos, setEditingImagePos] = useState<number | null>(null)
   const [selectedAccordionPos, setSelectedAccordionPos] = useState<number | null>(null)
+  const [showSectionForm, setShowSectionForm] = useState(false)
+  const [sectionFormMode, setSectionFormMode] = useState<"insert" | "edit">("insert")
+  const [selectedSectionPos, setSelectedSectionPos] = useState<number | null>(null)
+  const [editingSectionPos, setEditingSectionPos] = useState<number | null>(null)
+  const [sectionPreset, setSectionPreset] = useState<SectionPresetId>(DEFAULT_SECTION_INSERT_PRESET)
+  const [sectionFullWidth, setSectionFullWidth] = useState(DEFAULT_SECTION_INSERT_FULL_WIDTH)
+  const [sectionSpacing, setSectionSpacing] = useState<SectionSpacing>(DEFAULT_SECTION_INSERT_SPACING)
+  const [sectionRadius, setSectionRadius] = useState<SectionRadius>(DEFAULT_SECTION_INSERT_RADIUS)
+  const [sectionBorder, setSectionBorder] = useState<SectionBorder>(DEFAULT_SECTION_INSERT_BORDER)
+  const [sectionShadow, setSectionShadow] = useState<SectionShadow>(DEFAULT_SECTION_INSERT_SHADOW)
+  const [sectionFormError, setSectionFormError] = useState<string | null>(null)
   const [showCardForm, setShowCardForm] = useState(false)
   const [cardFormMode, setCardFormMode] = useState<"insert" | "edit">("insert")
   const [selectedCardPos, setSelectedCardPos] = useState<number | null>(null)
@@ -529,6 +877,7 @@ export function RichTextEditor({ content, onChange }: RichTextEditorProps) {
     setPendingButtonHref("")
     setShowVideoForm(false)
     setShowCardForm(false)
+    setShowSectionForm(false)
     setImageSource(typeof attrs.src === "string" ? attrs.src : "")
     setImageAltText(typeof attrs.alt === "string" ? attrs.alt : "")
     setImageTitleText(typeof attrs.title === "string" ? attrs.title : "")
@@ -637,6 +986,7 @@ export function RichTextEditor({ content, onChange }: RichTextEditorProps) {
     setShowIconPicker(false)
     setShowImageForm(false)
     setShowVideoForm(false)
+    setShowSectionForm(false)
     setPendingButtonVariant(null)
     setPendingButtonLabel("")
     setPendingButtonHref("")
@@ -723,6 +1073,7 @@ export function RichTextEditor({ content, onChange }: RichTextEditorProps) {
     setShowIconPicker(false)
     setShowImageForm(false)
     setShowVideoForm(false)
+    setShowSectionForm(false)
     setCardTitle(existing.title)
     setCardBody(existing.body)
     setCardImageSource(existing.imageSource)
@@ -825,6 +1176,118 @@ export function RichTextEditor({ content, onChange }: RichTextEditorProps) {
     }
   }
 
+  const resetSectionForm = () => {
+    setSectionPreset(DEFAULT_SECTION_INSERT_PRESET)
+    setSectionFullWidth(DEFAULT_SECTION_INSERT_FULL_WIDTH)
+    setSectionSpacing(DEFAULT_SECTION_INSERT_SPACING)
+    setSectionRadius(DEFAULT_SECTION_INSERT_RADIUS)
+    setSectionBorder(DEFAULT_SECTION_INSERT_BORDER)
+    setSectionShadow(DEFAULT_SECTION_INSERT_SHADOW)
+    setSectionFormError(null)
+  }
+
+  const closeSectionForm = () => {
+    setShowSectionForm(false)
+    setSectionFormMode("insert")
+    setEditingSectionPos(null)
+    setSectionFormError(null)
+  }
+
+  const startInsertSectionFlow = () => {
+    setShowIconPicker(false)
+    setShowImageForm(false)
+    setShowVideoForm(false)
+    setShowCardForm(false)
+    setPendingButtonVariant(null)
+    setPendingButtonLabel("")
+    setPendingButtonHref("")
+    resetSectionForm()
+    setSectionFormMode("insert")
+    setEditingSectionPos(null)
+    setShowSectionForm(true)
+  }
+
+  const startEditSectionFlow = () => {
+    if (selectedSectionPos === null) return
+    const node = editor.state.doc.nodeAt(selectedSectionPos)
+    if (!node || node.type.name !== "cmsSection") return
+
+    const attrs = node.attrs as Record<string, unknown>
+    setSectionPreset(normalizeSectionPreset(attrs.preset))
+    setSectionFullWidth(normalizeSectionFullWidth(attrs.fullWidth))
+    setSectionSpacing(normalizeSectionSpacing(attrs.spacing))
+    setSectionRadius(normalizeSectionRadius(attrs.radius))
+    setSectionBorder(normalizeSectionBorder(attrs.border))
+    setSectionShadow(normalizeSectionShadow(attrs.shadow))
+    setSectionFormError(null)
+    setSectionFormMode("edit")
+    setEditingSectionPos(selectedSectionPos)
+    setShowIconPicker(false)
+    setShowImageForm(false)
+    setShowVideoForm(false)
+    setShowCardForm(false)
+    setShowSectionForm(true)
+  }
+
+  const submitSectionForm = () => {
+    const nextAttrs = buildSectionNodeAttrs({
+      preset: sectionPreset,
+      fullWidth: sectionFullWidth,
+      spacing: sectionSpacing,
+      radius: sectionRadius,
+      border: sectionBorder,
+      shadow: sectionShadow,
+    })
+
+    if (sectionFormMode === "edit" && editingSectionPos !== null) {
+      const updated = editor
+        .chain()
+        .focus()
+        .command(({ tr, dispatch }) => {
+          const node = tr.doc.nodeAt(editingSectionPos)
+          if (!node || node.type.name !== "cmsSection") return false
+          tr.setNodeMarkup(editingSectionPos, undefined, { ...node.attrs, ...nextAttrs })
+          if (dispatch) dispatch(tr)
+          return true
+        })
+        .run()
+      if (!updated) {
+        setSectionFormError("Could not update the selected section. Please select the section again.")
+        return
+      }
+      editor.commands.setNodeSelection(editingSectionPos)
+    } else {
+      const inserted = editor
+        .chain()
+        .focus()
+        .insertContent([
+          {
+            type: "cmsSection",
+            attrs: nextAttrs,
+            content: [
+              {
+                type: "heading",
+                attrs: { level: 2 },
+                content: [{ type: "text", text: "Section heading" }],
+              },
+              {
+                type: "paragraph",
+                content: [{ type: "text", text: "Section content goes here." }],
+              },
+            ],
+          },
+          { type: "paragraph" },
+        ])
+        .run()
+      if (!inserted) {
+        setSectionFormError("Could not insert section at the current cursor position.")
+        return
+      }
+    }
+
+    closeSectionForm()
+  }
+
   const startEditAccordionFlow = () => {
     if (selectedAccordionPos === null) return
     const node = editor.state.doc.nodeAt(selectedAccordionPos)
@@ -919,6 +1382,7 @@ export function RichTextEditor({ content, onChange }: RichTextEditorProps) {
       }),
       AccordionSummary,
       AccordionDetails,
+      CmsSection,
       CmsCard,
       CmsVideo,
       CmsFaIcon,
@@ -1113,6 +1577,40 @@ export function RichTextEditor({ content, onChange }: RichTextEditorProps) {
   useEffect(() => {
     if (!editor) return
 
+    const updateSelectedSection = () => {
+      let foundPos: number | null = null
+
+      editor.state.doc.nodesBetween(editor.state.selection.from, editor.state.selection.to, (node, pos) => {
+        if (node.type.name !== "cmsSection") return true
+        foundPos = pos
+        return false
+      })
+
+      if (foundPos === null) {
+        const { $from } = editor.state.selection
+        for (let depth = $from.depth; depth >= 0; depth -= 1) {
+          const node = $from.node(depth)
+          if (node.type.name !== "cmsSection") continue
+          foundPos = depth > 0 ? $from.before(depth) : 0
+          break
+        }
+      }
+
+      setSelectedSectionPos(foundPos)
+    }
+
+    updateSelectedSection()
+    editor.on("selectionUpdate", updateSelectedSection)
+    editor.on("transaction", updateSelectedSection)
+    return () => {
+      editor.off("selectionUpdate", updateSelectedSection)
+      editor.off("transaction", updateSelectedSection)
+    }
+  }, [editor])
+
+  useEffect(() => {
+    if (!editor) return
+
     const readCssVarFromStyle = (styleText: string | null | undefined, variableName: string, fallback: string) => {
       if (!styleText) return fallback
       const match = styleText.match(new RegExp(`${variableName}\\s*:\\s*([^;]+)`, "i"))
@@ -1208,6 +1706,7 @@ export function RichTextEditor({ content, onChange }: RichTextEditorProps) {
   const activeLinkIsButton =
     activeLinkAttrs["data-cms-button"] === true ||
     (typeof activeLinkAttrs["data-cms-button"] === "string" && activeLinkAttrs["data-cms-button"].toLowerCase() === "true")
+  const sectionPresetOption = getSectionPreset(sectionPreset)
 
   const getSelectedVideoAlign = (): "left" | "center" | "right" => {
     if (selectedVideoPos === null) return "left"
@@ -1283,6 +1782,7 @@ export function RichTextEditor({ content, onChange }: RichTextEditorProps) {
     setPendingButtonHref("")
     setShowVideoForm(false)
     setShowCardForm(false)
+    setShowSectionForm(false)
     setImageSource("")
     setImageAltText("")
     setImageTitleText("")
@@ -1538,6 +2038,7 @@ export function RichTextEditor({ content, onChange }: RichTextEditorProps) {
     setShowIconPicker(false)
     setShowImageForm(false)
     setShowCardForm(false)
+    setShowSectionForm(false)
     setPendingButtonVariant(null)
     resetVideoForm()
     setVideoUploading(false)
@@ -1652,6 +2153,7 @@ export function RichTextEditor({ content, onChange }: RichTextEditorProps) {
     setEditingVideoPos(selectedVideoPos)
     setShowImageForm(false)
     setShowCardForm(false)
+    setShowSectionForm(false)
     setShowVideoForm(true)
   }
 
@@ -1752,6 +2254,7 @@ export function RichTextEditor({ content, onChange }: RichTextEditorProps) {
     setShowVideoForm(false)
     setShowImageForm(false)
     setShowCardForm(false)
+    setShowSectionForm(false)
     const label = window.prompt("Button label", "Get Started")?.trim()
     if (!label) return
     const href = window.prompt("Button URL", "/contact")?.trim() || "/"
@@ -1814,6 +2317,7 @@ export function RichTextEditor({ content, onChange }: RichTextEditorProps) {
     setShowImageForm(false)
     setShowVideoForm(false)
     setShowCardForm(false)
+    setShowSectionForm(false)
     const groupId = `cms-accordion-${Date.now()}`
     const countRaw = window.prompt("How many accordion items?", "1")?.trim() || "1"
     const count = Math.min(Math.max(Number.parseInt(countRaw || "1", 10) || 1, 1), 10)
@@ -1838,13 +2342,7 @@ export function RichTextEditor({ content, onChange }: RichTextEditorProps) {
   }
 
   const insertSection = () => {
-    editor
-      .chain()
-      .focus()
-      .insertContent(
-        `<section class="py-8"><h2>Section heading</h2><p>Section content goes here.</p></section><p></p>`,
-      )
-      .run()
+    startInsertSectionFlow()
   }
 
   const insertSeparator = () => {
@@ -2168,6 +2666,11 @@ export function RichTextEditor({ content, onChange }: RichTextEditorProps) {
           <Columns2 className="h-4 w-4 mr-1" />
           Section
         </Button>
+        {selectedSectionPos !== null ? (
+          <Button type="button" size="sm" variant="outline" onClick={startEditSectionFlow}>
+            Edit Section
+          </Button>
+        ) : null}
         <Button type="button" size="sm" variant="outline" onClick={insertSeparator}>
           <SeparatorHorizontal className="h-4 w-4 mr-1" />
           Separator
@@ -2251,6 +2754,120 @@ export function RichTextEditor({ content, onChange }: RichTextEditorProps) {
             <Trash2 className="h-4 w-4 mr-1" />
             Delete Table
           </Button>
+        </div>
+      )}
+      {showSectionForm && (
+        <div className="p-3 border-b border-input bg-muted/20 space-y-3">
+          <p className="text-sm font-medium">{sectionFormMode === "edit" ? "Edit Section" : "Insert Section"}</p>
+          <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
+            <div className="space-y-1.5 md:col-span-2 lg:col-span-3">
+              <label className="text-xs font-medium text-muted-foreground">Color Theme</label>
+              <select
+                className="h-9 w-full rounded-md border border-input bg-background px-3 text-sm"
+                value={sectionPreset}
+                onChange={(event) => setSectionPreset(normalizeSectionPreset(event.target.value))}
+              >
+                {SECTION_PRESET_OPTIONS.map((presetOption) => (
+                  <option key={presetOption.id} value={presetOption.id}>
+                    {presetOption.label}
+                  </option>
+                ))}
+              </select>
+              <p className="text-[11px] text-muted-foreground">{sectionPresetOption.description}</p>
+            </div>
+            <div className="space-y-1.5 md:col-span-2 lg:col-span-3">
+              <label className="text-xs font-medium text-muted-foreground">Section Width</label>
+              <label className="inline-flex items-center gap-2 text-xs">
+                <input
+                  type="checkbox"
+                  checked={sectionFullWidth}
+                  onChange={(event) => setSectionFullWidth(event.target.checked)}
+                />
+                Full width section band
+              </label>
+              <p className="text-[11px] text-muted-foreground">
+                When enabled, section stretches like a page block. When disabled, it stays in normal content width.
+              </p>
+            </div>
+            <div className="space-y-1.5">
+              <label className="text-xs font-medium text-muted-foreground">Spacing</label>
+              <select
+                className="h-9 w-full rounded-md border border-input bg-background px-3 text-sm"
+                value={sectionSpacing}
+                onChange={(event) => setSectionSpacing(normalizeSectionSpacing(event.target.value))}
+              >
+                {SECTION_SPACING_OPTIONS.map((option) => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div className="space-y-1.5">
+              <label className="text-xs font-medium text-muted-foreground">Corner Radius</label>
+              <select
+                className="h-9 w-full rounded-md border border-input bg-background px-3 text-sm"
+                value={sectionRadius}
+                onChange={(event) => setSectionRadius(normalizeSectionRadius(event.target.value))}
+              >
+                {SECTION_RADIUS_OPTIONS.map((option) => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div className="space-y-1.5">
+              <label className="text-xs font-medium text-muted-foreground">Border</label>
+              <select
+                className="h-9 w-full rounded-md border border-input bg-background px-3 text-sm"
+                value={sectionBorder}
+                onChange={(event) => setSectionBorder(normalizeSectionBorder(event.target.value))}
+              >
+                {SECTION_BORDER_OPTIONS.map((option) => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div className="space-y-1.5">
+              <label className="text-xs font-medium text-muted-foreground">Shadow</label>
+              <select
+                className="h-9 w-full rounded-md border border-input bg-background px-3 text-sm"
+                value={sectionShadow}
+                onChange={(event) => setSectionShadow(normalizeSectionShadow(event.target.value))}
+              >
+                {SECTION_SHADOW_OPTIONS.map((option) => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div className="space-y-1.5 md:col-span-2 lg:col-span-3">
+              <p className="text-xs font-medium text-muted-foreground">Theme Preview</p>
+              <div
+                className="rounded-md border px-3 py-2 text-xs"
+                style={{
+                  background: sectionPresetOption.background,
+                  color: sectionPresetOption.headingColor || sectionPresetOption.textColor || "inherit",
+                  borderColor: sectionPresetOption.borderColor || "rgba(148, 163, 184, 0.32)",
+                }}
+              >
+                {sectionPresetOption.label}: {sectionPresetOption.description}
+              </div>
+            </div>
+            {sectionFormError ? <p className="md:col-span-2 lg:col-span-3 text-xs text-destructive">{sectionFormError}</p> : null}
+          </div>
+          <div className="flex items-center justify-end gap-2">
+            <Button type="button" size="sm" variant="outline" onClick={closeSectionForm}>
+              Cancel
+            </Button>
+            <Button type="button" size="sm" onClick={submitSectionForm}>
+              {sectionFormMode === "edit" ? "Update Section" : "Insert Section"}
+            </Button>
+          </div>
         </div>
       )}
       {showImageForm && (
