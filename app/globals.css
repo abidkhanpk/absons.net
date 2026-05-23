@@ -784,7 +784,8 @@
 
 .prose table.cms-table,
 .prose table.cms-table {
-  width: 100%;
+  width: var(--cms-table-width, 100%);
+  max-width: 100%;
   border-collapse: collapse;
   table-layout: fixed;
   margin-top: 1rem;
@@ -795,9 +796,9 @@
 .prose table.cms-table td {
   border: 1px solid var(--border);
   padding: 0.65rem 0.75rem;
-  vertical-align: middle;
+  vertical-align: top;
   min-width: 96px;
-  height: 2.5rem;
+  min-height: 2.5rem;
 }
 
 /* Keep table row heights consistent between preview HTML and TipTap editor DOM */
@@ -866,7 +867,8 @@
 /* Editor WYSIWYG base table styles */
 .ProseMirror table,
 .tiptap table {
-  width: 100% !important;
+  width: var(--cms-table-width, 100%) !important;
+  max-width: 100%;
   border-collapse: collapse;
   table-layout: fixed !important;
   margin-top: 1rem;
@@ -879,9 +881,9 @@
 .tiptap table td {
   border: 1px solid var(--border);
   padding: 0.45rem 0.6rem;
-  vertical-align: middle;
+  vertical-align: top;
   min-width: 80px;
-  height: 1.5rem;
+  min-height: 1.5rem;
 }
 
 .ProseMirror table th > *:first-child,
@@ -934,7 +936,25 @@
 .ProseMirror table colgroup col,
 .tiptap table colgroup col {
   min-width: 80px !important;
-  width: auto !important;
+}
+
+@media (max-width: 768px) {
+  .prose table.cms-table[data-responsive-mode="stack"] {
+    width: 100% !important;
+    table-layout: auto;
+  }
+
+  .prose table.cms-table[data-responsive-mode="stack"] tbody,
+  .prose table.cms-table[data-responsive-mode="stack"] tr,
+  .prose table.cms-table[data-responsive-mode="stack"] th,
+  .prose table.cms-table[data-responsive-mode="stack"] td {
+    display: block;
+    width: 100% !important;
+  }
+
+  .prose table.cms-table[data-responsive-mode="stack"] tr {
+    margin-bottom: 0.8rem;
+  }
 }
 
 /* Editor: reflect selected border style immediately while editing */

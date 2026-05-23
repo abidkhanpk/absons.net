@@ -6,11 +6,15 @@ import StarterKit from "@tiptap/starter-kit"
 import { Node, mergeAttributes } from "@tiptap/core"
 import Link from "@tiptap/extension-link"
 import Image from "@tiptap/extension-image"
+import { TextStyle } from "@tiptap/extension-text-style"
+import { Color } from "@tiptap/extension-color"
+import { Highlight } from "@tiptap/extension-highlight"
 import { Table } from "@tiptap/extension-table"
 import TableRow from "@tiptap/extension-table-row"
 import TableCell from "@tiptap/extension-table-cell"
 import TableHeader from "@tiptap/extension-table-header"
 import TextAlign from "@tiptap/extension-text-align"
+import { EditorView } from "@codemirror/view"
 import CodeMirror from "@uiw/react-codemirror"
 import { html as htmlLang } from "@codemirror/lang-html"
 import fontAwesomeIcons from "@/lib/font-awesome-free-icons.json"
@@ -51,6 +55,9 @@ import {
   SplitSquareHorizontal,
   PlayCircle,
   UploadCloud,
+  Palette,
+  Highlighter,
+  Eraser,
 } from "lucide-react"
 
 interface RichTextEditorProps {
@@ -777,9 +784,69 @@ const escapeHtml = (value: string) =>
     .replace(/"/g, "&quot;")
     .replace(/'/g, "&#39;")
 
+const SOURCE_EDITOR_THEME = EditorView.theme({
+  "&": {
+    display: "block",
+    width: "100%",
+    maxWidth: "100%",
+    overflow: "hidden",
+  },
+  ".cm-editor": {
+    width: "100%",
+    maxWidth: "100%",
+    overflow: "hidden",
+  },
+  ".cm-scroller": {
+    width: "100%",
+    maxWidth: "100%",
+    overflowX: "auto",
+    overflowY: "auto",
+  },
+  ".cm-content": {
+    minWidth: "100%",
+  },
+})
+
+const SOURCE_EDITOR_NOWRAP_THEME = EditorView.theme({
+  ".cm-content": {
+    width: "max-content",
+    minWidth: "100%",
+    whiteSpace: "pre !important",
+    wordBreak: "normal",
+    overflowWrap: "normal",
+  },
+  ".cm-line": {
+    whiteSpace: "pre !important",
+  },
+})
+
+const TEXT_COLOR_OPTIONS = [
+  { label: "Default", value: "" },
+  { label: "White", value: "#ffffff" },
+  { label: "Black", value: "#111827" },
+  { label: "Blue", value: "#1d4ed8" },
+  { label: "Green", value: "#047857" },
+  { label: "Red", value: "#b91c1c" },
+  { label: "Orange", value: "#c2410c" },
+  { label: "Purple", value: "#7c3aed" },
+] as const
+
+const HIGHLIGHT_COLOR_OPTIONS = [
+  { label: "White", value: "#ffffff" },
+  { label: "Yellow", value: "#fef08a" },
+  { label: "Mint", value: "#bbf7d0" },
+  { label: "Sky", value: "#bfdbfe" },
+  { label: "Rose", value: "#fecdd3" },
+] as const
+
 export function RichTextEditor({ content, onChange }: RichTextEditorProps) {
   const [mode, setMode] = useState<"visual" | "source" | "preview">("visual")
   const [sourceHtml, setSourceHtml] = useState(content || "")
+  const [sourceWrapEnabled, setSourceWrapEnabled] = useState(true)
+  const [selectedTextColor, setSelectedTextColor] = useState(TEXT_COLOR_OPTIONS[1].value)
+  const [selectedHighlightColor, setSelectedHighlightColor] = useState(HIGHLIGHT_COLOR_OPTIONS[0].value)
+  const [showTextColorMenu, setShowTextColorMenu] = useState(false)
+  const [showHighlightColorMenu, setShowHighlightColorMenu] = useState(false)
   const [showIconPicker, setShowIconPicker] = useState(false)
   const [iconSearch, setIconSearch] = useState("")
   const [selectedIconClass, setSelectedIconClass] = useState("")
@@ -791,6 +858,8 @@ export function RichTextEditor({ content, onChange }: RichTextEditorProps) {
   const [sourceSeed, setSourceSeed] = useState("")
   const [ignoreSourceInitChange, setIgnoreSourceInitChange] = useState(false)
   const [isCursorInTable, setIsCursorInTable] = useState(false)
+  const [isMobileStackActive, setIsMobileStackActive] = useState(true)
+  const [tableAlignState, setTableAlignState] = useState<"left" | "center" | "right">("left")
   const [showImageForm, setShowImageForm] = useState(false)
   const [imageSource, setImageSource] = useState("")
   const [imageAltText, setImageAltText] = useState("")
@@ -1347,6 +1416,9 @@ export function RichTextEditor({ content, onChange }: RichTextEditorProps) {
           class: "max-w-full h-auto rounded-lg",
         },
       }),
+      TextStyle,
+      Color,
+      Highlight.configure({ multicolor: true }),
       Table.configure({
         resizable: true,
         HTMLAttributes: {
@@ -1370,6 +1442,11 @@ export function RichTextEditor({ content, onChange }: RichTextEditorProps) {
               default: null,
               parseHTML: (element) => element.getAttribute("style"),
               renderHTML: (attributes) => (attributes.style ? { style: attributes.style } : {}),
+            },
+            responsiveMode: {
+              default: "stack",
+              parseHTML: (element) => element.getAttribute("data-responsive-mode") || "stack",
+              renderHTML: (attributes) => ({ "data-responsive-mode": attributes.responsiveMode || "stack" }),
             },
           }
         },
@@ -1424,6 +1501,62 @@ export function RichTextEditor({ content, onChange }: RichTextEditorProps) {
     return () => {
       editor.off("selectionUpdate", updateTableState)
       editor.off("transaction", updateTableState)
+    }
+  }, [editor])
+
+  useEffect(() => {
+    if (!editor) return
+
+    const updateResponsiveState = () => {
+      if (!editor.isActive("table")) {
+        setIsMobileStackActive(false)
+        return
+      }
+
+      const attrs = editor.getAttributes("table") as Record<string, unknown>
+      const mode = typeof attrs.responsiveMode === "string" ? attrs.responsiveMode : "stack"
+      setIsMobileStackActive(mode === "stack")
+    }
+
+    updateResponsiveState()
+    editor.on("selectionUpdate", updateResponsiveState)
+    editor.on("transaction", updateResponsiveState)
+    return () => {
+      editor.off("selectionUpdate", updateResponsiveState)
+      editor.off("transaction", updateResponsiveState)
+    }
+  }, [editor])
+
+  useEffect(() => {
+    if (!editor) return
+
+    const updateTableAlignState = () => {
+      if (!editor.isActive("table")) {
+        setTableAlignState("left")
+        return
+      }
+      const attrs = editor.getAttributes("table") as Record<string, unknown>
+      const styleVars = parseStyleVars(typeof attrs.style === "string" ? attrs.style : null)
+      const marginLeft = (styleVars["margin-left"] || "").trim().toLowerCase()
+      const marginRight = (styleVars["margin-right"] || "").trim().toLowerCase()
+
+      if (marginLeft === "auto" && marginRight === "auto") {
+        setTableAlignState("center")
+        return
+      }
+      if (marginLeft === "auto" && marginRight !== "auto") {
+        setTableAlignState("right")
+        return
+      }
+      setTableAlignState("left")
+    }
+
+    updateTableAlignState()
+    editor.on("selectionUpdate", updateTableAlignState)
+    editor.on("transaction", updateTableAlignState)
+    return () => {
+      editor.off("selectionUpdate", updateTableAlignState)
+      editor.off("transaction", updateTableAlignState)
     }
   }, [editor])
 
@@ -1773,6 +1906,31 @@ export function RichTextEditor({ content, onChange }: RichTextEditorProps) {
         href: nextHref,
       })
       .run()
+  }
+
+  const applyTextColor = (color: string) => {
+    setSelectedTextColor(color)
+    if (!color) {
+      editor.chain().focus().unsetColor().run()
+      return
+    }
+    editor.chain().focus().setColor(color).run()
+  }
+
+  const clearTextColor = () => {
+    if (editor.state.selection.empty) return
+    setSelectedTextColor("")
+    editor.chain().focus().unsetColor().run()
+  }
+
+  const applyHighlightColor = (color: string) => {
+    setSelectedHighlightColor(color)
+    editor.chain().focus().setHighlight({ color }).run()
+  }
+
+  const clearHighlightColor = () => {
+    if (editor.state.selection.empty) return
+    editor.chain().focus().unsetHighlight().run()
   }
 
   const startInsertImageFlow = () => {
@@ -2359,8 +2517,270 @@ export function RichTextEditor({ content, onChange }: RichTextEditorProps) {
     const rows = Math.min(Math.max(Number.parseInt(window.prompt("Rows", "2") || "2", 10) || 2, 1), 10)
     const cols = Math.min(Math.max(Number.parseInt(window.prompt("Columns", "3") || "3", 10) || 3, 1), 10)
     editor.chain().focus().insertTable({ rows, cols, withHeaderRow: false }).run()
-    editor.chain().focus().updateAttributes("table", { class: "cms-table cms-table-border-solid", borderStyle: "solid" }).run()
+    editor
+      .chain()
+      .focus()
+      .updateAttributes("table", { class: "cms-table cms-table-border-solid", borderStyle: "solid", responsiveMode: "stack" })
+      .run()
     editor.chain().focus().setTextAlign("center").run()
+  }
+
+  const parseStyleVars = (styleText: string | null | undefined): Record<string, string> => {
+    if (!styleText) return {}
+    return styleText
+      .split(";")
+      .map((entry) => entry.trim())
+      .filter(Boolean)
+      .reduce<Record<string, string>>((acc, chunk) => {
+        const separatorIndex = chunk.indexOf(":")
+        if (separatorIndex <= 0) return acc
+        const key = chunk.slice(0, separatorIndex).trim()
+        const value = chunk.slice(separatorIndex + 1).trim()
+        if (key && value) acc[key] = value
+        return acc
+      }, {})
+  }
+
+  const styleVarsToString = (vars: Record<string, string>) => Object.entries(vars).map(([key, value]) => `${key}:${value}`).join(";")
+
+  const readSizeFromStyle = (styleText: string | null | undefined, keys: string[], fallback: string) => {
+    const vars = parseStyleVars(styleText)
+    for (const key of keys) {
+      const value = vars[key]
+      if (typeof value === "string" && value.trim().length > 0) return value.trim()
+    }
+    return fallback
+  }
+
+  const getLengthInput = (label: string, initialValue: string) => {
+    const raw = (window.prompt(label, initialValue) || "").trim()
+    if (!raw) return null
+    const match = raw.match(/^(\d+(?:\.\d+)?)(px|%)$/i)
+    if (!match) {
+      window.alert("Invalid format. Use values like 320px or 75%")
+      return null
+    }
+    const value = Number.parseFloat(match[1])
+    const unit = match[2].toLowerCase()
+    if (!Number.isFinite(value) || value <= 0) {
+      window.alert("Value must be greater than 0.")
+      return null
+    }
+    if (unit === "%" && value > 100) {
+      window.alert("Percent value must be 100 or less.")
+      return null
+    }
+    return `${value}${unit}`
+  }
+
+  const updateCurrentTableAttrs = (mutator: (attrs: Record<string, unknown>) => Record<string, unknown>) =>
+    editor
+      .chain()
+      .focus()
+      .command(({ state, tr, dispatch }) => {
+        const { $from } = state.selection
+        for (let depth = $from.depth; depth > 0; depth -= 1) {
+          const node = $from.node(depth)
+          if (node.type.name !== "table") continue
+          const pos = $from.before(depth)
+          tr.setNodeMarkup(pos, undefined, mutator(node.attrs as Record<string, unknown>))
+          if (dispatch) dispatch(tr)
+          return true
+        }
+        return false
+      })
+      .run()
+
+  const setTableWidth = () => {
+    if (!editor.isActive("table")) return
+    const tableAttrs = editor.getAttributes("table") as Record<string, unknown>
+    const currentWidth = readSizeFromStyle(typeof tableAttrs.style === "string" ? tableAttrs.style : null, ["width", "--cms-table-width"], "100%")
+    const value = getLengthInput("Table width (e.g. 100% or 960px)", currentWidth)
+    if (!value) return
+    updateCurrentTableAttrs((attrs) => {
+      const styleVars = parseStyleVars(typeof attrs.style === "string" ? attrs.style : null)
+      styleVars.width = value
+      styleVars["--cms-table-width"] = value
+      return { ...attrs, style: styleVarsToString(styleVars) }
+    })
+  }
+
+  const toggleTableAlignState = () => {
+    if (!editor.isActive("table")) return
+    const nextState = tableAlignState === "left" ? "center" : tableAlignState === "center" ? "right" : "left"
+    updateCurrentTableAttrs((attrs) => {
+      const styleVars = parseStyleVars(typeof attrs.style === "string" ? attrs.style : null)
+      if (nextState === "center") {
+        styleVars["margin-left"] = "auto"
+        styleVars["margin-right"] = "auto"
+      } else if (nextState === "right") {
+        styleVars["margin-left"] = "auto"
+        styleVars["margin-right"] = "0"
+      } else {
+        styleVars["margin-left"] = "0"
+        styleVars["margin-right"] = "auto"
+      }
+      return { ...attrs, style: styleVarsToString(styleVars) }
+    })
+    setTableAlignState(nextState)
+  }
+
+  const setCurrentColumnWidth = () => {
+    if (!editor.isActive("table")) return
+    let initialWidth = "33%"
+    editor
+      .chain()
+      .focus()
+      .command(({ state }) => {
+        const { $from } = state.selection
+        let rowDepth = -1
+        for (let depth = $from.depth; depth > 0; depth -= 1) {
+          if ($from.node(depth).type.name === "tableRow") {
+            rowDepth = depth
+            break
+          }
+        }
+        if (rowDepth < 0) return false
+        const rowNode = $from.node(rowDepth)
+        const selectedColIndex = $from.index(rowDepth)
+        if (selectedColIndex >= rowNode.childCount) return false
+        const cellNode = rowNode.child(selectedColIndex)
+        const styleText = typeof cellNode.attrs.style === "string" ? cellNode.attrs.style : ""
+        initialWidth = readSizeFromStyle(styleText, ["width", "min-width"], "33%")
+        return true
+      })
+      .run()
+    const value = getLengthInput("Column width for selected column (e.g. 33% or 320px)", initialWidth)
+    if (!value) return
+    editor
+      .chain()
+      .focus()
+      .command(({ state, tr, dispatch }) => {
+        const { $from } = state.selection
+        let tableDepth = -1
+        let rowDepth = -1
+        for (let depth = $from.depth; depth > 0; depth -= 1) {
+          const nodeName = $from.node(depth).type.name
+          if (nodeName === "table" && tableDepth < 0) tableDepth = depth
+          if (nodeName === "tableRow" && rowDepth < 0) rowDepth = depth
+        }
+        if (tableDepth < 0 || rowDepth < 0) return false
+
+        const tableNode = $from.node(tableDepth)
+        const tablePos = $from.before(tableDepth)
+        const selectedColIndex = $from.index(rowDepth)
+
+        let rowOffset = 1
+        for (let rowIndex = 0; rowIndex < tableNode.childCount; rowIndex += 1) {
+          const rowNode = tableNode.child(rowIndex)
+          if (selectedColIndex < rowNode.childCount) {
+            let cellOffset = 1
+            for (let colIndex = 0; colIndex < rowNode.childCount; colIndex += 1) {
+              const cellNode = rowNode.child(colIndex)
+              if (colIndex === selectedColIndex) {
+                const cellPos = tablePos + rowOffset + cellOffset
+                const existingStyle = typeof cellNode.attrs.style === "string" ? cellNode.attrs.style : ""
+                const styleVars = parseStyleVars(existingStyle)
+                styleVars.width = value
+                styleVars["min-width"] = value
+                tr.setNodeMarkup(cellPos, undefined, {
+                  ...cellNode.attrs,
+                  style: styleVarsToString(styleVars),
+                })
+              }
+              cellOffset += cellNode.nodeSize
+            }
+          }
+          rowOffset += rowNode.nodeSize
+        }
+
+        if (dispatch) dispatch(tr)
+        return true
+      })
+      .run()
+  }
+
+  const setCurrentRowHeight = () => {
+    if (!editor.isActive("table")) return
+    let initialHeight = "180px"
+    editor
+      .chain()
+      .focus()
+      .command(({ state }) => {
+        const { $from } = state.selection
+        let rowDepth = -1
+        for (let depth = $from.depth; depth > 0; depth -= 1) {
+          if ($from.node(depth).type.name === "tableRow") {
+            rowDepth = depth
+            break
+          }
+        }
+        if (rowDepth < 0) return false
+        const rowNode = $from.node(rowDepth)
+        if (rowNode.childCount === 0) return false
+        const sampleCell = rowNode.child(0)
+        const styleText = typeof sampleCell.attrs.style === "string" ? sampleCell.attrs.style : ""
+        initialHeight = readSizeFromStyle(styleText, ["height", "min-height"], "180px")
+        return true
+      })
+      .run()
+    const value = getLengthInput("Row height for selected row (e.g. 180px or 25%)", initialHeight)
+    if (!value) return
+    editor
+      .chain()
+      .focus()
+      .command(({ state, tr, dispatch }) => {
+        const { $from } = state.selection
+        let tableDepth = -1
+        let rowDepth = -1
+        for (let depth = $from.depth; depth > 0; depth -= 1) {
+          const nodeName = $from.node(depth).type.name
+          if (nodeName === "table" && tableDepth < 0) tableDepth = depth
+          if (nodeName === "tableRow" && rowDepth < 0) rowDepth = depth
+        }
+        if (tableDepth < 0 || rowDepth < 0) return false
+
+        const tableNode = $from.node(tableDepth)
+        const tablePos = $from.before(tableDepth)
+        const selectedRowIndex = $from.index(tableDepth)
+        if (selectedRowIndex >= tableNode.childCount) return false
+
+        let rowOffset = 1
+        for (let rowIndex = 0; rowIndex < tableNode.childCount; rowIndex += 1) {
+          const rowNode = tableNode.child(rowIndex)
+          if (rowIndex === selectedRowIndex) {
+            let cellOffset = 1
+            for (let colIndex = 0; colIndex < rowNode.childCount; colIndex += 1) {
+              const cellNode = rowNode.child(colIndex)
+              const cellPos = tablePos + rowOffset + cellOffset
+              const existingStyle = typeof cellNode.attrs.style === "string" ? cellNode.attrs.style : ""
+              const styleVars = parseStyleVars(existingStyle)
+              styleVars.height = value
+              styleVars["min-height"] = value
+              tr.setNodeMarkup(cellPos, undefined, {
+                ...cellNode.attrs,
+                style: styleVarsToString(styleVars),
+              })
+              cellOffset += cellNode.nodeSize
+            }
+            break
+          }
+          rowOffset += rowNode.nodeSize
+        }
+
+        if (dispatch) dispatch(tr)
+        return true
+      })
+      .run()
+  }
+
+  const toggleMobileStackTable = () => {
+    if (!editor.isActive("table")) return
+    updateCurrentTableAttrs((attrs) => {
+      const current = typeof attrs.responsiveMode === "string" ? attrs.responsiveMode : "stack"
+      const next = current === "stack" ? "scroll" : "stack"
+      return { ...attrs, responsiveMode: next }
+    })
   }
 
   const setTableBorderPreset = (preset: "none" | "solid" | "dashed" | "double") => {
@@ -2374,11 +2794,15 @@ export function RichTextEditor({ content, onChange }: RichTextEditorProps) {
           const node = $from.node(depth)
           if (node.type.name !== "table") continue
           const pos = $from.before(depth)
+          const existingStyleVars = parseStyleVars(typeof node.attrs.style === "string" ? node.attrs.style : null)
+          delete existingStyleVars["--cms-table-border-style"]
+          delete existingStyleVars["--cms-table-border-width"]
+          delete existingStyleVars["--cms-table-border-color"]
           const attrs = {
             ...node.attrs,
             class: `cms-table cms-table-border-${preset}`,
             borderStyle: preset,
-            style: null,
+            style: Object.keys(existingStyleVars).length > 0 ? styleVarsToString(existingStyleVars) : null,
           }
           tr.setNodeMarkup(pos, undefined, attrs)
           if (dispatch) dispatch(tr)
@@ -2407,11 +2831,15 @@ export function RichTextEditor({ content, onChange }: RichTextEditorProps) {
           const node = $from.node(depth)
           if (node.type.name !== "table") continue
           const pos = $from.before(depth)
+          const existingStyleVars = parseStyleVars(typeof node.attrs.style === "string" ? node.attrs.style : null)
+          existingStyleVars["--cms-table-border-style"] = safeStyle
+          existingStyleVars["--cms-table-border-width"] = `${safeWidth}px`
+          existingStyleVars["--cms-table-border-color"] = color
           const attrs = {
             ...node.attrs,
             class: "cms-table cms-table-border-custom",
             borderStyle: "custom",
-            style: `--cms-table-border-style:${safeStyle};--cms-table-border-width:${safeWidth}px;--cms-table-border-color:${color};`,
+            style: styleVarsToString(existingStyleVars),
           }
           tr.setNodeMarkup(pos, undefined, attrs)
           if (dispatch) dispatch(tr)
@@ -2563,6 +2991,96 @@ export function RichTextEditor({ content, onChange }: RichTextEditorProps) {
           onClick={() => editor.chain().focus().toggleBlockquote().run()}
         >
           <Quote className="h-4 w-4" />
+        </Button>
+        <div className="relative">
+          <Button
+            type="button"
+            size="sm"
+            variant="ghost"
+            onClick={() => {
+              setShowTextColorMenu((open) => !open)
+              setShowHighlightColorMenu(false)
+            }}
+            title="Text color palette"
+          >
+            <Palette className="h-4 w-4" />
+          </Button>
+          {showTextColorMenu ? (
+            <div className="absolute left-0 top-10 z-40 min-w-[120px] rounded-md border border-input bg-background p-2 shadow-md">
+              <div className="grid grid-cols-4 gap-1">
+                {TEXT_COLOR_OPTIONS.map((option) => (
+                  <button
+                    key={`text-${option.label}`}
+                    type="button"
+                    title={option.label}
+                    aria-label={`Text color ${option.label}`}
+                    onMouseDown={(event) => {
+                      event.preventDefault()
+                      applyTextColor(option.value)
+                      setShowTextColorMenu(false)
+                    }}
+                    className={`h-5 w-5 rounded-sm border ${selectedTextColor === option.value ? "ring-2 ring-primary ring-offset-1" : ""}`}
+                    style={{ background: option.value || "linear-gradient(135deg, #ffffff 0%, #f1f5f9 100%)", borderColor: "#cbd5e1" }}
+                  />
+                ))}
+              </div>
+            </div>
+          ) : null}
+        </div>
+        <Button
+          type="button"
+          size="sm"
+          variant={editor.isActive("textStyle", { color: selectedTextColor }) ? "default" : "ghost"}
+          onMouseDown={(event) => event.preventDefault()}
+          onClick={clearTextColor}
+          title="Clear text color"
+        >
+          <Eraser className="h-4 w-4" />
+        </Button>
+        <div className="relative">
+          <Button
+            type="button"
+            size="sm"
+            variant="ghost"
+            onClick={() => {
+              setShowHighlightColorMenu((open) => !open)
+              setShowTextColorMenu(false)
+            }}
+            title="Highlight color palette"
+          >
+            <Highlighter className="h-4 w-4" />
+          </Button>
+          {showHighlightColorMenu ? (
+            <div className="absolute left-0 top-10 z-40 min-w-[120px] rounded-md border border-input bg-background p-2 shadow-md">
+              <div className="grid grid-cols-4 gap-1">
+                {HIGHLIGHT_COLOR_OPTIONS.map((option) => (
+                  <button
+                    key={`hl-${option.value}`}
+                    type="button"
+                    title={option.label}
+                    aria-label={`Highlight color ${option.label}`}
+                    onMouseDown={(event) => {
+                      event.preventDefault()
+                      applyHighlightColor(option.value)
+                      setShowHighlightColorMenu(false)
+                    }}
+                    className={`h-5 w-5 rounded-sm border ${selectedHighlightColor === option.value ? "ring-2 ring-primary ring-offset-1" : ""}`}
+                    style={{ background: option.value, borderColor: "#cbd5e1" }}
+                  />
+                ))}
+              </div>
+            </div>
+          ) : null}
+        </div>
+        <Button
+          type="button"
+          size="sm"
+          variant="ghost"
+          onMouseDown={(event) => event.preventDefault()}
+          onClick={clearHighlightColor}
+          title="Clear highlight"
+        >
+          <Eraser className="h-4 w-4" />
         </Button>
         <div className="w-px h-6 bg-border mx-1" />
         <Button type="button" size="sm" variant={editor.isActive("link") ? "default" : "ghost"} onClick={setLink}>
@@ -2721,6 +3239,33 @@ export function RichTextEditor({ content, onChange }: RichTextEditorProps) {
           </Button>
           <Button type="button" size="sm" variant="outline" onClick={setTableBorderCustom}>
             Custom Border
+          </Button>
+          <Button type="button" size="sm" variant="outline" onClick={setTableWidth}>
+            Table Width
+          </Button>
+          <Button
+            type="button"
+            size="sm"
+            variant="outline"
+            onClick={toggleTableAlignState}
+            title={`Table alignment: ${tableAlignState.toUpperCase()} (click to cycle L/C/R)`}
+          >
+            {tableAlignState.toUpperCase()}
+          </Button>
+          <Button type="button" size="sm" variant="outline" onClick={setCurrentColumnWidth}>
+            Column Width
+          </Button>
+          <Button type="button" size="sm" variant="outline" onClick={setCurrentRowHeight}>
+            Row Height
+          </Button>
+          <Button
+            type="button"
+            size="sm"
+            variant={isMobileStackActive ? "default" : "outline"}
+            onClick={toggleMobileStackTable}
+            title={isMobileStackActive ? "Mobile Stack is ON for this table" : "Mobile Stack is OFF for this table"}
+          >
+            Mobile Stack: {isMobileStackActive ? "ON" : "OFF"}
           </Button>
           <Button type="button" size="sm" variant="outline" onClick={() => editor.chain().focus().addColumnBefore().run()}>
             <Plus className="h-4 w-4 mr-1" />
@@ -3332,10 +3877,14 @@ export function RichTextEditor({ content, onChange }: RichTextEditorProps) {
       <EditorContent editor={editor} />
       </>
       ) : mode === "source" ? (
-        <div className="p-3 max-w-full overflow-x-auto">
+        <div className="p-3 max-w-full overflow-hidden">
           <CodeMirror
             value={sourceHtml || sourceSeed || prettyFormatHtml(editor.getHTML())}
-            extensions={[htmlLang()]}
+            extensions={[
+              htmlLang(),
+              SOURCE_EDITOR_THEME,
+              ...(sourceWrapEnabled ? [EditorView.lineWrapping] : [SOURCE_EDITOR_NOWRAP_THEME]),
+            ]}
             onChange={(value, viewUpdate) => {
               if (ignoreSourceInitChange && !viewUpdate.docChanged) {
                 return
@@ -3358,6 +3907,16 @@ export function RichTextEditor({ content, onChange }: RichTextEditorProps) {
             height="520px"
             className="w-full max-w-full min-w-0 rounded-md border border-input bg-background text-foreground"
           />
+          <div className="mt-2 flex items-center justify-end">
+            <label className="inline-flex items-center gap-2 text-xs text-muted-foreground">
+              <input
+                type="checkbox"
+                checked={sourceWrapEnabled}
+                onChange={(event) => setSourceWrapEnabled(event.target.checked)}
+              />
+              Wrap lines
+            </label>
+          </div>
         </div>
       ) : (
         <div className="p-4 bg-background min-h-[300px]">
