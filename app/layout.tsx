@@ -145,16 +145,24 @@ const SITE_PRELOADER_SCRIPT = `
 (function () {
   if (typeof window === "undefined") return;
 
+  var DISABLED_ADMIN_PATH = /^\\/admin(\\/|$)/;
+  if (DISABLED_ADMIN_PATH.test(window.location.pathname || "")) {
+    var style = document.createElement("style");
+    style.id = "site-preloader-disable-style";
+    style.textContent = "#site-preloader{display:none !important;}";
+    (document.head || document.documentElement).appendChild(style);
+    return;
+  }
+
   var startedAt = Date.now();
   var MIN_SHOW_MS = 150;
-  var ADMIN_AUTH_PATH = /^\\/(admin|auth)(\\/|$)/;
 
   var hidePreloader = function () {
     var preloader = document.getElementById("site-preloader");
     if (!preloader) return;
 
     var elapsed = Date.now() - startedAt;
-    var delay = ADMIN_AUTH_PATH.test(window.location.pathname || "") ? 0 : Math.max(0, MIN_SHOW_MS - elapsed);
+    var delay = Math.max(0, MIN_SHOW_MS - elapsed);
 
     window.setTimeout(function () {
       preloader.classList.add("is-hidden");
