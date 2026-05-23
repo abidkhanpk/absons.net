@@ -13,6 +13,7 @@ import "./globals.css"
 const DEFAULT_FAVICON = "/uploads/default-icon-light-32x32.png"
 const DARK_FAVICON = "/uploads/default-icon-dark-32x32.png"
 const SVG_FAVICON = "/uploads/default-icon.svg"
+const DEFAULT_LOGO = "/uploads/default-logo.png"
 const SAFE_PERFORMANCE_MEASURE_PATCH = `
 (function () {
   if (typeof window === "undefined") return;
@@ -140,6 +141,41 @@ const SAFE_PERFORMANCE_MEASURE_PATCH = `
   }
 })();
 `
+const SITE_PRELOADER_SCRIPT = `
+(function () {
+  if (typeof window === "undefined") return;
+
+  var startedAt = Date.now();
+  var MIN_SHOW_MS = 150;
+  var ADMIN_AUTH_PATH = /^\\/(admin|auth)(\\/|$)/;
+
+  var hidePreloader = function () {
+    var preloader = document.getElementById("site-preloader");
+    if (!preloader) return;
+
+    var elapsed = Date.now() - startedAt;
+    var delay = ADMIN_AUTH_PATH.test(window.location.pathname || "") ? 0 : Math.max(0, MIN_SHOW_MS - elapsed);
+
+    window.setTimeout(function () {
+      preloader.classList.add("is-hidden");
+      preloader.setAttribute("aria-busy", "false");
+
+      var removeNode = function () {
+        if (preloader && preloader.parentNode) preloader.parentNode.removeChild(preloader);
+      };
+
+      preloader.addEventListener("transitionend", removeNode, { once: true });
+      window.setTimeout(removeNode, 700);
+    }, delay);
+  };
+
+  if (document.readyState === "complete") {
+    hidePreloader();
+  } else {
+    window.addEventListener("load", hidePreloader, { once: true });
+  }
+})();
+`
 
 const _geist = Geist({ subsets: ["latin"] })
 const _geistMono = Geist_Mono({ subsets: ["latin"] })
@@ -208,6 +244,9 @@ export default function RootLayout({
         <Script id="safe-performance-measure" strategy="beforeInteractive">
           {SAFE_PERFORMANCE_MEASURE_PATCH}
         </Script>
+        <Script id="site-preloader-script" strategy="beforeInteractive">
+          {SITE_PRELOADER_SCRIPT}
+        </Script>
         <LayoutWithSettings>{children}</LayoutWithSettings>
         <Analytics />
       </body>
@@ -217,6 +256,8 @@ export default function RootLayout({
 
 async function LayoutWithSettings({ children }: { children: React.ReactNode }) {
   const settings = await getSiteSettings()
+  const preloaderLogo = resolveAssetUrl(settings.logoUrl || DEFAULT_LOGO) || DEFAULT_LOGO
+  const preloaderAlt = `${settings.siteTitle || "Site"} loading`
   const layoutMode = settings.layoutMode || "container"
   const widthValue = layoutMode === "full" ? "100%" : `${Math.min(Math.max(settings.layoutWidth || 90, 60), 100)}%`
   const motionDesktopPercent = Math.min(90, Math.max(0, Math.round(settings.motionEntranceDesktopPercent || 34)))
@@ -236,6 +277,10 @@ async function LayoutWithSettings({ children }: { children: React.ReactNode }) {
         ...headingVars,
       }}
     >
+      <div id="site-preloader" role="status" aria-live="polite" aria-busy="true">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img className="site-preloader-logo" src={preloaderLogo} alt={preloaderAlt} width={150} height={150} />
+      </div>
       <ServiceWorkerReset />
       <SiteMotion />
       {analyticsSnippet ? <div dangerouslySetInnerHTML={{ __html: analyticsSnippet }} /> : null}
