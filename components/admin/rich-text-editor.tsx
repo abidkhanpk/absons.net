@@ -834,12 +834,15 @@ const extractHtmlAttributeValue = (html: string, attributeName: string) => {
 
 const extractImagePreviewFromHtml = (html: string) => {
   const trimmed = html.trim()
-  if (!trimmed || !/^<img\b/i.test(trimmed)) return null
-  const src = extractHtmlAttributeValue(trimmed, "src")
+  if (!trimmed) return null
+  const imgMatch = trimmed.match(/<img\b[^>]*>/i)
+  if (!imgMatch) return null
+  const imgTag = imgMatch[0]
+  const src = extractHtmlAttributeValue(imgTag, "src")
   if (!src) return null
   return {
     src,
-    alt: extractHtmlAttributeValue(trimmed, "alt"),
+    alt: extractHtmlAttributeValue(imgTag, "alt"),
   }
 }
 
@@ -1904,7 +1907,12 @@ export function RichTextEditor({ content, onChange }: RichTextEditorProps) {
     { name: "wrench", className: "fa-solid fa-wrench" },
   ]
   const iconPool = faIcons.length > 0 ? faIcons : fallbackIcons
-  const filteredIcons = iconPool.filter((icon) => icon.name.includes(iconSearch.trim().toLowerCase()))
+  const normalizedIconSearch = iconSearch.trim().toLowerCase()
+  const filteredIcons = normalizedIconSearch
+    ? iconPool.filter((icon) => icon.name.includes(normalizedIconSearch))
+    : iconPool
+  const visibleIcons = normalizedIconSearch ? filteredIcons.slice(0, 320) : filteredIcons.slice(0, 96)
+  const hasHiddenIcons = filteredIcons.length > visibleIcons.length
   const isLinkActive = editor.isActive("link")
   const activeLinkAttrs = (isLinkActive ? (editor.getAttributes("link") as Record<string, unknown>) : {}) as Record<string, unknown>
   const activeLinkIsButton =
@@ -2592,6 +2600,35 @@ export function RichTextEditor({ content, onChange }: RichTextEditorProps) {
     return ""
   }
 
+  const collectAdjacentButtonSegments = (anchor: HTMLAnchorElement | null) => {
+    if (!anchor) return [] as HTMLAnchorElement[]
+    const href = (anchor.getAttribute("href") || "").trim()
+    const parent = anchor.parentElement
+    if (!parent) return [anchor]
+
+    const isSameSegment = (element: Element | null): element is HTMLAnchorElement => {
+      if (!(element instanceof HTMLAnchorElement)) return false
+      if (element.getAttribute("data-cms-button") !== "true") return false
+      if ((element.getAttribute("href") || "").trim() !== href) return false
+      return true
+    }
+
+    const segments: HTMLAnchorElement[] = [anchor]
+    let prev = anchor.previousElementSibling
+    while (isSameSegment(prev)) {
+      segments.unshift(prev)
+      prev = prev.previousElementSibling
+    }
+
+    let next = anchor.nextElementSibling
+    while (isSameSegment(next)) {
+      segments.push(next)
+      next = next.nextElementSibling
+    }
+
+    return segments
+  }
+
   const startInsertButtonFlow = () => {
     setShowVideoForm(false)
     setShowImageForm(false)
@@ -2624,10 +2661,12 @@ export function RichTextEditor({ content, onChange }: RichTextEditorProps) {
     const selectionElement = domAt.node instanceof HTMLElement ? domAt.node : domAt.node.parentElement
     const buttonElement = selectionElement?.closest?.('a[data-cms-button="true"]') as HTMLAnchorElement | null
 
+    const buttonSegments = collectAdjacentButtonSegments(buttonElement)
     const className = pickFirstNonEmpty(typeof currentAttrs.class === "string" ? currentAttrs.class : "", buttonElement?.getAttribute("class") || "")
     const styleText = pickFirstNonEmpty(typeof currentAttrs.style === "string" ? currentAttrs.style : "", buttonElement?.getAttribute("style") || "")
     const styleVars = parseStyleVars(styleText)
-    const directChildren = buttonElement ? Array.from(buttonElement.children) : []
+    const segmentChildren = buttonSegments.flatMap((segment) => Array.from(segment.children))
+    const directChildren = segmentChildren.length > 0 ? segmentChildren : buttonElement ? Array.from(buttonElement.children) : []
     const labelByTailSpan = [...directChildren]
       .reverse()
       .find(
@@ -2653,8 +2692,12 @@ export function RichTextEditor({ content, onChange }: RichTextEditorProps) {
     const detectedSize: ButtonSize = className.includes("px-3 py-1.5") ? "sm" : className.includes("px-6 py-3") ? "lg" : "md"
 
     const selectedText = editor.state.doc.textBetween(selectionFrom, selectionTo, " ").trim()
-    const labelFromDom = labelChild?.textContent?.trim() || buttonElement?.textContent?.trim() || ""
-    const iconNode = buttonElement?.querySelector<HTMLElement>("[data-cms-fa], i[class*='fa-'], span[class*='fa-']")
+    const combinedDomText = buttonSegments.map((segment) => segment.textContent || "").join(" ").trim()
+    const labelFromDom = labelChild?.textContent?.trim() || combinedDomText || buttonElement?.textContent?.trim() || ""
+    const iconNode =
+      buttonSegments
+        .map((segment) => segment.querySelector<HTMLElement>("[data-cms-fa], i[class*='fa-'], span[class*='fa-']"))
+        .find((node) => node instanceof HTMLElement) || null
     const rawIconClass = pickFirstNonEmpty(iconNode?.getAttribute("data-cms-fa") || "", iconNode?.getAttribute("class") || "")
     const iconTokens = new Set(rawIconClass.toLowerCase().split(/\s+/).filter(Boolean))
     const matchedIcon =
@@ -4032,8 +4075,13 @@ export function RichTextEditor({ content, onChange }: RichTextEditorProps) {
             onChange={(e) => setIconSearch(e.target.value)}
             placeholder="Search Font Awesome icons (e.g. arrow-right, phone)"
           />
+          {hasHiddenIcons ? (
+            <p className="text-[11px] text-muted-foreground">
+              Showing {visibleIcons.length} of {filteredIcons.length} icons. Type more characters to narrow results.
+            </p>
+          ) : null}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-2 max-h-56 overflow-auto">
-            {filteredIcons.map((icon) => {
+            {visibleIcons.map((icon) => {
               const iconClass = icon.className
               return (
               <button
