@@ -825,6 +825,24 @@ const escapeHtml = (value: string) =>
     .replace(/"/g, "&quot;")
     .replace(/'/g, "&#39;")
 
+const extractHtmlAttributeValue = (html: string, attributeName: string) => {
+  if (!html || !attributeName) return ""
+  const escapedName = attributeName.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")
+  const match = html.match(new RegExp(`\\b${escapedName}\\s*=\\s*["']([^"']+)["']`, "i"))
+  return match?.[1]?.trim() || ""
+}
+
+const extractImagePreviewFromHtml = (html: string) => {
+  const trimmed = html.trim()
+  if (!trimmed || !/^<img\b/i.test(trimmed)) return null
+  const src = extractHtmlAttributeValue(trimmed, "src")
+  if (!src) return null
+  return {
+    src,
+    alt: extractHtmlAttributeValue(trimmed, "alt"),
+  }
+}
+
 const SOURCE_EDITOR_THEME = EditorView.theme({
   "&": {
     display: "block",
@@ -903,6 +921,7 @@ export function RichTextEditor({ content, onChange }: RichTextEditorProps) {
   const [pendingButtonBorderColor, setPendingButtonBorderColor] = useState("")
   const [pendingButtonBorderWidth, setPendingButtonBorderWidth] = useState("1")
   const [pendingButtonRadius, setPendingButtonRadius] = useState("8")
+  const [pendingButtonLeadingVisualHtml, setPendingButtonLeadingVisualHtml] = useState("")
   const [buttonFormMode, setButtonFormMode] = useState<"insert" | "edit">("insert")
   const [editingButtonRange, setEditingButtonRange] = useState<{ from: number; to: number } | null>(null)
   const [faIcons, setFaIcons] = useState<Array<{ name: string; className: string }>>(fontAwesomeIcons)
@@ -2471,6 +2490,7 @@ export function RichTextEditor({ content, onChange }: RichTextEditorProps) {
     setPendingButtonBorderColor("var(--primary)")
     setPendingButtonBorderWidth("1")
     setPendingButtonRadius("8")
+    setPendingButtonLeadingVisualHtml("")
     setSelectedIconClass("")
     setIconSearch("")
     setButtonFormMode("insert")
@@ -2513,6 +2533,7 @@ export function RichTextEditor({ content, onChange }: RichTextEditorProps) {
 
   const toPickerHex = (value: string) => {
     const resolved = resolveCssColorValue(value)
+    if (resolved === "transparent") return "#ffffff"
     const rgbMatch = resolved.match(/^rgba?\(([^)]+)\)$/i)
     if (rgbMatch) {
       const parts = rgbMatch[1].split(",").map((part) => part.trim())
@@ -2536,8 +2557,8 @@ export function RichTextEditor({ content, onChange }: RichTextEditorProps) {
     const defaults =
       variant === "primary"
         ? { text: "#ffffff", bg: "var(--primary)", border: "var(--primary)" }
-        : variant === "outline"
-          ? { text: "var(--foreground)", bg: "var(--background)", border: "var(--border)" }
+      : variant === "outline"
+        ? { text: "var(--foreground)", bg: "transparent", border: "var(--border)" }
           : variant === "secondary"
             ? { text: "var(--secondary-foreground)", bg: "var(--secondary)", border: "var(--secondary)" }
             : variant === "ghost"
@@ -2554,7 +2575,7 @@ export function RichTextEditor({ content, onChange }: RichTextEditorProps) {
     variant === "primary"
       ? { text: "#ffffff", bg: "var(--primary)", border: "var(--primary)" }
       : variant === "outline"
-        ? { text: "var(--foreground)", bg: "var(--background)", border: "var(--border)" }
+        ? { text: "var(--foreground)", bg: "transparent", border: "var(--border)" }
         : variant === "secondary"
           ? { text: "var(--secondary-foreground)", bg: "var(--secondary)", border: "var(--secondary)" }
           : variant === "ghost"
@@ -2603,6 +2624,11 @@ export function RichTextEditor({ content, onChange }: RichTextEditorProps) {
     const className = pickFirstNonEmpty(typeof currentAttrs.class === "string" ? currentAttrs.class : "", buttonElement?.getAttribute("class") || "")
     const styleText = pickFirstNonEmpty(typeof currentAttrs.style === "string" ? currentAttrs.style : "", buttonElement?.getAttribute("style") || "")
     const styleVars = parseStyleVars(styleText)
+    const directChildren = buttonElement ? Array.from(buttonElement.children) : []
+    const labelChild = directChildren.find(
+      (child) => child.tagName.toLowerCase() === "span" && !child.hasAttribute("data-cms-fa"),
+    )
+    const leadingVisualChild = directChildren.find((child) => child !== labelChild) || null
 
     const detectedVariant: ButtonVariant = className.includes("bg-destructive")
       ? "danger"
@@ -2617,12 +2643,14 @@ export function RichTextEditor({ content, onChange }: RichTextEditorProps) {
     const detectedSize: ButtonSize = className.includes("px-3 py-1.5") ? "sm" : className.includes("px-6 py-3") ? "lg" : "md"
 
     const selectedText = editor.state.doc.textBetween(selectionFrom, selectionTo, " ").trim()
-    const labelFromDom = buttonElement?.textContent?.trim() || ""
+    const labelFromDom = labelChild?.textContent?.trim() || buttonElement?.textContent?.trim() || ""
     const iconNode = buttonElement?.querySelector<HTMLElement>("[data-cms-fa]")
     const rawIconClass = pickFirstNonEmpty(iconNode?.getAttribute("data-cms-fa") || "", iconNode?.getAttribute("class") || "")
     const iconTokens = new Set(rawIconClass.toLowerCase().split(/\s+/).filter(Boolean))
     const matchedIcon =
       iconPool.find((icon) => icon.className.toLowerCase().split(/\s+/).every((token) => iconTokens.has(token)))?.className || ""
+    const preservedLeadingVisualHtml =
+      !matchedIcon && leadingVisualChild instanceof HTMLElement ? leadingVisualChild.outerHTML.trim() : ""
 
     setPendingButtonLabel(selectedText || labelFromDom || "Button")
     setPendingButtonHref(
@@ -2664,6 +2692,7 @@ export function RichTextEditor({ content, onChange }: RichTextEditorProps) {
     setPendingButtonBorderColor(resolveCssColorValue(baseBorderColor))
     setPendingButtonBorderWidth((styleVars["border-width"] || "1px").replace("px", "").trim())
     setPendingButtonRadius((styleVars["border-radius"] || "8px").replace("px", "").trim())
+    setPendingButtonLeadingVisualHtml(preservedLeadingVisualHtml)
     setSelectedIconClass(matchedIcon)
     setIconSearch("")
     setButtonFormMode("edit")
@@ -2674,9 +2703,10 @@ export function RichTextEditor({ content, onChange }: RichTextEditorProps) {
     const buttonLabel = pendingButtonLabel.trim() || "Button"
     const classes = getButtonClass(pendingButtonVariant, pendingButtonSize)
     const iconMeta = iconPool.find((icon) => icon.className === selectedIconClass)
+    const preservedLeadingVisual = buttonFormMode === "edit" ? pendingButtonLeadingVisualHtml.trim() : ""
     const iconHtml = iconMeta
       ? `<span data-cms-fa="${iconMeta.className}" class="${iconMeta.className}" aria-hidden="true" style="color:inherit"></span>`
-      : ""
+      : preservedLeadingVisual
     const styleParts: string[] = []
     if (pendingButtonTextColor.trim()) styleParts.push(`--cms-button-text:${pendingButtonTextColor.trim()}`)
     if (pendingButtonBgColor.trim()) styleParts.push(`--cms-button-bg:${pendingButtonBgColor.trim()}`)
@@ -3147,6 +3177,9 @@ export function RichTextEditor({ content, onChange }: RichTextEditorProps) {
       return source
     }
   }
+
+  const preservedLeadingVisual = pendingButtonLeadingVisualHtml.trim()
+  const preservedLeadingImagePreview = extractImagePreviewFromHtml(preservedLeadingVisual)
 
   return (
     <div className="border border-input rounded-md">
@@ -3896,6 +3929,9 @@ export function RichTextEditor({ content, onChange }: RichTextEditorProps) {
                   className="h-9 w-12 rounded-md border border-input bg-background p-1"
                 />
                 <Input value={pendingButtonBgColor} onChange={(e) => setPendingButtonBgColor(e.target.value)} placeholder="#2563eb" />
+                <Button type="button" size="sm" variant="outline" onClick={() => setPendingButtonBgColor("transparent")}>
+                  Transparent
+                </Button>
               </div>
             </div>
             <div className="space-y-1.5">
@@ -3908,6 +3944,9 @@ export function RichTextEditor({ content, onChange }: RichTextEditorProps) {
                   className="h-9 w-12 rounded-md border border-input bg-background p-1"
                 />
                 <Input value={pendingButtonHoverColor} onChange={(e) => setPendingButtonHoverColor(e.target.value)} placeholder="#1d4ed8" />
+                <Button type="button" size="sm" variant="outline" onClick={() => setPendingButtonHoverColor("transparent")}>
+                  Transparent
+                </Button>
               </div>
             </div>
             <div className="space-y-1.5">
@@ -3982,7 +4021,23 @@ export function RichTextEditor({ content, onChange }: RichTextEditorProps) {
           </div>
           <div className="flex items-center justify-between gap-2">
             <p className="text-xs text-muted-foreground">Selected icon: {selectedIconClass || "None"}</p>
+            {buttonFormMode === "edit" && !selectedIconClass && preservedLeadingVisual ? (
+              <p className="text-xs text-muted-foreground">Existing button image/icon will be preserved.</p>
+            ) : null}
             <div className="flex items-center gap-2">
+              {buttonFormMode === "edit" && preservedLeadingVisual ? (
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="outline"
+                  onClick={() => {
+                    setPendingButtonLeadingVisualHtml("")
+                    setSelectedIconClass("")
+                  }}
+                >
+                  Remove Existing Image/Icon
+                </Button>
+              ) : null}
               <Button
                 type="button"
                 size="sm"
@@ -3999,6 +4054,23 @@ export function RichTextEditor({ content, onChange }: RichTextEditorProps) {
               </Button>
             </div>
           </div>
+          {buttonFormMode === "edit" && !selectedIconClass && preservedLeadingVisual ? (
+            <div className="rounded-md border border-border bg-muted/30 p-2">
+              <p className="text-xs font-medium text-foreground">Loaded existing button visual</p>
+              {preservedLeadingImagePreview ? (
+                <div className="mt-2 flex items-center gap-2">
+                  <img
+                    src={preservedLeadingImagePreview.src}
+                    alt={preservedLeadingImagePreview.alt || "Button visual"}
+                    className="h-9 w-9 rounded object-contain border border-border bg-background"
+                  />
+                  <p className="min-w-0 text-[11px] text-muted-foreground truncate">{preservedLeadingImagePreview.src}</p>
+                </div>
+              ) : (
+                <p className="mt-1 text-[11px] text-muted-foreground">Existing icon/image markup is loaded and will be kept on update.</p>
+              )}
+            </div>
+          ) : null}
         </div>
       )}
       {showVideoForm && (
