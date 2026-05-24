@@ -68,6 +68,9 @@ type SiteSettings = {
   seo_default_keywords?: string | null
   seo_default_og_image?: string | null
   seo_default_canonical_base?: string | null
+  seo_ai_provider?: string | null
+  openai_api_key?: string | null
+  gemini_api_key?: string | null
   static_seo?: string | null
   heading_typography?: string | HeadingTypographySettings | null
   nav_items?: string | null
@@ -740,6 +743,9 @@ export function SiteSettingsForm({ initial, pages }: { initial: SiteSettings; pa
     seoDefaultKeywords: initial.seo_default_keywords || "",
     seoDefaultOgImage: initial.seo_default_og_image || "",
     seoDefaultCanonicalBase: initial.seo_default_canonical_base || "",
+    seoAiProvider: initial.seo_ai_provider === "gemini" ? "gemini" : "openai",
+    openAiApiKey: initial.openai_api_key || "",
+    geminiApiKey: initial.gemini_api_key || "",
     staticSeo: initialStaticSeo,
     headingTypography: safeParseHeadingTypography(initial.heading_typography),
     navItems: initialNavItems,
@@ -1160,6 +1166,9 @@ export function SiteSettingsForm({ initial, pages }: { initial: SiteSettings; pa
           seoDefaultKeywords: formData.seoDefaultKeywords,
           seoDefaultOgImage: formData.seoDefaultOgImage,
           seoDefaultCanonicalBase: formData.seoDefaultCanonicalBase,
+          seoAiProvider: formData.seoAiProvider,
+          openAiApiKey: formData.openAiApiKey,
+          geminiApiKey: formData.geminiApiKey,
           staticSeo: formData.staticSeo,
           headingTypography: normalizedHeadingTypography,
           heroSlides: formData.heroSlides,
@@ -2027,6 +2036,54 @@ export function SiteSettingsForm({ initial, pages }: { initial: SiteSettings; pa
               onChange={(e) => setFormData({ ...formData, seoDefaultCanonicalBase: e.target.value })}
               placeholder="https://absons.net"
             />
+          </div>
+
+          <div className="space-y-3 rounded-md border border-border/60 bg-muted/30 p-4">
+            <div className="space-y-1">
+              <Label className="font-semibold">AI SEO Generator</Label>
+              <p className="text-xs text-muted-foreground">
+                These keys are used by Page/Blog editors to auto-generate SEO title, description, and keywords from content.
+              </p>
+            </div>
+            <div className="grid gap-4 md:grid-cols-2">
+              <div className="space-y-2">
+                <Label htmlFor="seoAiProvider">Provider</Label>
+                <Select
+                  value={formData.seoAiProvider}
+                  onValueChange={(value: "openai" | "gemini") => setFormData({ ...formData, seoAiProvider: value })}
+                >
+                  <SelectTrigger id="seoAiProvider">
+                    <SelectValue placeholder="Select provider" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="openai">OpenAI</SelectItem>
+                    <SelectItem value="gemini">Gemini</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="openAiApiKey">OpenAI API Key</Label>
+                <Input
+                  id="openAiApiKey"
+                  type="password"
+                  value={formData.openAiApiKey}
+                  onChange={(e) => setFormData({ ...formData, openAiApiKey: e.target.value })}
+                  placeholder="sk-..."
+                  autoComplete="off"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="geminiApiKey">Gemini API Key</Label>
+                <Input
+                  id="geminiApiKey"
+                  type="password"
+                  value={formData.geminiApiKey}
+                  onChange={(e) => setFormData({ ...formData, geminiApiKey: e.target.value })}
+                  placeholder="AIza..."
+                  autoComplete="off"
+                />
+              </div>
+            </div>
           </div>
 
           <div className="space-y-3">

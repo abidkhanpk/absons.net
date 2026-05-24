@@ -56,6 +56,7 @@ export function PageForm({
       ? initialSlugParts.prefix
       : "__custom__"
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [isGeneratingSeo, setIsGeneratingSeo] = useState(false)
   const [formData, setFormData] = useState({
     title: page?.title || "",
     slug: page?.slug || "",
@@ -151,6 +152,40 @@ export function PageForm({
     const normalizedSlug = finalSlug.replace(/^\/+/, "")
     const canonical = `${normalizedOrigin}/${normalizedSlug}`
     setFormData((prev) => ({ ...prev, seoCanonicalUrl: canonical }))
+  }
+
+  const generateSeoMetadata = async () => {
+    if (!formData.title.trim() && !formData.content.trim()) {
+      alert("Add page title or content first.")
+      return
+    }
+    setIsGeneratingSeo(true)
+    try {
+      const response = await fetch("/api/admin/seo/generate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          kind: "page",
+          title: formData.title,
+          slug: finalSlug,
+          content: formData.content,
+        }),
+      })
+      const result = await response.json().catch(() => ({}))
+      if (!response.ok) {
+        throw new Error(result.error || "Failed to generate SEO metadata")
+      }
+      setFormData((prev) => ({
+        ...prev,
+        seoTitle: typeof result.seoTitle === "string" ? result.seoTitle : prev.seoTitle,
+        seoDescription: typeof result.seoDescription === "string" ? result.seoDescription : prev.seoDescription,
+        seoKeywords: typeof result.seoKeywords === "string" ? result.seoKeywords : prev.seoKeywords,
+      }))
+    } catch (error) {
+      alert(error instanceof Error ? error.message : "Failed to generate SEO metadata")
+    } finally {
+      setIsGeneratingSeo(false)
+    }
   }
 
   return (
@@ -251,9 +286,14 @@ export function PageForm({
           </div>
 
           <div className="space-y-4">
-            <div>
-              <Label className="font-semibold">SEO</Label>
-              <p className="text-xs text-muted-foreground">Optional overrides for search engines and social sharing.</p>
+            <div className="flex items-center justify-between gap-2">
+              <div>
+                <Label className="font-semibold">SEO</Label>
+                <p className="text-xs text-muted-foreground">Optional overrides for search engines and social sharing.</p>
+              </div>
+              <Button type="button" variant="outline" size="sm" onClick={generateSeoMetadata} disabled={isGeneratingSeo}>
+                {isGeneratingSeo ? "Generating..." : "Generate SEO (AI)"}
+              </Button>
             </div>
             <div className="space-y-2">
               <Label htmlFor="seoTitle">SEO Title</Label>

@@ -76,7 +76,10 @@ export default async function SettingsPage() {
                 : settings?.businessHoursSchedule ?? resolved.businessHoursSchedule
                 ? JSON.stringify(resolved.businessHoursSchedule)
                 : undefined,
-              business_hours_mode: settings?.businessHoursMode ?? resolved.businessHoursMode ?? "table",
+              business_hours_mode:
+                (settings?.businessHoursMode as "table" | "summary" | "hidden" | null | undefined) ??
+                resolved.businessHoursMode ??
+                "table",
               show_business_hours: settings?.showBusinessHours ?? resolved.showBusinessHours ?? true,
               show_services: settings?.showServices ?? resolved.showServices ?? true,
               show_training: settings?.showTraining ?? resolved.showTraining ?? true,
@@ -118,6 +121,9 @@ export default async function SettingsPage() {
               seo_default_keywords: settings?.seoDefaultKeywords ?? resolved.seoDefaultKeywords ?? "",
               seo_default_og_image: settings?.seoDefaultOgImage ?? resolved.seoDefaultOgImage ?? "",
               seo_default_canonical_base: settings?.seoDefaultCanonicalBase ?? resolved.seoDefaultCanonicalBase ?? "",
+              seo_ai_provider: settings?.seoAiProvider ?? "openai",
+              openai_api_key: settings?.openaiApiKey ?? "",
+              gemini_api_key: settings?.geminiApiKey ?? "",
               static_seo: settings?.staticSeo
                 ? JSON.stringify(settings.staticSeo)
                 : resolved.staticSeo

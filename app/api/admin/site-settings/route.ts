@@ -43,7 +43,7 @@ function normalizeHomeSections(raw: unknown) {
         id,
       }
     })
-    .filter((entry): entry is Record<string, unknown> => Boolean(entry))
+    .filter((entry): entry is NonNullable<typeof entry> => entry !== null)
 }
 
 function normalizeFooterMeta(raw: unknown) {
@@ -225,6 +225,9 @@ export async function PUT(request: Request) {
       seoDefaultKeywords,
       seoDefaultOgImage,
       seoDefaultCanonicalBase,
+      seoAiProvider,
+      openAiApiKey,
+      geminiApiKey,
       staticSeo,
       headingTypography,
       expectedUpdatedAt,
@@ -243,6 +246,11 @@ export async function PUT(request: Request) {
     const normalizedFaviconUrl = normalizeAssetDbValue(faviconUrl)
     const normalizedSeoDefaultOgImage = normalizeAssetDbValue(seoDefaultOgImage)
     const normalizedStaticSeo = normalizeStaticSeo(staticSeo, headingTypography)
+    const normalizedSeoAiProvider = seoAiProvider === "gemini" ? "gemini" : seoAiProvider === "openai" ? "openai" : undefined
+    const normalizedOpenAiApiKey =
+      typeof openAiApiKey === "string" ? (openAiApiKey.trim() ? openAiApiKey.trim() : null) : undefined
+    const normalizedGeminiApiKey =
+      typeof geminiApiKey === "string" ? (geminiApiKey.trim() ? geminiApiKey.trim() : null) : undefined
 
     const normalizedBusinessHoursSchedule =
       typeof businessHoursSchedule === "string"
@@ -354,6 +362,9 @@ export async function PUT(request: Request) {
       seoDefaultKeywords,
       seoDefaultOgImage: typeof normalizedSeoDefaultOgImage === "undefined" ? undefined : normalizedSeoDefaultOgImage,
       seoDefaultCanonicalBase,
+      seoAiProvider: normalizedSeoAiProvider,
+      openaiApiKey: normalizedOpenAiApiKey,
+      geminiApiKey: normalizedGeminiApiKey,
       staticSeo: normalizedStaticSeo ?? (staticSeo ? staticSeo : undefined),
       updatedAt: new Date(),
     }
