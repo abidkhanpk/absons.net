@@ -775,6 +775,9 @@ a[data-cms-button="true"]:hover [data-cms-fa] {
 }
 
 .prose [data-cms-card="true"] {
+  box-sizing: border-box;
+  width: 100%;
+  max-width: 100%;
   border: 1px solid var(--border);
   border-radius: 0.75rem;
   background: var(--card);
@@ -783,6 +786,8 @@ a[data-cms-button="true"]:hover [data-cms-fa] {
   box-shadow: 0 8px 20px rgba(0, 0, 0, 0.04);
   margin-top: 1rem;
   margin-bottom: 1rem;
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }
 
 .prose [data-cms-card="true"] h3 {
@@ -827,11 +832,14 @@ a[data-cms-button="true"]:hover [data-cms-fa] {
 
 .prose table.cms-table th,
 .prose table.cms-table td {
+  box-sizing: border-box;
   border: 1px solid var(--border);
   padding: 0.65rem 0.75rem;
   vertical-align: top;
   min-width: 96px;
   min-height: 2.5rem;
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }
 
 /* Keep table row heights consistent between preview HTML and TipTap editor DOM */
@@ -912,11 +920,14 @@ a[data-cms-button="true"]:hover [data-cms-fa] {
 .ProseMirror table td,
 .tiptap table th,
 .tiptap table td {
+  box-sizing: border-box;
   border: 1px solid var(--border);
   padding: 0.45rem 0.6rem;
   vertical-align: top;
   min-width: 80px;
   min-height: 1.5rem;
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }
 
 .ProseMirror table th > *:first-child,
@@ -983,6 +994,8 @@ a[data-cms-button="true"]:hover [data-cms-fa] {
   .prose table.cms-table[data-responsive-mode="stack"] td {
     display: block;
     width: 100% !important;
+    min-width: 0 !important;
+    max-width: 100% !important;
   }
 
   .prose table.cms-table[data-responsive-mode="stack"] tr {
