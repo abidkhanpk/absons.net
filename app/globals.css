@@ -724,6 +724,12 @@
 
 .prose a[data-cms-button="true"] [data-cms-fa] {
   margin-right: 0.5rem;
+  color: inherit !important;
+}
+
+.prose a[data-cms-button="true"] span,
+.prose a[data-cms-button="true"] i {
+  color: inherit;
 }
 
 .prose a[data-cms-button="true"],
@@ -750,7 +756,7 @@ a[data-cms-button="true"]:hover {
 .prose a[data-cms-button="true"]:hover span,
 .prose a[data-cms-button="true"]:hover i,
 .prose a[data-cms-button="true"]:hover [data-cms-fa] {
-  color: var(--cms-button-text-current, var(--cms-button-text, inherit));
+  color: var(--cms-button-text-current, var(--cms-button-text, inherit)) !important;
 }
 
 a[data-cms-button="true"]:hover span,
@@ -761,12 +767,6 @@ a[data-cms-button="true"]:hover [data-cms-fa] {
 
 .prose a.bg-background {
   text-decoration: none;
-}
-
-.prose a[data-cms-button="true"].bg-background,
-.prose a[data-cms-button="true"].bg-background span,
-.prose a[data-cms-button="true"].bg-background [data-cms-fa] {
-  color: var(--foreground);
 }
 
 .prose details[data-cms-accordion] {

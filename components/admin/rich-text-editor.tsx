@@ -191,9 +191,9 @@ const SECTION_SHADOW_OPTIONS: Array<{ value: SectionShadow; label: string }> = [
 ]
 
 const SECTION_SPACING_CLASS: Record<SectionSpacing, string> = {
-  compact: "py-8 px-0",
-  comfortable: "py-10 px-4 md:px-6",
-  spacious: "py-14 px-5 md:px-8",
+  compact: "my-2 py-3 px-0",
+  comfortable: "my-8 py-8 px-0",
+  spacious: "my-10 py-10 px-4 md:px-6",
 }
 
 const SECTION_RADIUS_CLASS: Record<SectionRadius, string> = {
@@ -273,7 +273,6 @@ const buildSectionClassName = ({
 }) =>
   [
     "cms-rich-section",
-    "my-8",
     "transition-colors",
     fullWidth ? FULL_WIDTH_SECTION_CLASS : "",
     SECTION_SPACING_CLASS[spacing],
@@ -905,6 +904,7 @@ export function RichTextEditor({ content, onChange }: RichTextEditorProps) {
   const [pendingButtonBorderWidth, setPendingButtonBorderWidth] = useState("1")
   const [pendingButtonRadius, setPendingButtonRadius] = useState("8")
   const [buttonFormMode, setButtonFormMode] = useState<"insert" | "edit">("insert")
+  const [editingButtonRange, setEditingButtonRange] = useState<{ from: number; to: number } | null>(null)
   const [faIcons, setFaIcons] = useState<Array<{ name: string; className: string }>>(fontAwesomeIcons)
   const [sourceSeed, setSourceSeed] = useState("")
   const [ignoreSourceInitChange, setIgnoreSourceInitChange] = useState(false)
@@ -2474,6 +2474,7 @@ export function RichTextEditor({ content, onChange }: RichTextEditorProps) {
     setSelectedIconClass("")
     setIconSearch("")
     setButtonFormMode("insert")
+    setEditingButtonRange(null)
   }
 
   const resolveCssColorValue = (value: string) => {
@@ -2499,6 +2500,9 @@ export function RichTextEditor({ content, onChange }: RichTextEditorProps) {
       ctx.fillRect(0, 0, 1, 1)
       const [r, g, b, aByte] = ctx.getImageData(0, 0, 1, 1).data
       const alpha = aByte / 255
+      if (alpha === 0) {
+        return "transparent"
+      }
       if (alpha > 0 && alpha < 1) {
         return `rgba(${r}, ${g}, ${b}, ${alpha.toFixed(3).replace(/0+$/, "").replace(/\.$/, "")})`
       }
@@ -2546,6 +2550,24 @@ export function RichTextEditor({ content, onChange }: RichTextEditorProps) {
     setPendingButtonBorderColor(resolveCssColorValue(defaults.border))
   }
 
+  const getButtonVariantFallbacks = (variant: ButtonVariant) =>
+    variant === "primary"
+      ? { text: "#ffffff", bg: "var(--primary)", border: "var(--primary)" }
+      : variant === "outline"
+        ? { text: "var(--foreground)", bg: "var(--background)", border: "var(--border)" }
+        : variant === "secondary"
+          ? { text: "var(--secondary-foreground)", bg: "var(--secondary)", border: "var(--secondary)" }
+          : variant === "ghost"
+            ? { text: "var(--foreground)", bg: "transparent", border: "transparent" }
+            : { text: "var(--destructive-foreground)", bg: "var(--destructive)", border: "var(--destructive)" }
+
+  const pickFirstNonEmpty = (...values: Array<string | undefined>) => {
+    for (const value of values) {
+      if (typeof value === "string" && value.trim().length > 0) return value.trim()
+    }
+    return ""
+  }
+
   const startInsertButtonFlow = () => {
     setShowVideoForm(false)
     setShowImageForm(false)
@@ -2557,18 +2579,29 @@ export function RichTextEditor({ content, onChange }: RichTextEditorProps) {
 
   const editSelectedButton = () => {
     if (!editor.isActive("link")) return
+    editor.chain().focus().extendMarkRange("link").run()
+
+    const selectionFrom = editor.state.selection.from
+    const selectionTo = editor.state.selection.to
+    if (selectionTo <= selectionFrom) return
+
     const currentAttrs = editor.getAttributes("link") as Record<string, unknown>
     const isButton =
       currentAttrs["data-cms-button"] === true ||
       (typeof currentAttrs["data-cms-button"] === "string" && currentAttrs["data-cms-button"].toLowerCase() === "true")
     if (!isButton) return
+    setEditingButtonRange({ from: selectionFrom, to: selectionTo })
     setShowVideoForm(false)
     setShowImageForm(false)
     setShowCardForm(false)
     setShowSectionForm(false)
 
-    const className = typeof currentAttrs.class === "string" ? currentAttrs.class : ""
-    const styleText = typeof currentAttrs.style === "string" ? currentAttrs.style : ""
+    const domAt = editor.view.domAtPos(selectionFrom)
+    const selectionElement = domAt.node instanceof HTMLElement ? domAt.node : domAt.node.parentElement
+    const buttonElement = selectionElement?.closest?.('a[data-cms-button="true"]') as HTMLAnchorElement | null
+
+    const className = pickFirstNonEmpty(typeof currentAttrs.class === "string" ? currentAttrs.class : "", buttonElement?.getAttribute("class") || "")
+    const styleText = pickFirstNonEmpty(typeof currentAttrs.style === "string" ? currentAttrs.style : "", buttonElement?.getAttribute("style") || "")
     const styleVars = parseStyleVars(styleText)
 
     const detectedVariant: ButtonVariant = className.includes("bg-destructive")
@@ -2583,29 +2616,55 @@ export function RichTextEditor({ content, onChange }: RichTextEditorProps) {
 
     const detectedSize: ButtonSize = className.includes("px-3 py-1.5") ? "sm" : className.includes("px-6 py-3") ? "lg" : "md"
 
-    const selectedText = editor.state.doc.textBetween(editor.state.selection.from, editor.state.selection.to, " ").trim()
-    setPendingButtonLabel(selectedText || "Button")
-    setPendingButtonHref(typeof currentAttrs.href === "string" && currentAttrs.href.trim() ? currentAttrs.href : "/")
+    const selectedText = editor.state.doc.textBetween(selectionFrom, selectionTo, " ").trim()
+    const labelFromDom = buttonElement?.textContent?.trim() || ""
+    const iconNode = buttonElement?.querySelector<HTMLElement>("[data-cms-fa]")
+    const rawIconClass = pickFirstNonEmpty(iconNode?.getAttribute("data-cms-fa") || "", iconNode?.getAttribute("class") || "")
+    const iconTokens = new Set(rawIconClass.toLowerCase().split(/\s+/).filter(Boolean))
+    const matchedIcon =
+      iconPool.find((icon) => icon.className.toLowerCase().split(/\s+/).every((token) => iconTokens.has(token)))?.className || ""
+
+    setPendingButtonLabel(selectedText || labelFromDom || "Button")
+    setPendingButtonHref(
+      pickFirstNonEmpty(
+        typeof currentAttrs.href === "string" ? currentAttrs.href : "",
+        buttonElement?.getAttribute("href") || "",
+        "/",
+      ),
+    )
     setPendingButtonVariant(detectedVariant)
     setPendingButtonSize(detectedSize)
-    const fallbackDefaults =
-      detectedVariant === "primary"
-        ? { text: "#ffffff", bg: "var(--primary)", border: "var(--primary)" }
-        : detectedVariant === "outline"
-          ? { text: "var(--foreground)", bg: "var(--background)", border: "var(--border)" }
-          : detectedVariant === "secondary"
-            ? { text: "var(--secondary-foreground)", bg: "var(--secondary)", border: "var(--secondary)" }
-            : detectedVariant === "ghost"
-              ? { text: "var(--foreground)", bg: "transparent", border: "transparent" }
-              : { text: "var(--destructive-foreground)", bg: "var(--destructive)", border: "var(--destructive)" }
-    setPendingButtonTextColor(resolveCssColorValue(styleVars.color || fallbackDefaults.text))
-    setPendingButtonBgColor(resolveCssColorValue(styleVars["background-color"] || fallbackDefaults.bg))
-    setPendingButtonHoverColor(resolveCssColorValue(styleVars["--cms-button-hover-bg"] || styleVars["background-color"] || fallbackDefaults.bg))
-    setPendingButtonHoverTextColor(resolveCssColorValue(styleVars["--cms-button-hover-text"] || styleVars.color || fallbackDefaults.text))
-    setPendingButtonBorderColor(resolveCssColorValue(styleVars["border-color"] || fallbackDefaults.border))
+    const stripComputedButtonExpression = (value: string | undefined) => {
+      if (typeof value !== "string") return ""
+      const trimmed = value.trim()
+      if (!trimmed) return ""
+      if (trimmed.includes("--cms-button-")) return ""
+      return trimmed
+    }
+
+    const fallbackDefaults = getButtonVariantFallbacks(detectedVariant)
+    const baseTextColor = pickFirstNonEmpty(styleVars["--cms-button-text"], stripComputedButtonExpression(styleVars.color), fallbackDefaults.text)
+    const baseBgColor = pickFirstNonEmpty(
+      styleVars["--cms-button-bg"],
+      stripComputedButtonExpression(styleVars["background-color"]),
+      fallbackDefaults.bg,
+    )
+    const baseBorderColor = pickFirstNonEmpty(
+      styleVars["--cms-button-border"],
+      stripComputedButtonExpression(styleVars["border-color"]),
+      fallbackDefaults.border,
+    )
+    const hoverBgColor = pickFirstNonEmpty(styleVars["--cms-button-hover-bg"], baseBgColor)
+    const hoverTextColor = pickFirstNonEmpty(styleVars["--cms-button-hover-text"], baseTextColor)
+
+    setPendingButtonTextColor(resolveCssColorValue(baseTextColor))
+    setPendingButtonBgColor(resolveCssColorValue(baseBgColor))
+    setPendingButtonHoverColor(resolveCssColorValue(hoverBgColor))
+    setPendingButtonHoverTextColor(resolveCssColorValue(hoverTextColor))
+    setPendingButtonBorderColor(resolveCssColorValue(baseBorderColor))
     setPendingButtonBorderWidth((styleVars["border-width"] || "1px").replace("px", "").trim())
     setPendingButtonRadius((styleVars["border-radius"] || "8px").replace("px", "").trim())
-    setSelectedIconClass("")
+    setSelectedIconClass(matchedIcon)
     setIconSearch("")
     setButtonFormMode("edit")
     setShowIconPicker(true)
@@ -2616,7 +2675,7 @@ export function RichTextEditor({ content, onChange }: RichTextEditorProps) {
     const classes = getButtonClass(pendingButtonVariant, pendingButtonSize)
     const iconMeta = iconPool.find((icon) => icon.className === selectedIconClass)
     const iconHtml = iconMeta
-      ? `<span data-cms-fa="${iconMeta.className}" class="${iconMeta.className}" aria-hidden="true"></span>`
+      ? `<span data-cms-fa="${iconMeta.className}" class="${iconMeta.className}" aria-hidden="true" style="color:inherit"></span>`
       : ""
     const styleParts: string[] = []
     if (pendingButtonTextColor.trim()) styleParts.push(`--cms-button-text:${pendingButtonTextColor.trim()}`)
@@ -2634,7 +2693,9 @@ export function RichTextEditor({ content, onChange }: RichTextEditorProps) {
     if (Number.isFinite(radius) && radius >= 0) styleParts.push(`border-radius:${radius}px`)
     const styleAttr = styleParts.length > 0 ? ` style="${styleParts.join(";")};"` : ""
     const buttonHtml = `<a href="${pendingButtonHref || "/"}" class="${classes}" data-cms-button="true"${styleAttr}>${iconHtml}<span>${buttonLabel}</span></a>`
-    if (buttonFormMode === "edit" && editor.isActive("link")) {
+    if (buttonFormMode === "edit" && editingButtonRange) {
+      editor.chain().focus().insertContentAt(editingButtonRange, buttonHtml).run()
+    } else if (buttonFormMode === "edit" && editor.isActive("link")) {
       editor.chain().focus().extendMarkRange("link").deleteSelection().insertContent(buttonHtml).run()
     } else {
       editor.chain().focus().insertContent(`<p>${buttonHtml}</p>`).run()
@@ -3777,7 +3838,7 @@ export function RichTextEditor({ content, onChange }: RichTextEditorProps) {
       )}
       {showIconPicker && (
         <div className="p-3 border-b border-input bg-muted/20 space-y-3">
-          <p className="text-sm font-medium">Add Button</p>
+          <p className="text-sm font-medium">{buttonFormMode === "edit" ? "Edit Button" : "Add Button"}</p>
           <div className="grid gap-3 md:grid-cols-2">
             <div className="space-y-1.5">
               <label className="text-xs font-medium text-muted-foreground">Button Label</label>
@@ -3934,7 +3995,7 @@ export function RichTextEditor({ content, onChange }: RichTextEditorProps) {
                 Cancel
               </Button>
               <Button type="button" size="sm" onClick={insertButtonWithIcon}>
-                Insert Button
+                {buttonFormMode === "edit" ? "Update Button" : "Insert Button"}
               </Button>
             </div>
           </div>
