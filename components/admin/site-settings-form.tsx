@@ -2061,28 +2061,31 @@ export function SiteSettingsForm({ initial, pages }: { initial: SiteSettings; pa
                   </SelectContent>
                 </Select>
               </div>
-              <div className="space-y-2">
-                <Label htmlFor="openAiApiKey">OpenAI API Key</Label>
-                <Input
-                  id="openAiApiKey"
-                  type="password"
-                  value={formData.openAiApiKey}
-                  onChange={(e) => setFormData({ ...formData, openAiApiKey: e.target.value })}
-                  placeholder="sk-..."
-                  autoComplete="off"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="geminiApiKey">Gemini API Key</Label>
-                <Input
-                  id="geminiApiKey"
-                  type="password"
-                  value={formData.geminiApiKey}
-                  onChange={(e) => setFormData({ ...formData, geminiApiKey: e.target.value })}
-                  placeholder="AIza..."
-                  autoComplete="off"
-                />
-              </div>
+              {formData.seoAiProvider === "gemini" ? (
+                <div className="space-y-2">
+                  <Label htmlFor="geminiApiKey">Gemini API Key</Label>
+                  <Input
+                    id="geminiApiKey"
+                    type="password"
+                    value={formData.geminiApiKey}
+                    onChange={(e) => setFormData({ ...formData, geminiApiKey: e.target.value })}
+                    placeholder="AIza..."
+                    autoComplete="off"
+                  />
+                </div>
+              ) : (
+                <div className="space-y-2">
+                  <Label htmlFor="openAiApiKey">OpenAI API Key</Label>
+                  <Input
+                    id="openAiApiKey"
+                    type="password"
+                    value={formData.openAiApiKey}
+                    onChange={(e) => setFormData({ ...formData, openAiApiKey: e.target.value })}
+                    placeholder="sk-..."
+                    autoComplete="off"
+                  />
+                </div>
+              )}
             </div>
           </div>
 
