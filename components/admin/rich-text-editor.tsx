@@ -69,7 +69,18 @@ const PRIMARY_BUTTON_CLASS =
   "inline-flex items-center gap-2 justify-center rounded-md bg-primary px-4 py-2 text-white no-underline hover:opacity-90"
 const OUTLINE_BUTTON_CLASS = "inline-flex items-center gap-2 justify-center rounded-md border border-border bg-background px-4 py-2 no-underline"
 
-const getButtonClass = (variant: "primary" | "outline") => (variant === "primary" ? PRIMARY_BUTTON_CLASS : OUTLINE_BUTTON_CLASS)
+type ButtonVariant = "primary" | "outline" | "secondary" | "ghost" | "danger"
+type ButtonSize = "sm" | "md" | "lg"
+
+const getButtonClass = (variant: ButtonVariant, size: ButtonSize) => {
+  const sizeClass = size === "sm" ? "px-3 py-1.5 text-sm" : size === "lg" ? "px-6 py-3 text-base" : "px-4 py-2 text-sm"
+  const base = `inline-flex items-center gap-2 justify-center rounded-md no-underline ${sizeClass}`
+  if (variant === "primary") return `${base} bg-primary text-white hover:opacity-90`
+  if (variant === "outline") return `${base} border border-border bg-background`
+  if (variant === "secondary") return `${base} bg-secondary text-secondary-foreground hover:opacity-90`
+  if (variant === "ghost") return `${base} bg-transparent border border-transparent hover:bg-muted`
+  return `${base} bg-destructive text-destructive-foreground hover:opacity-90`
+}
 
 type SectionPresetId = "plain" | "soft-slate" | "sky-glow" | "sunset-blend" | "emerald-mist" | "midnight-contrast"
 type SectionSpacing = "compact" | "comfortable" | "spacious"
@@ -335,6 +346,11 @@ const CmsLink = Link.extend({
       ...this.parent?.(),
       class: {
         default: "text-primary underline",
+      },
+      style: {
+        default: null,
+        parseHTML: (element) => element.getAttribute("style"),
+        renderHTML: (attributes) => (attributes.style ? { style: attributes.style } : {}),
       },
       "data-cms-icon": {
         default: null,
@@ -851,9 +867,18 @@ export function RichTextEditor({ content, onChange }: RichTextEditorProps) {
   const [iconSearch, setIconSearch] = useState("")
   const [selectedIconClass, setSelectedIconClass] = useState("")
   const [selectedKeywordToken, setSelectedKeywordToken] = useState(CONTENT_KEYWORD_OPTIONS[0]?.token ?? "{sitetitle}")
-  const [pendingButtonVariant, setPendingButtonVariant] = useState<"primary" | "outline" | null>(null)
-  const [pendingButtonLabel, setPendingButtonLabel] = useState("")
-  const [pendingButtonHref, setPendingButtonHref] = useState("")
+  const [pendingButtonVariant, setPendingButtonVariant] = useState<ButtonVariant>("primary")
+  const [pendingButtonSize, setPendingButtonSize] = useState<ButtonSize>("md")
+  const [pendingButtonLabel, setPendingButtonLabel] = useState("Get Started")
+  const [pendingButtonHref, setPendingButtonHref] = useState("/contact")
+  const [pendingButtonTextColor, setPendingButtonTextColor] = useState("")
+  const [pendingButtonBgColor, setPendingButtonBgColor] = useState("")
+  const [pendingButtonHoverColor, setPendingButtonHoverColor] = useState("")
+  const [pendingButtonHoverTextColor, setPendingButtonHoverTextColor] = useState("")
+  const [pendingButtonBorderColor, setPendingButtonBorderColor] = useState("")
+  const [pendingButtonBorderWidth, setPendingButtonBorderWidth] = useState("1")
+  const [pendingButtonRadius, setPendingButtonRadius] = useState("8")
+  const [buttonFormMode, setButtonFormMode] = useState<"insert" | "edit">("insert")
   const [faIcons, setFaIcons] = useState<Array<{ name: string; className: string }>>(fontAwesomeIcons)
   const [sourceSeed, setSourceSeed] = useState("")
   const [ignoreSourceInitChange, setIgnoreSourceInitChange] = useState(false)
@@ -941,7 +966,7 @@ export function RichTextEditor({ content, onChange }: RichTextEditorProps) {
 
   const openImageFormForNode = (attrs: Record<string, unknown>, nodePos: number) => {
     setShowIconPicker(false)
-    setPendingButtonVariant(null)
+    setPendingButtonVariant("primary")
     setPendingButtonLabel("")
     setPendingButtonHref("")
     setShowVideoForm(false)
@@ -1056,7 +1081,7 @@ export function RichTextEditor({ content, onChange }: RichTextEditorProps) {
     setShowImageForm(false)
     setShowVideoForm(false)
     setShowSectionForm(false)
-    setPendingButtonVariant(null)
+    setPendingButtonVariant("primary")
     setPendingButtonLabel("")
     setPendingButtonHref("")
     resetCardForm()
@@ -1267,7 +1292,7 @@ export function RichTextEditor({ content, onChange }: RichTextEditorProps) {
     setShowImageForm(false)
     setShowVideoForm(false)
     setShowCardForm(false)
-    setPendingButtonVariant(null)
+    setPendingButtonVariant("primary")
     setPendingButtonLabel("")
     setPendingButtonHref("")
     resetSectionForm()
@@ -1935,7 +1960,7 @@ export function RichTextEditor({ content, onChange }: RichTextEditorProps) {
 
   const startInsertImageFlow = () => {
     setShowIconPicker(false)
-    setPendingButtonVariant(null)
+    setPendingButtonVariant("primary")
     setPendingButtonLabel("")
     setPendingButtonHref("")
     setShowVideoForm(false)
@@ -2197,7 +2222,7 @@ export function RichTextEditor({ content, onChange }: RichTextEditorProps) {
     setShowImageForm(false)
     setShowCardForm(false)
     setShowSectionForm(false)
-    setPendingButtonVariant(null)
+    setPendingButtonVariant("primary")
     resetVideoForm()
     setVideoUploading(false)
     setPosterUploading(false)
@@ -2408,66 +2433,188 @@ export function RichTextEditor({ content, onChange }: RichTextEditorProps) {
     setMode(next)
   }
 
-  const startInsertButtonFlow = (variant: "primary" | "outline") => {
+  const resetPendingButtonForm = () => {
+    setPendingButtonVariant("primary")
+    setPendingButtonSize("md")
+    setPendingButtonLabel("Get Started")
+    setPendingButtonHref("/contact")
+    setPendingButtonTextColor("#ffffff")
+    setPendingButtonBgColor("var(--primary)")
+    setPendingButtonHoverColor("var(--primary)")
+    setPendingButtonHoverTextColor("#ffffff")
+    setPendingButtonBorderColor("var(--primary)")
+    setPendingButtonBorderWidth("1")
+    setPendingButtonRadius("8")
+    setSelectedIconClass("")
+    setIconSearch("")
+    setButtonFormMode("insert")
+  }
+
+  const resolveCssColorValue = (value: string) => {
+    const raw = value.trim()
+    if (!raw) return ""
+    if (typeof window === "undefined" || typeof document === "undefined") return raw
+    const probe = document.createElement("span")
+    probe.style.display = "none"
+    probe.style.color = raw
+    document.body.appendChild(probe)
+    const computed = window.getComputedStyle(probe).color || raw
+    document.body.removeChild(probe)
+    const toHex = (channel: number) => Math.max(0, Math.min(255, Math.round(channel))).toString(16).padStart(2, "0")
+    const canvas = document.createElement("canvas")
+    canvas.width = 1
+    canvas.height = 1
+    const ctx = canvas.getContext("2d")
+    if (ctx) {
+      ctx.clearRect(0, 0, 1, 1)
+      ctx.fillStyle = "rgba(0,0,0,0)"
+      ctx.fillRect(0, 0, 1, 1)
+      ctx.fillStyle = computed
+      ctx.fillRect(0, 0, 1, 1)
+      const [r, g, b, aByte] = ctx.getImageData(0, 0, 1, 1).data
+      const alpha = aByte / 255
+      if (alpha > 0 && alpha < 1) {
+        return `rgba(${r}, ${g}, ${b}, ${alpha.toFixed(3).replace(/0+$/, "").replace(/\.$/, "")})`
+      }
+      return `#${toHex(r)}${toHex(g)}${toHex(b)}`
+    }
+    return computed
+  }
+
+  const toPickerHex = (value: string) => {
+    const resolved = resolveCssColorValue(value)
+    const rgbMatch = resolved.match(/^rgba?\(([^)]+)\)$/i)
+    if (rgbMatch) {
+      const parts = rgbMatch[1].split(",").map((part) => part.trim())
+      if (parts.length >= 3) {
+        const toHex = (channel: number) => Math.max(0, Math.min(255, Math.round(channel))).toString(16).padStart(2, "0")
+        const r = Number.parseFloat(parts[0])
+        const g = Number.parseFloat(parts[1])
+        const b = Number.parseFloat(parts[2])
+        if (Number.isFinite(r) && Number.isFinite(g) && Number.isFinite(b)) {
+          return `#${toHex(r)}${toHex(g)}${toHex(b)}`
+        }
+      }
+    }
+    const hexMatch = resolved.match(/^#([0-9a-f]{6})$/i)
+    if (hexMatch) return `#${hexMatch[1]}`
+    return "#000000"
+  }
+
+  const applyPendingButtonVariantDefaults = (variant: ButtonVariant) => {
+    setPendingButtonVariant(variant)
+    const defaults =
+      variant === "primary"
+        ? { text: "#ffffff", bg: "var(--primary)", border: "var(--primary)" }
+        : variant === "outline"
+          ? { text: "var(--foreground)", bg: "var(--background)", border: "var(--border)" }
+          : variant === "secondary"
+            ? { text: "var(--secondary-foreground)", bg: "var(--secondary)", border: "var(--secondary)" }
+            : variant === "ghost"
+              ? { text: "var(--foreground)", bg: "transparent", border: "transparent" }
+              : { text: "var(--destructive-foreground)", bg: "var(--destructive)", border: "var(--destructive)" }
+    setPendingButtonTextColor(resolveCssColorValue(defaults.text))
+    setPendingButtonBgColor(resolveCssColorValue(defaults.bg))
+    setPendingButtonHoverColor(resolveCssColorValue(defaults.bg))
+    setPendingButtonHoverTextColor(resolveCssColorValue(defaults.text))
+    setPendingButtonBorderColor(resolveCssColorValue(defaults.border))
+  }
+
+  const startInsertButtonFlow = () => {
     setShowVideoForm(false)
     setShowImageForm(false)
     setShowCardForm(false)
     setShowSectionForm(false)
-    const label = window.prompt("Button label", "Get Started")?.trim()
-    if (!label) return
-    const href = window.prompt("Button URL", "/contact")?.trim() || "/"
-    setPendingButtonVariant(variant)
-    setPendingButtonLabel(label)
-    setPendingButtonHref(href)
-    setIconSearch("")
-    setSelectedIconClass("")
+    resetPendingButtonForm()
     setShowIconPicker(true)
   }
 
-  const editSelectedButton = (variant: "primary" | "outline") => {
+  const editSelectedButton = () => {
     if (!editor.isActive("link")) return
     const currentAttrs = editor.getAttributes("link") as Record<string, unknown>
     const isButton =
       currentAttrs["data-cms-button"] === true ||
       (typeof currentAttrs["data-cms-button"] === "string" && currentAttrs["data-cms-button"].toLowerCase() === "true")
     if (!isButton) return
-    const currentHref = typeof currentAttrs.href === "string" ? currentAttrs.href : ""
-    const entered = window.prompt("Button URL", currentHref)
-    if (entered === null) return
-    const nextHref = entered.trim()
-    if (!nextHref) return
-    editor
-      .chain()
-      .focus()
-      .extendMarkRange("link")
-      .setLink({
-        ...currentAttrs,
-        href: nextHref,
-        class: getButtonClass(variant),
-        "data-cms-button": "true",
-      })
-      .run()
+    setShowVideoForm(false)
+    setShowImageForm(false)
+    setShowCardForm(false)
+    setShowSectionForm(false)
+
+    const className = typeof currentAttrs.class === "string" ? currentAttrs.class : ""
+    const styleText = typeof currentAttrs.style === "string" ? currentAttrs.style : ""
+    const styleVars = parseStyleVars(styleText)
+
+    const detectedVariant: ButtonVariant = className.includes("bg-destructive")
+      ? "danger"
+      : className.includes("bg-secondary")
+        ? "secondary"
+        : className.includes("bg-transparent")
+          ? "ghost"
+          : className.includes("border") && className.includes("bg-background")
+            ? "outline"
+            : "primary"
+
+    const detectedSize: ButtonSize = className.includes("px-3 py-1.5") ? "sm" : className.includes("px-6 py-3") ? "lg" : "md"
+
+    const selectedText = editor.state.doc.textBetween(editor.state.selection.from, editor.state.selection.to, " ").trim()
+    setPendingButtonLabel(selectedText || "Button")
+    setPendingButtonHref(typeof currentAttrs.href === "string" && currentAttrs.href.trim() ? currentAttrs.href : "/")
+    setPendingButtonVariant(detectedVariant)
+    setPendingButtonSize(detectedSize)
+    const fallbackDefaults =
+      detectedVariant === "primary"
+        ? { text: "#ffffff", bg: "var(--primary)", border: "var(--primary)" }
+        : detectedVariant === "outline"
+          ? { text: "var(--foreground)", bg: "var(--background)", border: "var(--border)" }
+          : detectedVariant === "secondary"
+            ? { text: "var(--secondary-foreground)", bg: "var(--secondary)", border: "var(--secondary)" }
+            : detectedVariant === "ghost"
+              ? { text: "var(--foreground)", bg: "transparent", border: "transparent" }
+              : { text: "var(--destructive-foreground)", bg: "var(--destructive)", border: "var(--destructive)" }
+    setPendingButtonTextColor(resolveCssColorValue(styleVars.color || fallbackDefaults.text))
+    setPendingButtonBgColor(resolveCssColorValue(styleVars["background-color"] || fallbackDefaults.bg))
+    setPendingButtonHoverColor(resolveCssColorValue(styleVars["--cms-button-hover-bg"] || styleVars["background-color"] || fallbackDefaults.bg))
+    setPendingButtonHoverTextColor(resolveCssColorValue(styleVars["--cms-button-hover-text"] || styleVars.color || fallbackDefaults.text))
+    setPendingButtonBorderColor(resolveCssColorValue(styleVars["border-color"] || fallbackDefaults.border))
+    setPendingButtonBorderWidth((styleVars["border-width"] || "1px").replace("px", "").trim())
+    setPendingButtonRadius((styleVars["border-radius"] || "8px").replace("px", "").trim())
+    setSelectedIconClass("")
+    setIconSearch("")
+    setButtonFormMode("edit")
+    setShowIconPicker(true)
   }
 
   const insertButtonWithIcon = () => {
-    if (!pendingButtonVariant || !pendingButtonLabel) return
     const buttonLabel = pendingButtonLabel.trim() || "Button"
-    const classes = getButtonClass(pendingButtonVariant)
+    const classes = getButtonClass(pendingButtonVariant, pendingButtonSize)
     const iconMeta = iconPool.find((icon) => icon.className === selectedIconClass)
     const iconHtml = iconMeta
       ? `<span data-cms-fa="${iconMeta.className}" class="${iconMeta.className}" aria-hidden="true"></span>`
       : ""
-    editor
-      .chain()
-      .focus()
-      .insertContent(
-        `<p><a href="${pendingButtonHref || "/"}" class="${classes}" data-cms-button="true">${iconHtml}<span>${buttonLabel}</span></a></p>`,
-      )
-      .run()
+    const styleParts: string[] = []
+    if (pendingButtonTextColor.trim()) styleParts.push(`--cms-button-text:${pendingButtonTextColor.trim()}`)
+    if (pendingButtonBgColor.trim()) styleParts.push(`--cms-button-bg:${pendingButtonBgColor.trim()}`)
+    if (pendingButtonHoverColor.trim()) styleParts.push(`--cms-button-hover-bg:${pendingButtonHoverColor.trim()}`)
+    if (pendingButtonHoverTextColor.trim()) styleParts.push(`--cms-button-hover-text:${pendingButtonHoverTextColor.trim()}`)
+    if (pendingButtonBorderColor.trim()) styleParts.push(`--cms-button-border:${pendingButtonBorderColor.trim()}`)
+    if (pendingButtonHoverColor.trim()) styleParts.push(`--cms-button-hover-border:${pendingButtonHoverColor.trim()}`)
+    styleParts.push(`color:var(--cms-button-text-current, var(--cms-button-text, inherit))`)
+    styleParts.push(`background-color:var(--cms-button-bg-current, var(--cms-button-bg, transparent))`)
+    styleParts.push(`border-color:var(--cms-button-border-current, var(--cms-button-border, currentColor))`)
+    const borderWidth = Number.parseInt(pendingButtonBorderWidth, 10)
+    if (Number.isFinite(borderWidth) && borderWidth >= 0) styleParts.push(`border-width:${borderWidth}px`)
+    const radius = Number.parseInt(pendingButtonRadius, 10)
+    if (Number.isFinite(radius) && radius >= 0) styleParts.push(`border-radius:${radius}px`)
+    const styleAttr = styleParts.length > 0 ? ` style="${styleParts.join(";")};"` : ""
+    const buttonHtml = `<a href="${pendingButtonHref || "/"}" class="${classes}" data-cms-button="true"${styleAttr}>${iconHtml}<span>${buttonLabel}</span></a>`
+    if (buttonFormMode === "edit" && editor.isActive("link")) {
+      editor.chain().focus().extendMarkRange("link").deleteSelection().insertContent(buttonHtml).run()
+    } else {
+      editor.chain().focus().insertContent(`<p>${buttonHtml}</p>`).run()
+    }
     setShowIconPicker(false)
-    setPendingButtonVariant(null)
-    setPendingButtonLabel("")
-    setPendingButtonHref("")
+    resetPendingButtonForm()
   }
 
   const insertAccordion = () => {
@@ -3144,22 +3291,13 @@ export function RichTextEditor({ content, onChange }: RichTextEditorProps) {
         </Button>
       </div>
       <div className="flex flex-wrap gap-2 p-2 border-b border-input bg-background">
-        <Button type="button" size="sm" variant="outline" onClick={() => startInsertButtonFlow("primary")}>
+        <Button type="button" size="sm" variant="outline" onClick={startInsertButtonFlow}>
           <RectangleHorizontal className="h-4 w-4 mr-1" />
-          Primary Button
-        </Button>
-        <Button type="button" size="sm" variant="outline" onClick={() => startInsertButtonFlow("outline")}>
-          <RectangleHorizontal className="h-4 w-4 mr-1" />
-          Outline Button
+          Add Button
         </Button>
         {activeLinkIsButton ? (
-          <Button type="button" size="sm" variant="outline" onClick={() => editSelectedButton("primary")}>
-            Edit Primary Button
-          </Button>
-        ) : null}
-        {activeLinkIsButton ? (
-          <Button type="button" size="sm" variant="outline" onClick={() => editSelectedButton("outline")}>
-            Edit Outline Button
+          <Button type="button" size="sm" variant="outline" onClick={editSelectedButton}>
+            Edit Button
           </Button>
         ) : null}
         <Button type="button" size="sm" variant="outline" onClick={insertAccordion}>
@@ -3587,7 +3725,126 @@ export function RichTextEditor({ content, onChange }: RichTextEditorProps) {
       )}
       {showIconPicker && (
         <div className="p-3 border-b border-input bg-muted/20 space-y-3">
-          <p className="text-sm font-medium">Step 3: Select Icon (optional)</p>
+          <p className="text-sm font-medium">Add Button</p>
+          <div className="grid gap-3 md:grid-cols-2">
+            <div className="space-y-1.5">
+              <label className="text-xs font-medium text-muted-foreground">Button Label</label>
+              <Input value={pendingButtonLabel} onChange={(e) => setPendingButtonLabel(e.target.value)} placeholder="Get Started" />
+            </div>
+            <div className="space-y-1.5">
+              <label className="text-xs font-medium text-muted-foreground">Button URL</label>
+              <Input value={pendingButtonHref} onChange={(e) => setPendingButtonHref(e.target.value)} placeholder="/contact" />
+            </div>
+            <div className="space-y-1.5">
+              <label className="text-xs font-medium text-muted-foreground">Button Style</label>
+              <select
+                className="h-9 w-full rounded-md border border-input bg-background px-3 text-sm"
+                value={pendingButtonVariant}
+                onChange={(e) => applyPendingButtonVariantDefaults(e.target.value as ButtonVariant)}
+              >
+                <option value="primary">Primary</option>
+                <option value="outline">Outline</option>
+                <option value="secondary">Secondary</option>
+                <option value="ghost">Ghost</option>
+                <option value="danger">Danger</option>
+              </select>
+            </div>
+            <div className="space-y-1.5">
+              <label className="text-xs font-medium text-muted-foreground">Button Size</label>
+              <select
+                className="h-9 w-full rounded-md border border-input bg-background px-3 text-sm"
+                value={pendingButtonSize}
+                onChange={(e) => setPendingButtonSize((e.target.value as ButtonSize) || "md")}
+              >
+                <option value="sm">Small</option>
+                <option value="md">Medium</option>
+                <option value="lg">Large</option>
+              </select>
+            </div>
+            <div className="space-y-1.5">
+              <label className="text-xs font-medium text-muted-foreground">Text Color</label>
+              <div className="flex items-center gap-2">
+                <input
+                  type="color"
+                  value={toPickerHex(pendingButtonTextColor || "#ffffff")}
+                  onChange={(e) => setPendingButtonTextColor(e.target.value)}
+                  className="h-9 w-12 rounded-md border border-input bg-background p-1"
+                />
+                <Input value={pendingButtonTextColor} onChange={(e) => setPendingButtonTextColor(e.target.value)} placeholder="#ffffff or white" />
+              </div>
+            </div>
+            <div className="space-y-1.5">
+              <label className="text-xs font-medium text-muted-foreground">Background Color</label>
+              <div className="flex items-center gap-2">
+                <input
+                  type="color"
+                  value={toPickerHex(pendingButtonBgColor || "#2563eb")}
+                  onChange={(e) => setPendingButtonBgColor(e.target.value)}
+                  className="h-9 w-12 rounded-md border border-input bg-background p-1"
+                />
+                <Input value={pendingButtonBgColor} onChange={(e) => setPendingButtonBgColor(e.target.value)} placeholder="#2563eb" />
+              </div>
+            </div>
+            <div className="space-y-1.5">
+              <label className="text-xs font-medium text-muted-foreground">Hover Color</label>
+              <div className="flex items-center gap-2">
+                <input
+                  type="color"
+                  value={toPickerHex(pendingButtonHoverColor || "#1d4ed8")}
+                  onChange={(e) => setPendingButtonHoverColor(e.target.value)}
+                  className="h-9 w-12 rounded-md border border-input bg-background p-1"
+                />
+                <Input value={pendingButtonHoverColor} onChange={(e) => setPendingButtonHoverColor(e.target.value)} placeholder="#1d4ed8" />
+              </div>
+            </div>
+            <div className="space-y-1.5">
+              <label className="text-xs font-medium text-muted-foreground">Hover Text Color</label>
+              <div className="flex items-center gap-2">
+                <input
+                  type="color"
+                  value={toPickerHex(pendingButtonHoverTextColor || "#ffffff")}
+                  onChange={(e) => setPendingButtonHoverTextColor(e.target.value)}
+                  className="h-9 w-12 rounded-md border border-input bg-background p-1"
+                />
+                <Input value={pendingButtonHoverTextColor} onChange={(e) => setPendingButtonHoverTextColor(e.target.value)} placeholder="#ffffff" />
+              </div>
+            </div>
+            <div className="space-y-1.5">
+              <label className="text-xs font-medium text-muted-foreground">Border Color</label>
+              <div className="flex items-center gap-2">
+                <input
+                  type="color"
+                  value={toPickerHex(pendingButtonBorderColor || "#cbd5e1")}
+                  onChange={(e) => setPendingButtonBorderColor(e.target.value)}
+                  className="h-9 w-12 rounded-md border border-input bg-background p-1"
+                />
+                <Input value={pendingButtonBorderColor} onChange={(e) => setPendingButtonBorderColor(e.target.value)} placeholder="#cbd5e1" />
+              </div>
+            </div>
+            <div className="space-y-1.5">
+              <label className="text-xs font-medium text-muted-foreground">Border Width (px)</label>
+              <Input value={pendingButtonBorderWidth} onChange={(e) => setPendingButtonBorderWidth(e.target.value)} placeholder="1" />
+            </div>
+            <div className="space-y-1.5">
+              <label className="text-xs font-medium text-muted-foreground">Corner Radius (px)</label>
+              <Input value={pendingButtonRadius} onChange={(e) => setPendingButtonRadius(e.target.value)} placeholder="8" />
+            </div>
+            <div className="space-y-1.5 md:col-span-2">
+              <label className="text-xs font-medium text-muted-foreground">Quick Presets</label>
+              <div className="flex flex-wrap gap-2">
+                <Button type="button" size="sm" variant="outline" onClick={() => applyPendingButtonVariantDefaults("primary")}>
+                  Primary
+                </Button>
+                <Button type="button" size="sm" variant="outline" onClick={() => applyPendingButtonVariantDefaults("outline")}>
+                  Outline
+                </Button>
+                <Button type="button" size="sm" variant="outline" onClick={() => applyPendingButtonVariantDefaults("danger")}>
+                  Danger
+                </Button>
+              </div>
+            </div>
+          </div>
+          <p className="text-xs text-muted-foreground">Icon (optional)</p>
           <Input
             value={iconSearch}
             onChange={(e) => setIconSearch(e.target.value)}
@@ -3619,9 +3876,7 @@ export function RichTextEditor({ content, onChange }: RichTextEditorProps) {
                 variant="outline"
                 onClick={() => {
                   setShowIconPicker(false)
-                  setPendingButtonVariant(null)
-                  setPendingButtonLabel("")
-                  setPendingButtonHref("")
+                  resetPendingButtonForm()
                 }}
               >
                 Cancel

@@ -718,12 +718,25 @@
 .prose a.bg-primary span,
 .prose a.bg-primary i,
 .prose a.bg-primary [data-cms-fa] {
-  color: #fff !important;
-  text-decoration: none !important;
+  color: #fff;
+  text-decoration: none;
 }
 
 .prose a[data-cms-button="true"] [data-cms-fa] {
   margin-right: 0.5rem;
+}
+
+.prose a[data-cms-button="true"]:hover {
+  --cms-button-bg-current: var(--cms-button-hover-bg, var(--cms-button-bg, transparent));
+  --cms-button-border-current: var(--cms-button-hover-border, var(--cms-button-border, currentColor));
+  --cms-button-text-current: var(--cms-button-hover-text, var(--cms-button-text, inherit));
+}
+
+.prose a[data-cms-button="true"]:hover,
+.prose a[data-cms-button="true"]:hover span,
+.prose a[data-cms-button="true"]:hover i,
+.prose a[data-cms-button="true"]:hover [data-cms-fa] {
+  color: var(--cms-button-text-current, var(--cms-button-text, inherit));
 }
 
 .prose a.bg-background {
@@ -733,7 +746,7 @@
 .prose a[data-cms-button="true"].bg-background,
 .prose a[data-cms-button="true"].bg-background span,
 .prose a[data-cms-button="true"].bg-background [data-cms-fa] {
-  color: var(--foreground) !important;
+  color: var(--foreground);
 }
 
 .prose details[data-cms-accordion] {
