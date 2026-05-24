@@ -828,6 +828,14 @@ a[data-cms-button="true"]:hover [data-cms-fa] {
   table-layout: fixed;
   margin-top: 1rem;
   margin-bottom: 1rem;
+  overflow: hidden;
+}
+
+/* Ignore editor colgroup widths on frontend so cell content controls layout safely. */
+.prose table.cms-table colgroup col {
+  width: auto !important;
+  min-width: 0 !important;
+  max-width: none !important;
 }
 
 .prose table.cms-table th,
@@ -840,6 +848,16 @@ a[data-cms-button="true"]:hover [data-cms-fa] {
   min-height: 2.5rem;
   overflow-wrap: anywhere;
   word-break: break-word;
+  max-width: 100%;
+}
+
+/* Card blocks inside table cells must never exceed the cell width. */
+.prose table.cms-table td > [data-cms-card="true"],
+.prose table.cms-table th > [data-cms-card="true"] {
+  width: 100% !important;
+  max-width: 100% !important;
+  margin-left: 0 !important;
+  margin-right: 0 !important;
 }
 
 /* Keep table row heights consistent between preview HTML and TipTap editor DOM */
@@ -985,9 +1003,24 @@ a[data-cms-button="true"]:hover [data-cms-fa] {
 @media (max-width: 768px) {
   .prose table.cms-table[data-responsive-mode="stack"] {
     width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
     table-layout: auto;
+    display: block;
+    overflow-x: hidden !important;
+    border-collapse: separate;
+    border-spacing: 0;
   }
 
+  .prose table.cms-table[data-responsive-mode="stack"] colgroup,
+  .prose table.cms-table[data-responsive-mode="stack"] colgroup col {
+    display: none !important;
+    width: 0 !important;
+    min-width: 0 !important;
+    max-width: 0 !important;
+  }
+
+  .prose table.cms-table[data-responsive-mode="stack"] thead,
   .prose table.cms-table[data-responsive-mode="stack"] tbody,
   .prose table.cms-table[data-responsive-mode="stack"] tr,
   .prose table.cms-table[data-responsive-mode="stack"] th,
@@ -996,10 +1029,25 @@ a[data-cms-button="true"]:hover [data-cms-fa] {
     width: 100% !important;
     min-width: 0 !important;
     max-width: 100% !important;
+    margin-left: 0 !important;
+    margin-right: 0 !important;
   }
 
   .prose table.cms-table[data-responsive-mode="stack"] tr {
     margin-bottom: 0.8rem;
+  }
+
+  .prose table.cms-table[data-responsive-mode="stack"] td > *,
+  .prose table.cms-table[data-responsive-mode="stack"] th > * {
+    max-width: 100% !important;
+  }
+
+  .prose table.cms-table[data-responsive-mode="stack"] td [data-cms-card="true"],
+  .prose table.cms-table[data-responsive-mode="stack"] th [data-cms-card="true"] {
+    width: min(100%, calc(100vw - 2rem)) !important;
+    max-width: min(100%, calc(100vw - 2rem)) !important;
+    margin-left: 0 !important;
+    margin-right: 0 !important;
   }
 }
 

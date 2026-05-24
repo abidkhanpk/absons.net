@@ -372,6 +372,32 @@ const CmsLink = Link.extend({
   },
 })
 
+const CmsTableHeader = TableHeader.extend({
+  addAttributes() {
+    return {
+      ...this.parent?.(),
+      style: {
+        default: null,
+        parseHTML: (element) => element.getAttribute("style"),
+        renderHTML: (attributes) => (typeof attributes.style === "string" && attributes.style.trim() ? { style: attributes.style } : {}),
+      },
+    }
+  },
+})
+
+const CmsTableCell = TableCell.extend({
+  addAttributes() {
+    return {
+      ...this.parent?.(),
+      style: {
+        default: null,
+        parseHTML: (element) => element.getAttribute("style"),
+        renderHTML: (attributes) => (typeof attributes.style === "string" && attributes.style.trim() ? { style: attributes.style } : {}),
+      },
+    }
+  },
+})
+
 const AccordionSummary = Node.create({
   name: "accordionSummary",
   content: "inline*",
@@ -1477,8 +1503,8 @@ export function RichTextEditor({ content, onChange }: RichTextEditorProps) {
         },
       }),
       TableRow,
-      TableHeader,
-      TableCell,
+      CmsTableHeader,
+      CmsTableCell,
       TextAlign.configure({
         types: ["heading", "paragraph", "tableHeader", "tableCell"],
       }),
@@ -2775,28 +2801,32 @@ export function RichTextEditor({ content, onChange }: RichTextEditorProps) {
   const setCurrentColumnWidth = () => {
     if (!editor.isActive("table")) return
     let initialWidth = "33%"
-    editor
-      .chain()
-      .focus()
-      .command(({ state }) => {
-        const { $from } = state.selection
-        let rowDepth = -1
-        for (let depth = $from.depth; depth > 0; depth -= 1) {
-          if ($from.node(depth).type.name === "tableRow") {
-            rowDepth = depth
-            break
-          }
-        }
-        if (rowDepth < 0) return false
-        const rowNode = $from.node(rowDepth)
-        const selectedColIndex = $from.index(rowDepth)
-        if (selectedColIndex >= rowNode.childCount) return false
+    const { $from } = editor.state.selection
+    let rowDepth = -1
+    for (let depth = $from.depth; depth > 0; depth -= 1) {
+      if ($from.node(depth).type.name === "tableRow") {
+        rowDepth = depth
+        break
+      }
+    }
+    if (rowDepth >= 0) {
+      const rowNode = $from.node(rowDepth)
+      const selectedColIndex = $from.index(rowDepth)
+      if (selectedColIndex < rowNode.childCount) {
         const cellNode = rowNode.child(selectedColIndex)
         const styleText = typeof cellNode.attrs.style === "string" ? cellNode.attrs.style : ""
         initialWidth = readSizeFromStyle(styleText, ["width", "min-width"], "33%")
-        return true
-      })
-      .run()
+        if (initialWidth === "33%") {
+          const colWidthAttr = (cellNode.attrs as Record<string, unknown>).colwidth
+          if (Array.isArray(colWidthAttr) && colWidthAttr.length > 0) {
+            const px = Number(colWidthAttr[0])
+            if (Number.isFinite(px) && px > 0) {
+              initialWidth = `${Math.round(px)}px`
+            }
+          }
+        }
+      }
+    }
     const value = getLengthInput("Column width for selected column (e.g. 33% or 320px)", initialWidth)
     if (!value) return
     editor
@@ -2850,27 +2880,22 @@ export function RichTextEditor({ content, onChange }: RichTextEditorProps) {
   const setCurrentRowHeight = () => {
     if (!editor.isActive("table")) return
     let initialHeight = "180px"
-    editor
-      .chain()
-      .focus()
-      .command(({ state }) => {
-        const { $from } = state.selection
-        let rowDepth = -1
-        for (let depth = $from.depth; depth > 0; depth -= 1) {
-          if ($from.node(depth).type.name === "tableRow") {
-            rowDepth = depth
-            break
-          }
-        }
-        if (rowDepth < 0) return false
-        const rowNode = $from.node(rowDepth)
-        if (rowNode.childCount === 0) return false
+    const { $from } = editor.state.selection
+    let rowDepth = -1
+    for (let depth = $from.depth; depth > 0; depth -= 1) {
+      if ($from.node(depth).type.name === "tableRow") {
+        rowDepth = depth
+        break
+      }
+    }
+    if (rowDepth >= 0) {
+      const rowNode = $from.node(rowDepth)
+      if (rowNode.childCount > 0) {
         const sampleCell = rowNode.child(0)
         const styleText = typeof sampleCell.attrs.style === "string" ? sampleCell.attrs.style : ""
         initialHeight = readSizeFromStyle(styleText, ["height", "min-height"], "180px")
-        return true
-      })
-      .run()
+      }
+    }
     const value = getLengthInput("Row height for selected row (e.g. 180px or 25%)", initialHeight)
     if (!value) return
     editor
