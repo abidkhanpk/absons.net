@@ -726,6 +726,13 @@
   margin-right: 0.5rem;
 }
 
+.prose a[data-cms-button="true"],
+a[data-cms-button="true"] {
+  color: var(--cms-button-text-current, var(--cms-button-text, inherit));
+  background-color: var(--cms-button-bg-current, var(--cms-button-bg, transparent));
+  border-color: var(--cms-button-border-current, var(--cms-button-border, currentColor));
+}
+
 .prose a[data-cms-button="true"]:hover {
   --cms-button-bg-current: var(--cms-button-hover-bg, var(--cms-button-bg, transparent));
   --cms-button-border-current: var(--cms-button-hover-border, var(--cms-button-border, currentColor));
@@ -733,10 +740,23 @@
 }
 
 .prose a[data-cms-button="true"]:hover,
+a[data-cms-button="true"]:hover {
+  color: var(--cms-button-text-current, var(--cms-button-text, inherit)) !important;
+  background-color: var(--cms-button-bg-current, var(--cms-button-bg, transparent)) !important;
+  border-color: var(--cms-button-border-current, var(--cms-button-border, currentColor)) !important;
+}
+
+.prose a[data-cms-button="true"]:hover,
 .prose a[data-cms-button="true"]:hover span,
 .prose a[data-cms-button="true"]:hover i,
 .prose a[data-cms-button="true"]:hover [data-cms-fa] {
   color: var(--cms-button-text-current, var(--cms-button-text, inherit));
+}
+
+a[data-cms-button="true"]:hover span,
+a[data-cms-button="true"]:hover i,
+a[data-cms-button="true"]:hover [data-cms-fa] {
+  color: var(--cms-button-text-current, var(--cms-button-text, inherit)) !important;
 }
 
 .prose a.bg-background {
