@@ -919,6 +919,7 @@ export function RichTextEditor({ content, onChange }: RichTextEditorProps) {
   const [pendingButtonHoverColor, setPendingButtonHoverColor] = useState("")
   const [pendingButtonHoverTextColor, setPendingButtonHoverTextColor] = useState("")
   const [pendingButtonBorderColor, setPendingButtonBorderColor] = useState("")
+  const [pendingButtonHoverBorderColor, setPendingButtonHoverBorderColor] = useState("")
   const [pendingButtonBorderWidth, setPendingButtonBorderWidth] = useState("1")
   const [pendingButtonRadius, setPendingButtonRadius] = useState("8")
   const [pendingButtonLeadingVisualHtml, setPendingButtonLeadingVisualHtml] = useState("")
@@ -2488,6 +2489,7 @@ export function RichTextEditor({ content, onChange }: RichTextEditorProps) {
     setPendingButtonHoverColor("var(--primary)")
     setPendingButtonHoverTextColor("#ffffff")
     setPendingButtonBorderColor("var(--primary)")
+    setPendingButtonHoverBorderColor("var(--primary)")
     setPendingButtonBorderWidth("1")
     setPendingButtonRadius("8")
     setPendingButtonLeadingVisualHtml("")
@@ -2569,6 +2571,7 @@ export function RichTextEditor({ content, onChange }: RichTextEditorProps) {
     setPendingButtonHoverColor(resolveCssColorValue(defaults.bg))
     setPendingButtonHoverTextColor(resolveCssColorValue(defaults.text))
     setPendingButtonBorderColor(resolveCssColorValue(defaults.border))
+    setPendingButtonHoverBorderColor(resolveCssColorValue(defaults.border))
   }
 
   const getButtonVariantFallbacks = (variant: ButtonVariant) =>
@@ -2625,10 +2628,17 @@ export function RichTextEditor({ content, onChange }: RichTextEditorProps) {
     const styleText = pickFirstNonEmpty(typeof currentAttrs.style === "string" ? currentAttrs.style : "", buttonElement?.getAttribute("style") || "")
     const styleVars = parseStyleVars(styleText)
     const directChildren = buttonElement ? Array.from(buttonElement.children) : []
-    const labelChild = directChildren.find(
-      (child) => child.tagName.toLowerCase() === "span" && !child.hasAttribute("data-cms-fa"),
-    )
-    const leadingVisualChild = directChildren.find((child) => child !== labelChild) || null
+    const labelByTailSpan = [...directChildren]
+      .reverse()
+      .find(
+        (child) =>
+          child.tagName.toLowerCase() === "span" &&
+          !child.hasAttribute("data-cms-fa") &&
+          (child.textContent || "").trim().length > 0,
+      )
+    const labelChild =
+      directChildren.find((child) => child.getAttribute("data-cms-button-label") === "true") || labelByTailSpan || null
+    const leadingVisualChildren = directChildren.filter((child) => child !== labelChild)
 
     const detectedVariant: ButtonVariant = className.includes("bg-destructive")
       ? "danger"
@@ -2644,13 +2654,12 @@ export function RichTextEditor({ content, onChange }: RichTextEditorProps) {
 
     const selectedText = editor.state.doc.textBetween(selectionFrom, selectionTo, " ").trim()
     const labelFromDom = labelChild?.textContent?.trim() || buttonElement?.textContent?.trim() || ""
-    const iconNode = buttonElement?.querySelector<HTMLElement>("[data-cms-fa]")
+    const iconNode = buttonElement?.querySelector<HTMLElement>("[data-cms-fa], i[class*='fa-'], span[class*='fa-']")
     const rawIconClass = pickFirstNonEmpty(iconNode?.getAttribute("data-cms-fa") || "", iconNode?.getAttribute("class") || "")
     const iconTokens = new Set(rawIconClass.toLowerCase().split(/\s+/).filter(Boolean))
     const matchedIcon =
       iconPool.find((icon) => icon.className.toLowerCase().split(/\s+/).every((token) => iconTokens.has(token)))?.className || ""
-    const preservedLeadingVisualHtml =
-      !matchedIcon && leadingVisualChild instanceof HTMLElement ? leadingVisualChild.outerHTML.trim() : ""
+    const preservedLeadingVisualHtml = !matchedIcon ? leadingVisualChildren.map((child) => child.outerHTML.trim()).join("") : ""
 
     setPendingButtonLabel(selectedText || labelFromDom || "Button")
     setPendingButtonHref(
@@ -2684,12 +2693,14 @@ export function RichTextEditor({ content, onChange }: RichTextEditorProps) {
     )
     const hoverBgColor = pickFirstNonEmpty(styleVars["--cms-button-hover-bg"], baseBgColor)
     const hoverTextColor = pickFirstNonEmpty(styleVars["--cms-button-hover-text"], baseTextColor)
+    const hoverBorderColor = pickFirstNonEmpty(styleVars["--cms-button-hover-border"], hoverBgColor, baseBorderColor)
 
     setPendingButtonTextColor(resolveCssColorValue(baseTextColor))
     setPendingButtonBgColor(resolveCssColorValue(baseBgColor))
     setPendingButtonHoverColor(resolveCssColorValue(hoverBgColor))
     setPendingButtonHoverTextColor(resolveCssColorValue(hoverTextColor))
     setPendingButtonBorderColor(resolveCssColorValue(baseBorderColor))
+    setPendingButtonHoverBorderColor(resolveCssColorValue(hoverBorderColor))
     setPendingButtonBorderWidth((styleVars["border-width"] || "1px").replace("px", "").trim())
     setPendingButtonRadius((styleVars["border-radius"] || "8px").replace("px", "").trim())
     setPendingButtonLeadingVisualHtml(preservedLeadingVisualHtml)
@@ -2713,7 +2724,7 @@ export function RichTextEditor({ content, onChange }: RichTextEditorProps) {
     if (pendingButtonHoverColor.trim()) styleParts.push(`--cms-button-hover-bg:${pendingButtonHoverColor.trim()}`)
     if (pendingButtonHoverTextColor.trim()) styleParts.push(`--cms-button-hover-text:${pendingButtonHoverTextColor.trim()}`)
     if (pendingButtonBorderColor.trim()) styleParts.push(`--cms-button-border:${pendingButtonBorderColor.trim()}`)
-    if (pendingButtonHoverColor.trim()) styleParts.push(`--cms-button-hover-border:${pendingButtonHoverColor.trim()}`)
+    if (pendingButtonHoverBorderColor.trim()) styleParts.push(`--cms-button-hover-border:${pendingButtonHoverBorderColor.trim()}`)
     styleParts.push(`color:var(--cms-button-text-current, var(--cms-button-text, inherit))`)
     styleParts.push(`background-color:var(--cms-button-bg-current, var(--cms-button-bg, transparent))`)
     styleParts.push(`border-color:var(--cms-button-border-current, var(--cms-button-border, currentColor))`)
@@ -2722,7 +2733,7 @@ export function RichTextEditor({ content, onChange }: RichTextEditorProps) {
     const radius = Number.parseInt(pendingButtonRadius, 10)
     if (Number.isFinite(radius) && radius >= 0) styleParts.push(`border-radius:${radius}px`)
     const styleAttr = styleParts.length > 0 ? ` style="${styleParts.join(";")};"` : ""
-    const buttonHtml = `<a href="${pendingButtonHref || "/"}" class="${classes}" data-cms-button="true"${styleAttr}>${iconHtml}<span>${buttonLabel}</span></a>`
+    const buttonHtml = `<a href="${pendingButtonHref || "/"}" class="${classes}" data-cms-button="true"${styleAttr}>${iconHtml}<span data-cms-button-label="true">${buttonLabel}</span></a>`
     if (buttonFormMode === "edit" && editingButtonRange) {
       editor.chain().focus().insertContentAt(editingButtonRange, buttonHtml).run()
     } else if (buttonFormMode === "edit" && editor.isActive("link")) {
@@ -3971,6 +3982,25 @@ export function RichTextEditor({ content, onChange }: RichTextEditorProps) {
                   className="h-9 w-12 rounded-md border border-input bg-background p-1"
                 />
                 <Input value={pendingButtonBorderColor} onChange={(e) => setPendingButtonBorderColor(e.target.value)} placeholder="#cbd5e1" />
+              </div>
+            </div>
+            <div className="space-y-1.5">
+              <label className="text-xs font-medium text-muted-foreground">Hover Border Color</label>
+              <div className="flex items-center gap-2">
+                <input
+                  type="color"
+                  value={toPickerHex(pendingButtonHoverBorderColor || pendingButtonBorderColor || "#cbd5e1")}
+                  onChange={(e) => setPendingButtonHoverBorderColor(e.target.value)}
+                  className="h-9 w-12 rounded-md border border-input bg-background p-1"
+                />
+                <Input
+                  value={pendingButtonHoverBorderColor}
+                  onChange={(e) => setPendingButtonHoverBorderColor(e.target.value)}
+                  placeholder="#cbd5e1"
+                />
+                <Button type="button" size="sm" variant="outline" onClick={() => setPendingButtonHoverBorderColor("transparent")}>
+                  Transparent
+                </Button>
               </div>
             </div>
             <div className="space-y-1.5">
