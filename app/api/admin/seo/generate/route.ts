@@ -8,6 +8,12 @@ type SeoPayload = {
   seoKeywords: string[]
 }
 
+const SEO_SYSTEM_PROMPT =
+  "You are a senior SEO and AI discoverability strategist. Produce metadata that improves search engine ranking potential, click-through relevance, and AI answer-engine retrieval relevance. Use only supplied content, avoid unsupported claims, avoid keyword stuffing, prefer clear intent-matching language, and return JSON only."
+
+const SEO_USER_TASK_PROMPT =
+  "Generate: (1) seoTitle: concise, specific, high-intent title (ideally ~50-65 chars) with the primary topic and brand when natural. (2) seoDescription: clear value-focused description (ideally ~140-160 chars) aligned to user intent. (3) seoKeywords: 8-12 unique keyword phrases mixing primary, secondary, long-tail, and entity-focused terms useful for both web search and AI retrieval. No markdown, no numbering, no duplicate keywords."
+
 function sanitizeText(value: unknown) {
   return typeof value === "string" ? value.trim() : ""
 }
@@ -112,12 +118,11 @@ async function generateWithOpenAi(apiKey: string, prompt: string): Promise<SeoPa
       messages: [
         {
           role: "system",
-          content:
-            "You are an expert SEO strategist. Generate concise, high-performing SEO metadata from the supplied content. Return JSON only.",
+          content: SEO_SYSTEM_PROMPT,
         },
         {
           role: "user",
-          content: `${prompt}\n\nGenerate: SEO title, SEO description, and 8-12 comma-friendly keyword phrases.`,
+          content: `${prompt}\n\n${SEO_USER_TASK_PROMPT}`,
         },
       ],
     }),
@@ -160,12 +165,12 @@ async function generateWithGemini(apiKey: string, prompt: string): Promise<SeoPa
     },
     body: JSON.stringify({
       system_instruction: {
-        parts: [{ text: "You are an expert SEO strategist. Return valid JSON only." }],
+        parts: [{ text: SEO_SYSTEM_PROMPT }],
       },
       contents: [
         {
           role: "user",
-          parts: [{ text: `${prompt}\n\nGenerate: SEO title, SEO description, and 8-12 keyword phrases.` }],
+          parts: [{ text: `${prompt}\n\n${SEO_USER_TASK_PROMPT}` }],
         },
       ],
       generationConfig: {
@@ -285,4 +290,3 @@ export async function POST(request: Request) {
     )
   }
 }
-
