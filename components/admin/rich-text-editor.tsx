@@ -2802,20 +2802,26 @@ export function RichTextEditor({ content, onChange }: RichTextEditorProps) {
     if (!editor.isActive("table")) return
     let initialWidth = "33%"
     const { $from } = editor.state.selection
+    let tableDepth = -1
     let rowDepth = -1
     for (let depth = $from.depth; depth > 0; depth -= 1) {
-      if ($from.node(depth).type.name === "tableRow") {
-        rowDepth = depth
-        break
-      }
+      const nodeName = $from.node(depth).type.name
+      if (nodeName === "table" && tableDepth < 0) tableDepth = depth
+      if (nodeName === "tableRow" && rowDepth < 0) rowDepth = depth
+      if (tableDepth >= 0 && rowDepth >= 0) break
     }
     if (rowDepth >= 0) {
       const rowNode = $from.node(rowDepth)
       const selectedColIndex = $from.index(rowDepth)
+      if (tableDepth >= 0 && selectedColIndex >= 0) {
+        const tableNode = $from.node(tableDepth)
+        const tableStyle = typeof tableNode.attrs.style === "string" ? tableNode.attrs.style : null
+        initialWidth = readSizeFromStyle(tableStyle, [`--cms-col-width-${selectedColIndex}`], initialWidth)
+      }
       if (selectedColIndex < rowNode.childCount) {
         const cellNode = rowNode.child(selectedColIndex)
         const styleText = typeof cellNode.attrs.style === "string" ? cellNode.attrs.style : ""
-        initialWidth = readSizeFromStyle(styleText, ["width", "min-width"], "33%")
+        initialWidth = readSizeFromStyle(styleText, ["--cms-col-width", "width", "min-width"], initialWidth)
         if (initialWidth === "33%") {
           const colWidthAttr = (cellNode.attrs as Record<string, unknown>).colwidth
           if (Array.isArray(colWidthAttr) && colWidthAttr.length > 0) {
@@ -2846,6 +2852,12 @@ export function RichTextEditor({ content, onChange }: RichTextEditorProps) {
         const tableNode = $from.node(tableDepth)
         const tablePos = $from.before(tableDepth)
         const selectedColIndex = $from.index(rowDepth)
+        const tableStyleVars = parseStyleVars(typeof tableNode.attrs.style === "string" ? tableNode.attrs.style : null)
+        tableStyleVars[`--cms-col-width-${selectedColIndex}`] = value
+        tr.setNodeMarkup(tablePos, undefined, {
+          ...(tableNode.attrs as Record<string, unknown>),
+          style: styleVarsToString(tableStyleVars),
+        })
 
         let rowOffset = 1
         for (let rowIndex = 0; rowIndex < tableNode.childCount; rowIndex += 1) {
@@ -2860,6 +2872,7 @@ export function RichTextEditor({ content, onChange }: RichTextEditorProps) {
                 const styleVars = parseStyleVars(existingStyle)
                 styleVars.width = value
                 styleVars["min-width"] = value
+                styleVars["--cms-col-width"] = value
                 tr.setNodeMarkup(cellPos, undefined, {
                   ...cellNode.attrs,
                   style: styleVarsToString(styleVars),
@@ -2881,19 +2894,26 @@ export function RichTextEditor({ content, onChange }: RichTextEditorProps) {
     if (!editor.isActive("table")) return
     let initialHeight = "180px"
     const { $from } = editor.state.selection
+    let tableDepth = -1
     let rowDepth = -1
     for (let depth = $from.depth; depth > 0; depth -= 1) {
-      if ($from.node(depth).type.name === "tableRow") {
-        rowDepth = depth
-        break
-      }
+      const nodeName = $from.node(depth).type.name
+      if (nodeName === "table" && tableDepth < 0) tableDepth = depth
+      if (nodeName === "tableRow" && rowDepth < 0) rowDepth = depth
+      if (tableDepth >= 0 && rowDepth >= 0) break
     }
     if (rowDepth >= 0) {
       const rowNode = $from.node(rowDepth)
+      const selectedRowIndex = tableDepth >= 0 ? $from.index(tableDepth) : -1
+      if (tableDepth >= 0 && selectedRowIndex >= 0) {
+        const tableNode = $from.node(tableDepth)
+        const tableStyle = typeof tableNode.attrs.style === "string" ? tableNode.attrs.style : null
+        initialHeight = readSizeFromStyle(tableStyle, [`--cms-row-height-${selectedRowIndex}`], initialHeight)
+      }
       if (rowNode.childCount > 0) {
         const sampleCell = rowNode.child(0)
         const styleText = typeof sampleCell.attrs.style === "string" ? sampleCell.attrs.style : ""
-        initialHeight = readSizeFromStyle(styleText, ["height", "min-height"], "180px")
+        initialHeight = readSizeFromStyle(styleText, ["--cms-row-height", "height", "min-height"], initialHeight)
       }
     }
     const value = getLengthInput("Row height for selected row (e.g. 180px or 25%)", initialHeight)
@@ -2916,6 +2936,12 @@ export function RichTextEditor({ content, onChange }: RichTextEditorProps) {
         const tablePos = $from.before(tableDepth)
         const selectedRowIndex = $from.index(tableDepth)
         if (selectedRowIndex >= tableNode.childCount) return false
+        const tableStyleVars = parseStyleVars(typeof tableNode.attrs.style === "string" ? tableNode.attrs.style : null)
+        tableStyleVars[`--cms-row-height-${selectedRowIndex}`] = value
+        tr.setNodeMarkup(tablePos, undefined, {
+          ...(tableNode.attrs as Record<string, unknown>),
+          style: styleVarsToString(tableStyleVars),
+        })
 
         let rowOffset = 1
         for (let rowIndex = 0; rowIndex < tableNode.childCount; rowIndex += 1) {
@@ -2929,6 +2955,7 @@ export function RichTextEditor({ content, onChange }: RichTextEditorProps) {
               const styleVars = parseStyleVars(existingStyle)
               styleVars.height = value
               styleVars["min-height"] = value
+              styleVars["--cms-row-height"] = value
               tr.setNodeMarkup(cellPos, undefined, {
                 ...cellNode.attrs,
                 style: styleVarsToString(styleVars),
