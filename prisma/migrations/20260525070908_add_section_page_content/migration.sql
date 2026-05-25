@@ -125,4 +125,8 @@ VALUES
     '',
     ''
   )
-ON CONFLICT ("section_key") DO NOTHING;
+ON CONFLICT ("section_key") DO UPDATE
+SET
+  "before_list_content" = EXCLUDED."before_list_content",
+  "after_list_content" = EXCLUDED."after_list_content",
+  "updated_at" = NOW();
