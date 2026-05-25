@@ -89,7 +89,7 @@ type SectionPresetId =
   | "sunset-blend"
   | "emerald-mist"
   | "midnight-contrast"
-  | "royal-blue-cta"
+  | "royal-blue"
 type SectionSpacing = "compact" | "comfortable" | "spacious"
 type SectionRadius = "none" | "lg" | "xl" | "2xl"
 type SectionBorder = "none" | "soft" | "strong"
@@ -171,8 +171,8 @@ const SECTION_PRESET_OPTIONS: SectionPresetOption[] = [
     borderColor: "rgba(125, 211, 252, 0.38)",
   },
   {
-    id: "royal-blue-cta",
-    label: "Royal Blue CTA",
+    id: "royal-blue",
+    label: "Royal Blue",
     description: "Solid blue CTA section matching the classic service callout style.",
     background: "#1f5f9e",
     textColor: "#dbeafe",
