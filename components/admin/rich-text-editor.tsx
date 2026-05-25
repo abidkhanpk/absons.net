@@ -82,7 +82,14 @@ const getButtonClass = (variant: ButtonVariant, size: ButtonSize) => {
   return `${base} bg-destructive text-destructive-foreground hover:opacity-90`
 }
 
-type SectionPresetId = "plain" | "soft-slate" | "sky-glow" | "sunset-blend" | "emerald-mist" | "midnight-contrast"
+type SectionPresetId =
+  | "plain"
+  | "soft-slate"
+  | "sky-glow"
+  | "sunset-blend"
+  | "emerald-mist"
+  | "midnight-contrast"
+  | "royal-blue-cta"
 type SectionSpacing = "compact" | "comfortable" | "spacious"
 type SectionRadius = "none" | "lg" | "xl" | "2xl"
 type SectionBorder = "none" | "soft" | "strong"
@@ -163,6 +170,17 @@ const SECTION_PRESET_OPTIONS: SectionPresetOption[] = [
     accentColor: "#bae6fd",
     borderColor: "rgba(125, 211, 252, 0.38)",
   },
+  {
+    id: "royal-blue-cta",
+    label: "Royal Blue CTA",
+    description: "Solid blue CTA section matching the classic service callout style.",
+    background: "#1f5f9e",
+    textColor: "#dbeafe",
+    headingColor: "#ffffff",
+    linkColor: "#ffffff",
+    accentColor: "#bfdbfe",
+    borderColor: "rgba(191, 219, 254, 0.45)",
+  },
 ]
 
 const SECTION_SPACING_OPTIONS: Array<{ value: SectionSpacing; label: string }> = [
@@ -215,7 +233,8 @@ const SECTION_SHADOW_CLASS: Record<SectionShadow, string> = {
   lifted: "shadow-lg shadow-black/10",
 }
 
-const FULL_WIDTH_SECTION_CLASS = "-mx-4 md:-mx-6 lg:-mx-8 px-4 md:px-6 lg:px-8"
+const FULL_WIDTH_SECTION_CLASS =
+  "relative left-1/2 right-1/2 ml-[-50vw] mr-[-50vw] w-screen max-w-none px-4 md:px-6 lg:px-8"
 
 const SECTION_PRESET_IDS = SECTION_PRESET_OPTIONS.map((option) => option.id)
 const SECTION_SPACING_VALUES = SECTION_SPACING_OPTIONS.map((option) => option.value)
