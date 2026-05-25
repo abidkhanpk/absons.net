@@ -40,7 +40,7 @@ export default async function ProductsPage() {
     }),
     getSiteSettings(),
   ])
-  const pageConfig = siteSettings.staticSeo.products
+  const pageConfig = siteSettings.sectionPageContent.products
 
   return (
     <div className="flex flex-col min-h-screen">

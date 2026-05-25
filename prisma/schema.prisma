@@ -264,3 +264,14 @@ model SiteSettings {
 
   @@map("site_settings")
 }
+
+model SectionPageSetting {
+  id                String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  sectionKey        String   @unique @map("section_key")
+  beforeListContent String   @default("") @map("before_list_content")
+  afterListContent  String   @default("") @map("after_list_content")
+  createdAt         DateTime @default(now()) @db.Timestamptz(6) @map("created_at")
+  updatedAt         DateTime @default(now()) @db.Timestamptz(6) @map("updated_at")
+
+  @@map("section_page_settings")
+}

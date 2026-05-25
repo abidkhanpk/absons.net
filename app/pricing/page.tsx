@@ -31,7 +31,7 @@ export default async function PricingPage() {
     }),
     getSiteSettings(),
   ])
-  const pageConfig = siteSettings.staticSeo.pricing
+  const pageConfig = siteSettings.sectionPageContent.pricing
 
   return (
     <div className="flex flex-col min-h-screen">

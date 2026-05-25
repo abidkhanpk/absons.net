@@ -1,7 +1,6 @@
 import { NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 import { getSession } from "@/lib/auth"
-import { normalizeAssetDbValue } from "@/lib/asset-key"
 
 const ALLOWED_SECTIONS = ["services", "training", "products", "departments", "pricing"] as const
 type AllowedSection = (typeof ALLOWED_SECTIONS)[number]
@@ -26,45 +25,21 @@ export async function PUT(request: Request) {
       return NextResponse.json({ error: "Invalid section key" }, { status: 400 })
     }
 
-    const settings = await prisma.siteSettings.findUnique({
-      where: { id: "site" },
-      select: { staticSeo: true },
-    })
-    if (!settings) return NextResponse.json({ error: "Site settings not found" }, { status: 404 })
-
-    const current = settings.staticSeo && typeof settings.staticSeo === "object" && !Array.isArray(settings.staticSeo)
-      ? (settings.staticSeo as Record<string, unknown>)
-      : {}
-
-    const currentSection =
-      current[section] && typeof current[section] === "object" && !Array.isArray(current[section])
-        ? (current[section] as Record<string, unknown>)
-        : {}
-
-    const normalizedOgImage = normalizeAssetDbValue(typeof body.ogImage === "string" ? body.ogImage : "")
-
     const nextSection = {
-      ...currentSection,
-      title: typeof body.title === "string" ? body.title : "",
-      description: typeof body.description === "string" ? body.description : "",
-      keywords: typeof body.keywords === "string" ? body.keywords : "",
-      ogImage: typeof normalizedOgImage === "string" ? normalizedOgImage : "",
-      canonical: typeof body.canonical === "string" ? body.canonical : "",
-      noIndex: Boolean(body.noIndex),
-      noFollow: Boolean(body.noFollow),
       beforeListContent: typeof body.beforeListContent === "string" ? body.beforeListContent : "",
       afterListContent: typeof body.afterListContent === "string" ? body.afterListContent : "",
     }
 
-    const nextStaticSeo = {
-      ...current,
-      [section]: nextSection,
-    }
-
-    await prisma.siteSettings.update({
-      where: { id: "site" },
-      data: {
-        staticSeo: nextStaticSeo,
+    await prisma.sectionPageSetting.upsert({
+      where: { sectionKey: section },
+      create: {
+        sectionKey: section,
+        beforeListContent: nextSection.beforeListContent,
+        afterListContent: nextSection.afterListContent,
+      },
+      update: {
+        beforeListContent: nextSection.beforeListContent,
+        afterListContent: nextSection.afterListContent,
         updatedAt: new Date(),
       },
     })

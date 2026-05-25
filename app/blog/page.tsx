@@ -28,7 +28,7 @@ export async function generateMetadata() {
 export default async function BlogPage() {
   const siteSettings = await getSiteSettings()
   const siteTitle = siteSettings.siteTitle || "Our Company"
-  const pageConfig = siteSettings.staticSeo.blog
+  const pageConfig = siteSettings.sectionPageContent.blog
   const approvalRequired = siteSettings.editorApprovalRequired ?? true
   const posts = await prisma.blogPost.findMany({
     where: approvalRequired ? { published: true, approved: true } : { published: true },

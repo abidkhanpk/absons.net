@@ -38,7 +38,7 @@ export default async function TrainingPage() {
   })
   const siteSettings = await getSiteSettings()
   const siteTitle = siteSettings.siteTitle || "Our Company"
-  const pageConfig = siteSettings.staticSeo.training
+  const pageConfig = siteSettings.sectionPageContent.training
 
   return (
     <div className="flex flex-col min-h-screen">

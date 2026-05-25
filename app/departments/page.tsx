@@ -38,7 +38,7 @@ export default async function DepartmentsPage() {
     }),
     getSiteSettings(),
   ])
-  const pageConfig = siteSettings.staticSeo.departments
+  const pageConfig = siteSettings.sectionPageContent.departments
 
   return (
     <div className="flex flex-col min-h-screen">

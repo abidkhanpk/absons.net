@@ -70,6 +70,7 @@ export type SiteSettings = {
   seoDefaultOgImage: string
   seoDefaultCanonicalBase: string
   staticSeo: StaticSeoSettings
+  sectionPageContent: SectionPageContentSettings
   contactEmail: string | null
   contactPhone: string | null
   contactAddress: string | null
@@ -135,8 +136,6 @@ export type StaticSeoEntry = {
   keywords: string
   ogImage: string
   canonical: string
-  beforeListContent: string
-  afterListContent: string
   noIndex: boolean
   noFollow: boolean
 }
@@ -144,6 +143,16 @@ export type StaticSeoEntry = {
 export type StaticSeoSettings = Record<
   "home" | "about" | "services" | "training" | "products" | "departments" | "pricing" | "contact" | "blog",
   StaticSeoEntry
+>
+
+export type SectionPageContentEntry = {
+  beforeListContent: string
+  afterListContent: string
+}
+
+export type SectionPageContentSettings = Record<
+  "services" | "training" | "products" | "departments" | "pricing" | "blog",
+  SectionPageContentEntry
 >
 
 const defaultSettings: SiteSettings = {
@@ -382,8 +391,6 @@ const defaultSettings: SiteSettings = {
       keywords: "",
       ogImage: "",
       canonical: "",
-      beforeListContent: "",
-      afterListContent: "",
       noIndex: false,
       noFollow: false,
     },
@@ -393,8 +400,6 @@ const defaultSettings: SiteSettings = {
       keywords: "",
       ogImage: "",
       canonical: "",
-      beforeListContent: "",
-      afterListContent: "",
       noIndex: false,
       noFollow: false,
     },
@@ -404,8 +409,6 @@ const defaultSettings: SiteSettings = {
       keywords: "",
       ogImage: "",
       canonical: "",
-      beforeListContent: "",
-      afterListContent: "",
       noIndex: false,
       noFollow: false,
     },
@@ -415,8 +418,6 @@ const defaultSettings: SiteSettings = {
       keywords: "",
       ogImage: "",
       canonical: "",
-      beforeListContent: "",
-      afterListContent: "",
       noIndex: false,
       noFollow: false,
     },
@@ -426,8 +427,6 @@ const defaultSettings: SiteSettings = {
       keywords: "",
       ogImage: "",
       canonical: "",
-      beforeListContent: "",
-      afterListContent: "",
       noIndex: false,
       noFollow: false,
     },
@@ -437,8 +436,6 @@ const defaultSettings: SiteSettings = {
       keywords: "",
       ogImage: "",
       canonical: "",
-      beforeListContent: "",
-      afterListContent: "",
       noIndex: false,
       noFollow: false,
     },
@@ -448,8 +445,6 @@ const defaultSettings: SiteSettings = {
       keywords: "",
       ogImage: "",
       canonical: "",
-      beforeListContent: "",
-      afterListContent: "",
       noIndex: false,
       noFollow: false,
     },
@@ -459,8 +454,6 @@ const defaultSettings: SiteSettings = {
       keywords: "",
       ogImage: "",
       canonical: "",
-      beforeListContent: "",
-      afterListContent: "",
       noIndex: false,
       noFollow: false,
     },
@@ -470,10 +463,34 @@ const defaultSettings: SiteSettings = {
       keywords: "",
       ogImage: "",
       canonical: "",
-      beforeListContent: "",
-      afterListContent: "",
       noIndex: false,
       noFollow: false,
+    },
+  },
+  sectionPageContent: {
+    services: {
+      beforeListContent: "",
+      afterListContent: "",
+    },
+    training: {
+      beforeListContent: "",
+      afterListContent: "",
+    },
+    products: {
+      beforeListContent: "",
+      afterListContent: "",
+    },
+    departments: {
+      beforeListContent: "",
+      afterListContent: "",
+    },
+    pricing: {
+      beforeListContent: "",
+      afterListContent: "",
+    },
+    blog: {
+      beforeListContent: "",
+      afterListContent: "",
     },
   },
   whyChooseItems: [
@@ -913,35 +930,103 @@ function parseWhyChooseItems(raw: unknown): WhyChooseItem[] {
 }
 
 function parseStaticSeo(raw: unknown): StaticSeoSettings {
-  const defaultEntry = defaultSettings.staticSeo.home
-  const normalizeEntry = (entry: any): StaticSeoEntry => ({
-    title: typeof entry?.title === "string" ? entry.title : "",
-    description: typeof entry?.description === "string" ? entry.description : "",
-    keywords: typeof entry?.keywords === "string" ? entry.keywords : "",
-    ogImage: typeof entry?.ogImage === "string" ? entry.ogImage : "",
-    canonical: typeof entry?.canonical === "string" ? entry.canonical : "",
-    beforeListContent: typeof entry?.beforeListContent === "string" ? entry.beforeListContent : "",
-    afterListContent: typeof entry?.afterListContent === "string" ? entry.afterListContent : "",
-    noIndex: Boolean(entry?.noIndex),
-    noFollow: Boolean(entry?.noFollow),
+  const normalizeEntry = (entry: any, fallbackEntry: StaticSeoEntry): StaticSeoEntry => ({
+    title: typeof entry?.title === "string" ? entry.title : fallbackEntry.title,
+    description: typeof entry?.description === "string" ? entry.description : fallbackEntry.description,
+    keywords: typeof entry?.keywords === "string" ? entry.keywords : fallbackEntry.keywords,
+    ogImage: typeof entry?.ogImage === "string" ? entry.ogImage : fallbackEntry.ogImage,
+    canonical: typeof entry?.canonical === "string" ? entry.canonical : fallbackEntry.canonical,
+    noIndex: typeof entry?.noIndex === "boolean" ? entry.noIndex : fallbackEntry.noIndex,
+    noFollow: typeof entry?.noFollow === "boolean" ? entry.noFollow : fallbackEntry.noFollow,
   })
   try {
     const parsed = typeof raw === "string" ? JSON.parse(raw) : raw
     if (!parsed || typeof parsed !== "object") return defaultSettings.staticSeo
     return {
-      home: normalizeEntry(parsed.home ?? defaultEntry),
-      about: normalizeEntry(parsed.about ?? defaultEntry),
-      services: normalizeEntry(parsed.services ?? defaultEntry),
-      training: normalizeEntry(parsed.training ?? defaultEntry),
-      products: normalizeEntry(parsed.products ?? defaultEntry),
-      departments: normalizeEntry(parsed.departments ?? defaultEntry),
-      pricing: normalizeEntry(parsed.pricing ?? defaultEntry),
-      contact: normalizeEntry(parsed.contact ?? defaultEntry),
-      blog: normalizeEntry(parsed.blog ?? defaultEntry),
+      home: normalizeEntry(parsed.home, defaultSettings.staticSeo.home),
+      about: normalizeEntry(parsed.about, defaultSettings.staticSeo.about),
+      services: normalizeEntry(parsed.services, defaultSettings.staticSeo.services),
+      training: normalizeEntry(parsed.training, defaultSettings.staticSeo.training),
+      products: normalizeEntry(parsed.products, defaultSettings.staticSeo.products),
+      departments: normalizeEntry(parsed.departments, defaultSettings.staticSeo.departments),
+      pricing: normalizeEntry(parsed.pricing, defaultSettings.staticSeo.pricing),
+      contact: normalizeEntry(parsed.contact, defaultSettings.staticSeo.contact),
+      blog: normalizeEntry(parsed.blog, defaultSettings.staticSeo.blog),
     }
   } catch {
     return defaultSettings.staticSeo
   }
+}
+
+function parseSectionPageContent(
+  legacyStaticSeoRaw: unknown,
+  tableRows?: Array<{ sectionKey: string; beforeListContent: string; afterListContent: string }>,
+): SectionPageContentSettings {
+  const normalizeEntry = (entry: unknown, fallback: SectionPageContentEntry): SectionPageContentEntry => {
+    if (!entry || typeof entry !== "object" || Array.isArray(entry)) return fallback
+    const source = entry as Record<string, unknown>
+    return {
+      beforeListContent:
+        typeof source.beforeListContent === "string" ? source.beforeListContent : fallback.beforeListContent,
+      afterListContent: typeof source.afterListContent === "string" ? source.afterListContent : fallback.afterListContent,
+    }
+  }
+
+  const legacyRaw =
+    legacyStaticSeoRaw && typeof legacyStaticSeoRaw === "object" && !Array.isArray(legacyStaticSeoRaw)
+      ? (legacyStaticSeoRaw as Record<string, unknown>)
+      : legacyStaticSeoRaw && typeof legacyStaticSeoRaw === "string"
+        ? (() => {
+            try {
+              const parsed = JSON.parse(legacyStaticSeoRaw)
+              return parsed && typeof parsed === "object" && !Array.isArray(parsed)
+                ? (parsed as Record<string, unknown>)
+                : {}
+            } catch {
+              return {}
+            }
+          })()
+        : {}
+
+  const legacyEntry = (key: keyof SectionPageContentSettings): SectionPageContentEntry => {
+    const legacy = legacyRaw[key]
+    if (!legacy || typeof legacy !== "object" || Array.isArray(legacy)) return defaultSettings.sectionPageContent[key]
+    const source = legacy as Record<string, unknown>
+    return {
+      beforeListContent:
+        typeof source.beforeListContent === "string"
+          ? source.beforeListContent
+          : defaultSettings.sectionPageContent[key].beforeListContent,
+      afterListContent:
+        typeof source.afterListContent === "string"
+          ? source.afterListContent
+          : defaultSettings.sectionPageContent[key].afterListContent,
+    }
+  }
+
+  const base: SectionPageContentSettings = {
+    services: normalizeEntry(undefined, legacyEntry("services")),
+    training: normalizeEntry(undefined, legacyEntry("training")),
+    products: normalizeEntry(undefined, legacyEntry("products")),
+    departments: normalizeEntry(undefined, legacyEntry("departments")),
+    pricing: normalizeEntry(undefined, legacyEntry("pricing")),
+    blog: normalizeEntry(undefined, legacyEntry("blog")),
+  }
+
+  if (!Array.isArray(tableRows) || tableRows.length === 0) {
+    return base
+  }
+
+  const next = { ...base }
+  for (const row of tableRows) {
+    const key = row.sectionKey as keyof SectionPageContentSettings
+    if (!(key in next)) continue
+    next[key] = {
+      beforeListContent: row.beforeListContent || "",
+      afterListContent: row.afterListContent || "",
+    }
+  }
+  return next
 }
 
 function parseHeadingTypography(raw: unknown): HeadingTypographySettings {
@@ -958,7 +1043,12 @@ function parseHeadingTypography(raw: unknown): HeadingTypographySettings {
 
 export async function getSiteSettings(): Promise<SiteSettings> {
   try {
-    const settings = await prisma.siteSettings.findUnique({ where: { id: "site" } })
+    const [settings, sectionRows] = await Promise.all([
+      prisma.siteSettings.findUnique({ where: { id: "site" } }),
+      prisma.sectionPageSetting.findMany({
+        select: { sectionKey: true, beforeListContent: true, afterListContent: true },
+      }),
+    ])
     if (!settings) return defaultSettings
 
     const fallbackHomeVisibility = {
@@ -1058,6 +1148,7 @@ export async function getSiteSettings(): Promise<SiteSettings> {
       seoDefaultOgImage: settings.seoDefaultOgImage ?? defaultSettings.seoDefaultOgImage,
       seoDefaultCanonicalBase: settings.seoDefaultCanonicalBase ?? defaultSettings.seoDefaultCanonicalBase,
       staticSeo: parseStaticSeo(settings.staticSeo),
+      sectionPageContent: parseSectionPageContent(settings.staticSeo, sectionRows),
       headingTypography: parseHeadingTypography(settings.staticSeo),
       contactEmail: settings.contactEmail ?? defaultSettings.contactEmail,
       contactPhone: settings.contactPhone ?? defaultSettings.contactPhone,

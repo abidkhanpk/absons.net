@@ -33,7 +33,7 @@ export default async function ServicesPage() {
 
   const services = await prisma.service.findMany({ orderBy: { displayOrder: "asc" } })
   const siteSettings = await getSiteSettings()
-  const pageConfig = siteSettings.staticSeo.services
+  const pageConfig = siteSettings.sectionPageContent.services
 
   return (
     <div className="flex flex-col min-h-screen">

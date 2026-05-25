@@ -35,14 +35,14 @@ export default async function SectionPageSettingsPage({ params }: { params: Prom
 
   const settings = await getSiteSettings()
   const meta = SECTION_META[section]
-  const entry = settings.staticSeo[section]
+  const entry = settings.sectionPageContent[section]
 
   return (
     <div className="p-6 lg:p-8 space-y-6">
       <div>
         <h1 className="text-3xl font-bold">Edit {meta.label} Website Page</h1>
         <p className="text-muted-foreground mt-1">
-          Configure SEO and content before/after the auto-generated item list for <code>{meta.publicPath}</code>.
+          Configure content before/after the auto-generated item list for <code>{meta.publicPath}</code>.
         </p>
       </div>
 
@@ -56,13 +56,6 @@ export default async function SectionPageSettingsPage({ params }: { params: Prom
             sectionKey={section}
             sectionLabel={meta.label}
             initial={{
-              title: entry?.title || "",
-              description: entry?.description || "",
-              keywords: entry?.keywords || "",
-              ogImage: entry?.ogImage || "",
-              canonical: entry?.canonical || "",
-              noIndex: Boolean(entry?.noIndex),
-              noFollow: Boolean(entry?.noFollow),
               beforeListContent: entry?.beforeListContent || "",
               afterListContent: entry?.afterListContent || "",
             }}

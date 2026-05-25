@@ -112,7 +112,7 @@ type StaticSeoEntry = {
 }
 
 type StaticSeoSettings = Record<
-  "home" | "about" | "services" | "training" | "contact" | "blog",
+  "home" | "about" | "services" | "training" | "products" | "departments" | "pricing" | "contact" | "blog",
   StaticSeoEntry
 >
 
@@ -188,6 +188,9 @@ function parseStaticSeo(raw: string | null | undefined): StaticSeoSettings {
       about: blankEntry,
       services: blankEntry,
       training: blankEntry,
+      products: blankEntry,
+      departments: blankEntry,
+      pricing: blankEntry,
       contact: blankEntry,
       blog: blankEntry,
     }
@@ -205,6 +208,9 @@ function parseStaticSeo(raw: string | null | undefined): StaticSeoSettings {
       about: toEntry(parsed.about ?? blankEntry),
       services: toEntry(parsed.services ?? blankEntry),
       training: toEntry(parsed.training ?? blankEntry),
+      products: toEntry(parsed.products ?? blankEntry),
+      departments: toEntry(parsed.departments ?? blankEntry),
+      pricing: toEntry(parsed.pricing ?? blankEntry),
       contact: toEntry(parsed.contact ?? blankEntry),
       blog: toEntry(parsed.blog ?? blankEntry),
     }
@@ -214,6 +220,9 @@ function parseStaticSeo(raw: string | null | undefined): StaticSeoSettings {
       about: blankEntry,
       services: blankEntry,
       training: blankEntry,
+      products: blankEntry,
+      departments: blankEntry,
+      pricing: blankEntry,
       contact: blankEntry,
       blog: blankEntry,
     }
@@ -2102,6 +2111,9 @@ export function SiteSettingsForm({ initial, pages }: { initial: SiteSettings; pa
                 { key: "about", label: "About" },
                 { key: "services", label: "Services" },
                 { key: "training", label: "Training" },
+                { key: "products", label: "Products" },
+                { key: "departments", label: "Departments" },
+                { key: "pricing", label: "Pricing" },
                 { key: "contact", label: "Contact" },
                 { key: "blog", label: "Blog List" },
               ] as const).map(({ key, label }) => (

@@ -4,24 +4,13 @@ import type React from "react"
 import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Textarea } from "@/components/ui/textarea"
-import { Switch } from "@/components/ui/switch"
 import { RichTextEditor } from "@/components/admin/rich-text-editor"
-import { ImageUrlUploadField } from "@/components/admin/image-url-upload-field"
 
 type SectionPageSettingsFormProps = {
   sectionKey: "services" | "training" | "products" | "departments" | "pricing"
   sectionLabel: string
   initial: {
-    title: string
-    description: string
-    keywords: string
-    ogImage: string
-    canonical: string
-    noIndex: boolean
-    noFollow: boolean
     beforeListContent: string
     afterListContent: string
   }
@@ -32,7 +21,10 @@ export function SectionPageSettingsForm({ sectionKey, sectionLabel, initial }: S
   const [isSaving, setIsSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState(false)
-  const [formData, setFormData] = useState(initial)
+  const [formData, setFormData] = useState({
+    beforeListContent: initial.beforeListContent,
+    afterListContent: initial.afterListContent,
+  })
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -60,77 +52,10 @@ export function SectionPageSettingsForm({ sectionKey, sectionLabel, initial }: S
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
-      <div className="space-y-4 rounded-md border border-border/60 bg-muted/20 p-4">
-        <div className="flex items-center justify-between">
-          <div>
-            <Label className="font-semibold">SEO</Label>
-            <p className="text-xs text-muted-foreground">Overrides for the {sectionLabel} listing page.</p>
-          </div>
-        </div>
-        <div className="grid gap-4 md:grid-cols-2">
-          <div className="space-y-2">
-            <Label htmlFor="seo-title">SEO Title</Label>
-            <Input
-              id="seo-title"
-              value={formData.title}
-              onChange={(e) => setFormData((prev) => ({ ...prev, title: e.target.value }))}
-            />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="seo-canonical">Canonical URL</Label>
-            <Input
-              id="seo-canonical"
-              value={formData.canonical}
-              onChange={(e) => setFormData((prev) => ({ ...prev, canonical: e.target.value }))}
-              placeholder="https://example.com/page"
-            />
-          </div>
-        </div>
-        <div className="space-y-2">
-          <Label htmlFor="seo-description">SEO Description</Label>
-          <Textarea
-            id="seo-description"
-            rows={3}
-            value={formData.description}
-            onChange={(e) => setFormData((prev) => ({ ...prev, description: e.target.value }))}
-          />
-        </div>
-        <div className="space-y-2">
-          <Label htmlFor="seo-keywords">SEO Keywords</Label>
-          <Textarea
-            id="seo-keywords"
-            rows={2}
-            value={formData.keywords}
-            onChange={(e) => setFormData((prev) => ({ ...prev, keywords: e.target.value }))}
-            placeholder="keyword1, keyword2"
-          />
-        </div>
-        <ImageUrlUploadField
-          id="seo-og-image"
-          label="SEO OG Image URL"
-          value={formData.ogImage}
-          onChange={(value) => setFormData((prev) => ({ ...prev, ogImage: value }))}
-          folder="seo"
-          placeholder="https://example.com/og-image.jpg"
-        />
-        <div className="flex flex-wrap gap-4">
-          <div className="flex items-center space-x-2">
-            <Switch
-              id="seo-noindex"
-              checked={formData.noIndex}
-              onCheckedChange={(checked) => setFormData((prev) => ({ ...prev, noIndex: checked }))}
-            />
-            <Label htmlFor="seo-noindex">No index</Label>
-          </div>
-          <div className="flex items-center space-x-2">
-            <Switch
-              id="seo-nofollow"
-              checked={formData.noFollow}
-              onCheckedChange={(checked) => setFormData((prev) => ({ ...prev, noFollow: checked }))}
-            />
-            <Label htmlFor="seo-nofollow">No follow</Label>
-          </div>
-        </div>
+      <div className="rounded-md border border-border/60 bg-muted/20 p-4">
+        <p className="text-sm text-muted-foreground">
+          SEO fields for {sectionLabel} should be managed from <strong>Settings → SEO → Static Page Overrides</strong>.
+        </p>
       </div>
 
       <div className="space-y-2">
