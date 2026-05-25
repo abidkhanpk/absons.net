@@ -8,9 +8,6 @@ const SECTION_VARIANTS = ["from-left", "from-right", "from-sides", "lift"] as co
 const SECTION_CARD_SELECTOR = "[data-slot='card'], .why-choose-grid-tile, .why-choose-tile"
 const NS_INTRO_DELAY_BASE_MS = 100
 const NS_INTRO_DELAY_STEP_MS = 100
-const NS_CARD_DELAY_BASE_MS = 300
-const NS_CARD_DELAY_STEP_MS = 200
-const NS_CARD_DELAY_MAX_MS = 1300
 const SECTION_TRIGGER_THRESHOLD = 0.14
 const CARD_TRIGGER_THRESHOLD = 0.2
 
@@ -80,35 +77,16 @@ export function SiteMotion() {
         (card) => !card.closest(".scrolling-loop") && !card.closest(".home-section-scroll-card"),
       )
       sectionCards.forEach((card, cardIndex) => {
-        if (isMobile) {
-          card.classList.remove("motion-section-card", "motion-section-node")
-          card.classList.add("motion-card-reveal")
-          card.setAttribute("data-motion-card-variant", cardIndex % 2 === 0 ? "from-left" : "from-right")
-          card.style.setProperty("--motion-card-delay", `${Math.min((cardIndex % 4) * 60, 180)}ms`)
-          return
-        }
-
-        card.classList.add("motion-section-card", "motion-section-node")
-        const delay = Math.min(NS_CARD_DELAY_BASE_MS + cardIndex * NS_CARD_DELAY_STEP_MS, NS_CARD_DELAY_MAX_MS)
-        card.style.setProperty("--motion-node-delay", `${delay}ms`)
-        card.style.setProperty("--motion-node-duration", "700ms")
-        card.style.setProperty("--motion-node-x", "-80px")
-        card.style.setProperty("--motion-node-y", "0px")
-        hasHelixStyleNodes = true
+        card.classList.remove("motion-section-card", "motion-section-node")
+        card.classList.add("motion-card-reveal")
+        card.setAttribute("data-motion-card-variant", cardIndex % 2 === 0 ? "from-left" : "from-right")
+        card.style.setProperty("--motion-card-delay", `${Math.min((cardIndex % 4) * 60, 180)}ms`)
       })
 
       if (hasHelixStyleNodes) {
         section.classList.add("motion-composite")
       }
     })
-
-    if (isMobile) {
-      observedCards.forEach((card, index) => {
-        card.classList.add("motion-card-reveal")
-        card.setAttribute("data-motion-card-variant", index % 2 === 0 ? "from-left" : "from-right")
-        card.style.setProperty("--motion-card-delay", `${Math.min((index % 4) * 60, 180)}ms`)
-      })
-    }
 
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
       sections.forEach((section) => section.classList.add("is-visible"))
