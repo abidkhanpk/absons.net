@@ -36,7 +36,10 @@ export function SiteMotion() {
     const sectionRootMargin = `0px 0px -${isMobile ? mobilePercent : desktopPercent}% 0px`
     const cardRootMargin = `0px 0px -${isMobile ? mobilePercent : desktopPercent}% 0px`
     const observedCards = Array.from(document.querySelectorAll<HTMLElement>(`main ${SECTION_CARD_SELECTOR}`)).filter(
-      (card) => !card.closest(".home-section-scroll-card") && !card.closest(".scrolling-loop"),
+      (card) =>
+        !card.closest(".home-section-scroll-card") &&
+        !card.closest(".scrolling-loop") &&
+        !card.closest("section[data-motion-skip]"),
     )
 
     if (sections.length === 0 && observedCards.length === 0) return
@@ -46,11 +49,13 @@ export function SiteMotion() {
       section.setAttribute("data-motion-variant", SECTION_VARIANTS[index % SECTION_VARIANTS.length])
       section.style.setProperty("--motion-delay", `${Math.min(index * 40, 200)}ms`)
 
-      const intro = section.querySelector<HTMLElement>(".text-center")
       let hasHelixStyleNodes = false
-      if (intro) {
-        const introChildren = Array.from(intro.children).filter((child): child is HTMLElement => child instanceof HTMLElement)
-        introChildren.forEach((child, childIndex) => {
+      const isCmsSection = section.matches("[data-cms-section='true']")
+      const shouldAnimateCmsContent = !isCmsSection || section.getAttribute("data-cms-section-animate-content") !== "false"
+
+      if (isCmsSection && shouldAnimateCmsContent) {
+        const sectionChildren = Array.from(section.children).filter((child): child is HTMLElement => child instanceof HTMLElement)
+        sectionChildren.forEach((child, childIndex) => {
           child.classList.add("motion-section-node")
           child.style.setProperty(
             "--motion-node-delay",
@@ -62,14 +67,30 @@ export function SiteMotion() {
           hasHelixStyleNodes = true
         })
       } else {
-        const fallbackTitle = section.querySelector<HTMLElement>("h1, h2")
-        if (fallbackTitle) {
-          fallbackTitle.classList.add("motion-section-node")
-          fallbackTitle.style.setProperty("--motion-node-delay", `${NS_INTRO_DELAY_BASE_MS}ms`)
-          fallbackTitle.style.setProperty("--motion-node-duration", "600ms")
-          fallbackTitle.style.setProperty("--motion-node-x", "0px")
-          fallbackTitle.style.setProperty("--motion-node-y", "60px")
-          hasHelixStyleNodes = true
+        const intro = section.querySelector<HTMLElement>(".text-center")
+        if (intro) {
+          const introChildren = Array.from(intro.children).filter((child): child is HTMLElement => child instanceof HTMLElement)
+          introChildren.forEach((child, childIndex) => {
+            child.classList.add("motion-section-node")
+            child.style.setProperty(
+              "--motion-node-delay",
+              `${Math.min(NS_INTRO_DELAY_BASE_MS + childIndex * NS_INTRO_DELAY_STEP_MS, 420)}ms`,
+            )
+            child.style.setProperty("--motion-node-duration", "600ms")
+            child.style.setProperty("--motion-node-x", "0px")
+            child.style.setProperty("--motion-node-y", "60px")
+            hasHelixStyleNodes = true
+          })
+        } else {
+          const fallbackTitle = section.querySelector<HTMLElement>("h1, h2")
+          if (fallbackTitle) {
+            fallbackTitle.classList.add("motion-section-node")
+            fallbackTitle.style.setProperty("--motion-node-delay", `${NS_INTRO_DELAY_BASE_MS}ms`)
+            fallbackTitle.style.setProperty("--motion-node-duration", "600ms")
+            fallbackTitle.style.setProperty("--motion-node-x", "0px")
+            fallbackTitle.style.setProperty("--motion-node-y", "60px")
+            hasHelixStyleNodes = true
+          }
         }
       }
 

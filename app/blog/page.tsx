@@ -8,6 +8,7 @@ import { prisma } from "@/lib/prisma"
 import { getSiteSettings } from "@/lib/site-settings"
 import { buildSeoMetadata } from "@/lib/seo"
 import { resolveAssetUrl } from "@/lib/asset-url"
+import { contentEndsWithSection, contentStartsWithSection } from "@/lib/section-page-layout"
 import { RichContentRenderer } from "@/components/cms/rich-content-renderer"
 
 export async function generateMetadata() {
@@ -28,6 +29,8 @@ export async function generateMetadata() {
 export default async function BlogPage() {
   const siteSettings = await getSiteSettings()
   const pageConfig = siteSettings.sectionPageContent.blog
+  const startsWithSection = contentStartsWithSection(pageConfig.beforeListContent)
+  const endsWithSection = contentEndsWithSection(pageConfig.afterListContent)
   const approvalRequired = siteSettings.editorApprovalRequired ?? true
   const posts = await prisma.blogPost.findMany({
     where: approvalRequired ? { published: true, approved: true } : { published: true },
@@ -39,7 +42,7 @@ export default async function BlogPage() {
       <Header settings={siteSettings} />
 
       <main className="flex-1">
-        <section className="py-16 bg-background">
+        <section className={`${startsWithSection ? "pt-0" : "pt-16"} ${endsWithSection ? "pb-0" : "pb-16"} bg-background`}>
           <div className="container mx-auto px-4 lg:px-8">
             {pageConfig.beforeListContent ? (
               <div className="mb-10">

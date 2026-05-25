@@ -12,6 +12,7 @@ import { contentIconMap } from "@/lib/content-icons"
 import { resolveAssetUrl } from "@/lib/asset-url"
 import { findManyProductsCompat } from "@/lib/product-compat"
 import { getItemLinkTargetProps, resolveItemLinkHref } from "@/lib/item-link"
+import { contentEndsWithSection, contentStartsWithSection } from "@/lib/section-page-layout"
 import { RichContentRenderer } from "@/components/cms/rich-content-renderer"
 
 export async function generateMetadata() {
@@ -41,13 +42,15 @@ export default async function ProductsPage() {
     getSiteSettings(),
   ])
   const pageConfig = siteSettings.sectionPageContent.products
+  const startsWithSection = contentStartsWithSection(pageConfig.beforeListContent)
+  const endsWithSection = contentEndsWithSection(pageConfig.afterListContent)
 
   return (
     <div className="flex flex-col min-h-screen">
       <Header settings={siteSettings} />
 
       <main className="flex-1">
-        <section className="py-16 bg-background">
+        <section className={`${startsWithSection ? "pt-0" : "pt-16"} ${endsWithSection ? "pb-0" : "pb-16"} bg-background`}>
           <div className="container mx-auto px-4 lg:px-8">
             {pageConfig.beforeListContent ? (
               <div className="mb-10">

@@ -90,7 +90,9 @@ type SectionPresetId =
   | "emerald-mist"
   | "midnight-contrast"
   | "royal-blue"
+  | "frosted-steel"
 type SectionSpacing = "compact" | "comfortable" | "spacious"
+type SectionGap = "none" | "minimal" | "moderate" | "maximum"
 type SectionRadius = "none" | "lg" | "xl" | "2xl"
 type SectionBorder = "none" | "soft" | "strong"
 type SectionShadow = "none" | "soft" | "lifted"
@@ -181,12 +183,30 @@ const SECTION_PRESET_OPTIONS: SectionPresetOption[] = [
     accentColor: "#bfdbfe",
     borderColor: "rgba(191, 219, 254, 0.45)",
   },
+  {
+    id: "frosted-steel",
+    label: "Frosted Steel",
+    description: "Soft silver gradient for neutral hero or intro sections.",
+    background: "linear-gradient(135deg, rgba(222, 230, 236, 0.98), rgba(247, 249, 251, 0.98) 50%, rgba(220, 230, 236, 0.98))",
+    textColor: "#5b6572",
+    headingColor: "#030712",
+    linkColor: "#0b67b2",
+    accentColor: "#0b67b2",
+    borderColor: "rgba(148, 163, 184, 0.4)",
+  },
 ]
 
 const SECTION_SPACING_OPTIONS: Array<{ value: SectionSpacing; label: string }> = [
   { value: "compact", label: "Compact" },
   { value: "comfortable", label: "Comfortable" },
   { value: "spacious", label: "Spacious" },
+]
+
+const SECTION_GAP_OPTIONS: Array<{ value: SectionGap; label: string }> = [
+  { value: "none", label: "No gap" },
+  { value: "minimal", label: "Minimal" },
+  { value: "moderate", label: "Moderate" },
+  { value: "maximum", label: "Maximum" },
 ]
 
 const SECTION_RADIUS_OPTIONS: Array<{ value: SectionRadius; label: string }> = [
@@ -209,9 +229,23 @@ const SECTION_SHADOW_OPTIONS: Array<{ value: SectionShadow; label: string }> = [
 ]
 
 const SECTION_SPACING_CLASS: Record<SectionSpacing, string> = {
-  compact: "my-2 py-3 px-0",
-  comfortable: "my-8 py-8 px-0",
-  spacious: "my-10 py-10 px-4 md:px-6",
+  compact: "py-3 px-0",
+  comfortable: "py-8 px-0",
+  spacious: "py-10 px-4 md:px-6",
+}
+
+const SECTION_GAP_BEFORE_CLASS: Record<SectionGap, string> = {
+  none: "mt-0",
+  minimal: "mt-2",
+  moderate: "mt-6",
+  maximum: "mt-10",
+}
+
+const SECTION_GAP_AFTER_CLASS: Record<SectionGap, string> = {
+  none: "mb-0",
+  minimal: "mb-2",
+  moderate: "mb-6",
+  maximum: "mb-10",
 }
 
 const SECTION_RADIUS_CLASS: Record<SectionRadius, string> = {
@@ -238,30 +272,42 @@ const FULL_WIDTH_SECTION_CLASS =
 
 const SECTION_PRESET_IDS = SECTION_PRESET_OPTIONS.map((option) => option.id)
 const SECTION_SPACING_VALUES = SECTION_SPACING_OPTIONS.map((option) => option.value)
+const SECTION_GAP_VALUES = SECTION_GAP_OPTIONS.map((option) => option.value)
 const SECTION_RADIUS_VALUES = SECTION_RADIUS_OPTIONS.map((option) => option.value)
 const SECTION_BORDER_VALUES = SECTION_BORDER_OPTIONS.map((option) => option.value)
 const SECTION_SHADOW_VALUES = SECTION_SHADOW_OPTIONS.map((option) => option.value)
 
 const DEFAULT_SECTION_NODE_PRESET: SectionPresetId = "plain"
 const DEFAULT_SECTION_NODE_SPACING: SectionSpacing = "compact"
+const DEFAULT_SECTION_NODE_GAP_BEFORE: SectionGap = "none"
+const DEFAULT_SECTION_NODE_GAP_AFTER: SectionGap = "none"
 const DEFAULT_SECTION_NODE_RADIUS: SectionRadius = "none"
 const DEFAULT_SECTION_NODE_BORDER: SectionBorder = "none"
 const DEFAULT_SECTION_NODE_SHADOW: SectionShadow = "none"
+const DEFAULT_SECTION_NODE_ANIMATE_CONTENT = true
 
 const DEFAULT_SECTION_INSERT_PRESET: SectionPresetId = "soft-slate"
 const DEFAULT_SECTION_INSERT_SPACING: SectionSpacing = "spacious"
+const DEFAULT_SECTION_INSERT_GAP_BEFORE: SectionGap = "none"
+const DEFAULT_SECTION_INSERT_GAP_AFTER: SectionGap = "none"
 const DEFAULT_SECTION_INSERT_RADIUS: SectionRadius = "none"
 const DEFAULT_SECTION_INSERT_BORDER: SectionBorder = "none"
 const DEFAULT_SECTION_INSERT_SHADOW: SectionShadow = "none"
 const DEFAULT_SECTION_INSERT_FULL_WIDTH = true
+const DEFAULT_SECTION_INSERT_ANIMATE_CONTENT = true
 
 const includesValue = <T extends string>(pool: readonly T[], value: unknown): value is T => typeof value === "string" && pool.includes(value as T)
 
-const normalizeSectionPreset = (value: unknown): SectionPresetId =>
-  includesValue(SECTION_PRESET_IDS, value) ? value : DEFAULT_SECTION_NODE_PRESET
+const normalizeSectionPreset = (value: unknown): SectionPresetId => {
+  if (value === "royal-blue-cta") return "royal-blue"
+  return includesValue(SECTION_PRESET_IDS, value) ? value : DEFAULT_SECTION_NODE_PRESET
+}
 
 const normalizeSectionSpacing = (value: unknown): SectionSpacing =>
   includesValue(SECTION_SPACING_VALUES, value) ? value : DEFAULT_SECTION_NODE_SPACING
+
+const normalizeSectionGap = (value: unknown, fallback: SectionGap): SectionGap =>
+  includesValue(SECTION_GAP_VALUES, value) ? value : fallback
 
 const normalizeSectionRadius = (value: unknown): SectionRadius =>
   includesValue(SECTION_RADIUS_VALUES, value) ? value : DEFAULT_SECTION_NODE_RADIUS
@@ -273,6 +319,26 @@ const normalizeSectionShadow = (value: unknown): SectionShadow =>
   includesValue(SECTION_SHADOW_VALUES, value) ? value : DEFAULT_SECTION_NODE_SHADOW
 
 const normalizeSectionFullWidth = (value: unknown) => value === true || value === "true"
+const normalizeSectionAnimateContent = (value: unknown) => value !== false && value !== "false"
+
+const inferSectionGapFromClass = (classText: string | null, direction: "before" | "after"): SectionGap => {
+  if (!classText) {
+    return direction === "before" ? DEFAULT_SECTION_NODE_GAP_BEFORE : DEFAULT_SECTION_NODE_GAP_AFTER
+  }
+  const tokenSet = new Set(classText.split(/\s+/).filter(Boolean))
+  if (direction === "before") {
+    if (tokenSet.has("mt-10") || tokenSet.has("my-10")) return "maximum"
+    if (tokenSet.has("mt-6") || tokenSet.has("my-6") || tokenSet.has("my-8")) return "moderate"
+    if (tokenSet.has("mt-2") || tokenSet.has("my-2")) return "minimal"
+    if (tokenSet.has("mt-0") || tokenSet.has("my-0")) return "none"
+    return DEFAULT_SECTION_NODE_GAP_BEFORE
+  }
+  if (tokenSet.has("mb-10") || tokenSet.has("my-10")) return "maximum"
+  if (tokenSet.has("mb-6") || tokenSet.has("my-6") || tokenSet.has("my-8")) return "moderate"
+  if (tokenSet.has("mb-2") || tokenSet.has("my-2")) return "minimal"
+  if (tokenSet.has("mb-0") || tokenSet.has("my-0")) return "none"
+  return DEFAULT_SECTION_NODE_GAP_AFTER
+}
 
 const getSectionPreset = (presetId: SectionPresetId) =>
   SECTION_PRESET_OPTIONS.find((option) => option.id === presetId) || SECTION_PRESET_OPTIONS[0]
@@ -280,12 +346,16 @@ const getSectionPreset = (presetId: SectionPresetId) =>
 const buildSectionClassName = ({
   fullWidth,
   spacing,
+  gapBefore,
+  gapAfter,
   radius,
   border,
   shadow,
 }: {
   fullWidth: boolean
   spacing: SectionSpacing
+  gapBefore: SectionGap
+  gapAfter: SectionGap
   radius: SectionRadius
   border: SectionBorder
   shadow: SectionShadow
@@ -295,6 +365,8 @@ const buildSectionClassName = ({
     "transition-colors",
     fullWidth ? FULL_WIDTH_SECTION_CLASS : "",
     SECTION_SPACING_CLASS[spacing],
+    SECTION_GAP_BEFORE_CLASS[gapBefore],
+    SECTION_GAP_AFTER_CLASS[gapAfter],
     SECTION_RADIUS_CLASS[radius],
     SECTION_BORDER_CLASS[border],
     SECTION_SHADOW_CLASS[shadow],
@@ -336,23 +408,32 @@ const buildSectionStyle = ({
 const buildSectionNodeAttrs = ({
   preset,
   fullWidth,
+  animateContent,
   spacing,
+  gapBefore,
+  gapAfter,
   radius,
   border,
   shadow,
 }: {
   preset: SectionPresetId
   fullWidth: boolean
+  animateContent: boolean
   spacing: SectionSpacing
+  gapBefore: SectionGap
+  gapAfter: SectionGap
   radius: SectionRadius
   border: SectionBorder
   shadow: SectionShadow
 }) => ({
-  class: buildSectionClassName({ fullWidth, spacing, radius, border, shadow }),
+  class: buildSectionClassName({ fullWidth, spacing, gapBefore, gapAfter, radius, border, shadow }),
   style: buildSectionStyle({ presetId: preset, border }),
   preset,
   fullWidth,
+  animateContent,
   spacing,
+  gapBefore,
+  gapAfter,
   radius,
   border,
   shadow,
@@ -533,6 +614,8 @@ const CmsSection = Node.create({
         default: buildSectionClassName({
           fullWidth: false,
           spacing: DEFAULT_SECTION_NODE_SPACING,
+          gapBefore: DEFAULT_SECTION_NODE_GAP_BEFORE,
+          gapAfter: DEFAULT_SECTION_NODE_GAP_AFTER,
           radius: DEFAULT_SECTION_NODE_RADIUS,
           border: DEFAULT_SECTION_NODE_BORDER,
           shadow: DEFAULT_SECTION_NODE_SHADOW,
@@ -542,6 +625,8 @@ const CmsSection = Node.create({
           buildSectionClassName({
             fullWidth: false,
             spacing: DEFAULT_SECTION_NODE_SPACING,
+            gapBefore: DEFAULT_SECTION_NODE_GAP_BEFORE,
+            gapAfter: DEFAULT_SECTION_NODE_GAP_AFTER,
             radius: DEFAULT_SECTION_NODE_RADIUS,
             border: DEFAULT_SECTION_NODE_BORDER,
             shadow: DEFAULT_SECTION_NODE_SHADOW,
@@ -570,6 +655,40 @@ const CmsSection = Node.create({
         default: false,
         parseHTML: (element) => normalizeSectionFullWidth(element.getAttribute("data-cms-section-full-width")),
         renderHTML: (attributes) => ({ "data-cms-section-full-width": normalizeSectionFullWidth(attributes.fullWidth) ? "true" : "false" }),
+      },
+      animateContent: {
+        default: DEFAULT_SECTION_NODE_ANIMATE_CONTENT,
+        parseHTML: (element) =>
+          normalizeSectionAnimateContent(
+            element.getAttribute("data-cms-section-animate-content") ??
+              (element.hasAttribute("data-motion-skip") ? "false" : "true"),
+          ),
+        renderHTML: (attributes) =>
+          normalizeSectionAnimateContent(attributes.animateContent)
+            ? { "data-cms-section-animate-content": "true" }
+            : { "data-cms-section-animate-content": "false", "data-motion-skip": "true" },
+      },
+      gapBefore: {
+        default: DEFAULT_SECTION_NODE_GAP_BEFORE,
+        parseHTML: (element) =>
+          normalizeSectionGap(
+            element.getAttribute("data-cms-section-gap-before"),
+            inferSectionGapFromClass(element.getAttribute("class"), "before"),
+          ),
+        renderHTML: (attributes) => ({
+          "data-cms-section-gap-before": normalizeSectionGap(attributes.gapBefore, DEFAULT_SECTION_NODE_GAP_BEFORE),
+        }),
+      },
+      gapAfter: {
+        default: DEFAULT_SECTION_NODE_GAP_AFTER,
+        parseHTML: (element) =>
+          normalizeSectionGap(
+            element.getAttribute("data-cms-section-gap-after"),
+            inferSectionGapFromClass(element.getAttribute("class"), "after"),
+          ),
+        renderHTML: (attributes) => ({
+          "data-cms-section-gap-after": normalizeSectionGap(attributes.gapAfter, DEFAULT_SECTION_NODE_GAP_AFTER),
+        }),
       },
       spacing: {
         default: DEFAULT_SECTION_NODE_SPACING,
@@ -970,7 +1089,10 @@ export function RichTextEditor({ content, onChange }: RichTextEditorProps) {
   const [editingSectionPos, setEditingSectionPos] = useState<number | null>(null)
   const [sectionPreset, setSectionPreset] = useState<SectionPresetId>(DEFAULT_SECTION_INSERT_PRESET)
   const [sectionFullWidth, setSectionFullWidth] = useState(DEFAULT_SECTION_INSERT_FULL_WIDTH)
+  const [sectionAnimateContent, setSectionAnimateContent] = useState(DEFAULT_SECTION_INSERT_ANIMATE_CONTENT)
   const [sectionSpacing, setSectionSpacing] = useState<SectionSpacing>(DEFAULT_SECTION_INSERT_SPACING)
+  const [sectionGapBefore, setSectionGapBefore] = useState<SectionGap>(DEFAULT_SECTION_INSERT_GAP_BEFORE)
+  const [sectionGapAfter, setSectionGapAfter] = useState<SectionGap>(DEFAULT_SECTION_INSERT_GAP_AFTER)
   const [sectionRadius, setSectionRadius] = useState<SectionRadius>(DEFAULT_SECTION_INSERT_RADIUS)
   const [sectionBorder, setSectionBorder] = useState<SectionBorder>(DEFAULT_SECTION_INSERT_BORDER)
   const [sectionShadow, setSectionShadow] = useState<SectionShadow>(DEFAULT_SECTION_INSERT_SHADOW)
@@ -1341,7 +1463,10 @@ export function RichTextEditor({ content, onChange }: RichTextEditorProps) {
   const resetSectionForm = () => {
     setSectionPreset(DEFAULT_SECTION_INSERT_PRESET)
     setSectionFullWidth(DEFAULT_SECTION_INSERT_FULL_WIDTH)
+    setSectionAnimateContent(DEFAULT_SECTION_INSERT_ANIMATE_CONTENT)
     setSectionSpacing(DEFAULT_SECTION_INSERT_SPACING)
+    setSectionGapBefore(DEFAULT_SECTION_INSERT_GAP_BEFORE)
+    setSectionGapAfter(DEFAULT_SECTION_INSERT_GAP_AFTER)
     setSectionRadius(DEFAULT_SECTION_INSERT_RADIUS)
     setSectionBorder(DEFAULT_SECTION_INSERT_BORDER)
     setSectionShadow(DEFAULT_SECTION_INSERT_SHADOW)
@@ -1377,7 +1502,10 @@ export function RichTextEditor({ content, onChange }: RichTextEditorProps) {
     const attrs = node.attrs as Record<string, unknown>
     setSectionPreset(normalizeSectionPreset(attrs.preset))
     setSectionFullWidth(normalizeSectionFullWidth(attrs.fullWidth))
+    setSectionAnimateContent(normalizeSectionAnimateContent(attrs.animateContent))
     setSectionSpacing(normalizeSectionSpacing(attrs.spacing))
+    setSectionGapBefore(normalizeSectionGap(attrs.gapBefore, DEFAULT_SECTION_NODE_GAP_BEFORE))
+    setSectionGapAfter(normalizeSectionGap(attrs.gapAfter, DEFAULT_SECTION_NODE_GAP_AFTER))
     setSectionRadius(normalizeSectionRadius(attrs.radius))
     setSectionBorder(normalizeSectionBorder(attrs.border))
     setSectionShadow(normalizeSectionShadow(attrs.shadow))
@@ -1395,7 +1523,10 @@ export function RichTextEditor({ content, onChange }: RichTextEditorProps) {
     const nextAttrs = buildSectionNodeAttrs({
       preset: sectionPreset,
       fullWidth: sectionFullWidth,
+      animateContent: sectionAnimateContent,
       spacing: sectionSpacing,
+      gapBefore: sectionGapBefore,
+      gapAfter: sectionGapAfter,
       radius: sectionRadius,
       border: sectionBorder,
       shadow: sectionShadow,
@@ -1576,7 +1707,7 @@ export function RichTextEditor({ content, onChange }: RichTextEditorProps) {
     if (mode !== "source") {
       setSourceHtml(incoming)
     }
-    if (incoming !== editor.getHTML()) {
+    if (mode === "visual" && incoming !== editor.getHTML()) {
       editor.commands.setContent(incoming, { emitUpdate: false })
     }
   }, [content, editor, mode])
@@ -2491,7 +2622,7 @@ export function RichTextEditor({ content, onChange }: RichTextEditorProps) {
   const switchModeAny = (next: "visual" | "source" | "preview") => {
     if (next === mode) return
     if (next === "source") {
-      const raw = editor.getHTML() || content || ""
+      const raw = mode === "preview" ? sourceHtml || sourceSeed || content || editor.getHTML() || "" : editor.getHTML() || content || ""
       const formatted = prettyFormatHtml(raw) || raw
       setSourceSeed(formatted)
       setSourceHtml(formatted)
@@ -2499,8 +2630,10 @@ export function RichTextEditor({ content, onChange }: RichTextEditorProps) {
     } else if (mode === "source") {
       const preserved = sourceHtml.trim().length > 0 ? sourceHtml : sourceSeed
       const resolvedHtml = preserved.trim().length > 0 ? preserved : editor.getHTML()
-      editor.commands.setContent(resolvedHtml || "", { emitUpdate: false })
       onChange(resolvedHtml || "")
+      if (next === "visual") {
+        editor.commands.setContent(resolvedHtml || "", { emitUpdate: false })
+      }
       setIgnoreSourceInitChange(false)
     }
     setMode(next)
@@ -3691,6 +3824,20 @@ export function RichTextEditor({ content, onChange }: RichTextEditorProps) {
                 When enabled, section stretches like a page block. When disabled, it stays in normal content width.
               </p>
             </div>
+            <div className="space-y-1.5 md:col-span-2 lg:col-span-3">
+              <label className="text-xs font-medium text-muted-foreground">Content Animation</label>
+              <label className="inline-flex items-center gap-2 text-xs">
+                <input
+                  type="checkbox"
+                  checked={sectionAnimateContent}
+                  onChange={(event) => setSectionAnimateContent(event.target.checked)}
+                />
+                Enable entrance and exit animation
+              </label>
+              <p className="text-[11px] text-muted-foreground">
+                Animates this section content on scroll enter and scroll leave.
+              </p>
+            </div>
             <div className="space-y-1.5">
               <label className="text-xs font-medium text-muted-foreground">Spacing</label>
               <select
@@ -3699,6 +3846,34 @@ export function RichTextEditor({ content, onChange }: RichTextEditorProps) {
                 onChange={(event) => setSectionSpacing(normalizeSectionSpacing(event.target.value))}
               >
                 {SECTION_SPACING_OPTIONS.map((option) => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div className="space-y-1.5">
+              <label className="text-xs font-medium text-muted-foreground">Gap Before Section</label>
+              <select
+                className="h-9 w-full rounded-md border border-input bg-background px-3 text-sm"
+                value={sectionGapBefore}
+                onChange={(event) => setSectionGapBefore(normalizeSectionGap(event.target.value, DEFAULT_SECTION_NODE_GAP_BEFORE))}
+              >
+                {SECTION_GAP_OPTIONS.map((option) => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div className="space-y-1.5">
+              <label className="text-xs font-medium text-muted-foreground">Gap After Section</label>
+              <select
+                className="h-9 w-full rounded-md border border-input bg-background px-3 text-sm"
+                value={sectionGapAfter}
+                onChange={(event) => setSectionGapAfter(normalizeSectionGap(event.target.value, DEFAULT_SECTION_NODE_GAP_AFTER))}
+              >
+                {SECTION_GAP_OPTIONS.map((option) => (
                   <option key={option.value} value={option.value}>
                     {option.label}
                   </option>
