@@ -1,6 +1,7 @@
 import Link from "next/link"
 import { Mail, Phone, MapPin } from "lucide-react"
 import type { SiteSettings } from "@/lib/site-settings"
+import { resolveAssetUrl } from "@/lib/asset-url"
 
 export function Footer({ settings }: { settings: SiteSettings }) {
   const showFooterMenu = settings.footerMenuEnabled !== false
@@ -24,9 +25,20 @@ export function Footer({ settings }: { settings: SiteSettings }) {
             {showCompany ? (
               <div className="min-w-0 space-y-4">
                 <div className="flex items-center gap-2">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary text-primary-foreground font-bold text-lg">
-                    {companyName?.slice(0, 2).toUpperCase() || "AS"}
-                  </div>
+                  {settings.logoUrl ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img
+                      src={resolveAssetUrl(settings.logoUrl)}
+                      alt={settings.siteTitle || companyName}
+                      width={40}
+                      height={40}
+                      className="h-10 w-10 rounded-lg object-contain"
+                    />
+                  ) : (
+                    <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary text-primary-foreground font-bold text-lg">
+                      {companyName?.slice(0, 2).toUpperCase() || "AS"}
+                    </div>
+                  )}
                   <span className="flex flex-col leading-tight">
                     <span className="font-bold text-lg">{companyName}</span>
                     {showFooterTagline ? <span className="text-[11px] text-muted-foreground">{companyTagline}</span> : null}
