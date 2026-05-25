@@ -37,7 +37,6 @@ export default async function TrainingPage() {
     orderBy: { displayOrder: "asc" },
   })
   const siteSettings = await getSiteSettings()
-  const siteTitle = siteSettings.siteTitle || "Our Company"
   const pageConfig = siteSettings.sectionPageContent.training
 
   return (
@@ -45,19 +44,6 @@ export default async function TrainingPage() {
       <Header settings={siteSettings} />
 
       <main className="flex-1">
-        {/* Hero Section */}
-        <section className="bg-gradient-to-br from-primary/10 via-background to-accent/10 border-b border-border">
-          <div className="container mx-auto px-4 lg:px-8 py-16">
-            <div className="max-w-3xl mx-auto text-center space-y-4">
-              <h1 className="text-4xl md:text-5xl font-bold text-balance">Training</h1>
-              <p className="text-lg text-muted-foreground text-pretty leading-relaxed">
-                Elevate your skills with our expert-led vibration analysis training programs and certifications.
-              </p>
-            </div>
-          </div>
-        </section>
-
-        {/* Training Courses */}
         <section className="py-16 bg-muted/30">
           <div className="container mx-auto px-4 lg:px-8">
             {pageConfig.beforeListContent ? (
@@ -65,12 +51,6 @@ export default async function TrainingPage() {
                 <RichContentRenderer content={pageConfig.beforeListContent} className="prose prose-lg max-w-none" />
               </div>
             ) : null}
-            <div className="mb-10">
-              <h2 className="text-3xl font-bold mb-3">Available Courses</h2>
-              <p className="text-lg text-muted-foreground leading-relaxed">
-                Explore our range of training courses designed to meet the needs of professionals at all levels. Each course is crafted to provide in-depth knowledge and practical skills, ensuring you can apply what you learn directly to your work.
-              </p>
-            </div>
 
             <div className="space-y-6">
               {courses?.map((course) => (

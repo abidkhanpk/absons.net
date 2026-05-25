@@ -40,18 +40,6 @@ export default async function ServicesPage() {
       <Header settings={siteSettings} />
 
       <main className="flex-1">
-        {/* Hero Section */}
-        <section className="bg-gradient-to-br from-primary/10 via-background to-accent/10 border-b border-border">
-          <div className="container mx-auto px-4 lg:px-8 py-16">
-            <div className="max-w-3xl mx-auto text-center space-y-4">
-              <h1 className="text-4xl md:text-5xl font-bold text-balance">Our Services</h1>
-              <p className="text-lg text-muted-foreground text-pretty leading-relaxed">
-                Comprehensive solutions designed to meet the unique needs of your organization
-              </p>
-            </div>
-          </div>
-        </section>
-
         <section className="py-16 bg-background">
           <div className="container mx-auto px-4 lg:px-8">
             {pageConfig.beforeListContent ? (

@@ -27,7 +27,6 @@ export async function generateMetadata() {
 
 export default async function BlogPage() {
   const siteSettings = await getSiteSettings()
-  const siteTitle = siteSettings.siteTitle || "Our Company"
   const pageConfig = siteSettings.sectionPageContent.blog
   const approvalRequired = siteSettings.editorApprovalRequired ?? true
   const posts = await prisma.blogPost.findMany({
@@ -40,19 +39,6 @@ export default async function BlogPage() {
       <Header settings={siteSettings} />
 
       <main className="flex-1">
-        {/* Hero Section */}
-        <section className="bg-gradient-to-br from-primary/10 via-background to-accent/10 border-b border-border">
-          <div className="container mx-auto px-4 lg:px-8 py-16">
-            <div className="max-w-3xl mx-auto text-center space-y-4">
-              <h1 className="text-4xl md:text-5xl font-bold text-balance">Blog & News</h1>
-              <p className="text-lg text-muted-foreground text-pretty leading-relaxed">
-                Stay updated with the latest insights, news, and updates from {siteTitle}
-              </p>
-            </div>
-          </div>
-        </section>
-
-        {/* Blog Posts */}
         <section className="py-16 bg-background">
           <div className="container mx-auto px-4 lg:px-8">
             {pageConfig.beforeListContent ? (

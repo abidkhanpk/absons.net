@@ -38,17 +38,6 @@ export default async function PricingPage() {
       <Header settings={siteSettings} />
 
       <main className="flex-1">
-        <section className="bg-gradient-to-br from-primary/10 via-background to-accent/10 border-b border-border">
-          <div className="container mx-auto px-4 lg:px-8 py-16">
-            <div className="max-w-3xl mx-auto text-center space-y-4">
-              <h1 className="text-4xl md:text-5xl font-bold text-balance">Pricing Plans</h1>
-              <p className="text-lg text-muted-foreground text-pretty leading-relaxed">
-                Transparent plans for organizations at different stages.
-              </p>
-            </div>
-          </div>
-        </section>
-
         <section className="py-16 bg-background">
           <div className="container mx-auto px-4 lg:px-8">
             {pageConfig.beforeListContent ? (
