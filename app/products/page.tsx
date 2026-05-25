@@ -12,12 +12,20 @@ import { contentIconMap } from "@/lib/content-icons"
 import { resolveAssetUrl } from "@/lib/asset-url"
 import { findManyProductsCompat } from "@/lib/product-compat"
 import { getItemLinkTargetProps, resolveItemLinkHref } from "@/lib/item-link"
+import { RichContentRenderer } from "@/components/cms/rich-content-renderer"
 
 export async function generateMetadata() {
   const settings = await getSiteSettings()
+  const override = settings.staticSeo.products
   return buildSeoMetadata(settings, {
-    title: "Products",
-    description: "Explore our software products and operational tools built for organizations and institutions.",
+    title: override.title || "Products",
+    description:
+      override.description || "Explore our software products and operational tools built for organizations and institutions.",
+    keywords: override.keywords || undefined,
+    ogImage: override.ogImage || undefined,
+    canonical: override.canonical || undefined,
+    noIndex: override.noIndex,
+    noFollow: override.noFollow,
   })
 }
 
@@ -32,6 +40,7 @@ export default async function ProductsPage() {
     }),
     getSiteSettings(),
   ])
+  const pageConfig = siteSettings.staticSeo.products
 
   return (
     <div className="flex flex-col min-h-screen">
@@ -51,6 +60,11 @@ export default async function ProductsPage() {
 
         <section className="py-16 bg-background">
           <div className="container mx-auto px-4 lg:px-8">
+            {pageConfig.beforeListContent ? (
+              <div className="mb-10">
+                <RichContentRenderer content={pageConfig.beforeListContent} className="prose prose-lg max-w-none" />
+              </div>
+            ) : null}
             {products.length > 0 ? (
               <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {products.map((product) => {
@@ -114,22 +128,11 @@ export default async function ProductsPage() {
                 </CardContent>
               </Card>
             )}
-          </div>
-        </section>
-
-        <section className="py-16 bg-primary text-primary-foreground">
-          <div className="container mx-auto px-4 lg:px-8">
-            <div className="max-w-3xl mx-auto text-center space-y-6">
-              <h2 className="text-3xl md:text-4xl font-bold text-balance">Need a Product Walkthrough?</h2>
-              <p className="text-lg text-primary-foreground/90 text-pretty leading-relaxed">
-                Contact us for a live demo and implementation discussion.
-              </p>
-              <Button asChild size="lg" variant="secondary">
-                <Link href="/contact">
-                  Contact Us <ArrowRight className="ml-2 h-5 w-5" />
-                </Link>
-              </Button>
-            </div>
+            {pageConfig.afterListContent ? (
+              <div className="mt-10">
+                <RichContentRenderer content={pageConfig.afterListContent} className="prose prose-lg max-w-none" />
+              </div>
+            ) : null}
           </div>
         </section>
       </main>

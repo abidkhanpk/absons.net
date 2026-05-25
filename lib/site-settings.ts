@@ -135,12 +135,14 @@ export type StaticSeoEntry = {
   keywords: string
   ogImage: string
   canonical: string
+  beforeListContent: string
+  afterListContent: string
   noIndex: boolean
   noFollow: boolean
 }
 
 export type StaticSeoSettings = Record<
-  "home" | "about" | "services" | "training" | "contact" | "blog",
+  "home" | "about" | "services" | "training" | "products" | "departments" | "pricing" | "contact" | "blog",
   StaticSeoEntry
 >
 
@@ -380,6 +382,8 @@ const defaultSettings: SiteSettings = {
       keywords: "",
       ogImage: "",
       canonical: "",
+      beforeListContent: "",
+      afterListContent: "",
       noIndex: false,
       noFollow: false,
     },
@@ -389,6 +393,8 @@ const defaultSettings: SiteSettings = {
       keywords: "",
       ogImage: "",
       canonical: "",
+      beforeListContent: "",
+      afterListContent: "",
       noIndex: false,
       noFollow: false,
     },
@@ -398,6 +404,8 @@ const defaultSettings: SiteSettings = {
       keywords: "",
       ogImage: "",
       canonical: "",
+      beforeListContent: "",
+      afterListContent: "",
       noIndex: false,
       noFollow: false,
     },
@@ -407,6 +415,41 @@ const defaultSettings: SiteSettings = {
       keywords: "",
       ogImage: "",
       canonical: "",
+      beforeListContent: "",
+      afterListContent: "",
+      noIndex: false,
+      noFollow: false,
+    },
+    products: {
+      title: "",
+      description: "",
+      keywords: "",
+      ogImage: "",
+      canonical: "",
+      beforeListContent: "",
+      afterListContent: "",
+      noIndex: false,
+      noFollow: false,
+    },
+    departments: {
+      title: "",
+      description: "",
+      keywords: "",
+      ogImage: "",
+      canonical: "",
+      beforeListContent: "",
+      afterListContent: "",
+      noIndex: false,
+      noFollow: false,
+    },
+    pricing: {
+      title: "",
+      description: "",
+      keywords: "",
+      ogImage: "",
+      canonical: "",
+      beforeListContent: "",
+      afterListContent: "",
       noIndex: false,
       noFollow: false,
     },
@@ -416,6 +459,8 @@ const defaultSettings: SiteSettings = {
       keywords: "",
       ogImage: "",
       canonical: "",
+      beforeListContent: "",
+      afterListContent: "",
       noIndex: false,
       noFollow: false,
     },
@@ -425,6 +470,8 @@ const defaultSettings: SiteSettings = {
       keywords: "",
       ogImage: "",
       canonical: "",
+      beforeListContent: "",
+      afterListContent: "",
       noIndex: false,
       noFollow: false,
     },
@@ -873,6 +920,8 @@ function parseStaticSeo(raw: unknown): StaticSeoSettings {
     keywords: typeof entry?.keywords === "string" ? entry.keywords : "",
     ogImage: typeof entry?.ogImage === "string" ? entry.ogImage : "",
     canonical: typeof entry?.canonical === "string" ? entry.canonical : "",
+    beforeListContent: typeof entry?.beforeListContent === "string" ? entry.beforeListContent : "",
+    afterListContent: typeof entry?.afterListContent === "string" ? entry.afterListContent : "",
     noIndex: Boolean(entry?.noIndex),
     noFollow: Boolean(entry?.noFollow),
   })
@@ -884,6 +933,9 @@ function parseStaticSeo(raw: unknown): StaticSeoSettings {
       about: normalizeEntry(parsed.about ?? defaultEntry),
       services: normalizeEntry(parsed.services ?? defaultEntry),
       training: normalizeEntry(parsed.training ?? defaultEntry),
+      products: normalizeEntry(parsed.products ?? defaultEntry),
+      departments: normalizeEntry(parsed.departments ?? defaultEntry),
+      pricing: normalizeEntry(parsed.pricing ?? defaultEntry),
       contact: normalizeEntry(parsed.contact ?? defaultEntry),
       blog: normalizeEntry(parsed.blog ?? defaultEntry),
     }

@@ -31,12 +31,17 @@ export default async function DepartmentsManagementPage() {
           <h1 className="text-3xl font-bold">Departments</h1>
           <p className="text-muted-foreground mt-1">Manage department listings</p>
         </div>
-        <Button asChild>
-          <Link href="/admin/departments/new">
-            <Plus className="mr-2 h-4 w-4" />
-            New Department
-          </Link>
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button asChild variant="outline">
+            <Link href="/admin/section-pages/departments">Edit Website Page</Link>
+          </Button>
+          <Button asChild>
+            <Link href="/admin/departments/new">
+              <Plus className="mr-2 h-4 w-4" />
+              New Department
+            </Link>
+          </Button>
+        </div>
       </div>
 
       {departments.length > 0 ? (

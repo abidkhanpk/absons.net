@@ -31,12 +31,17 @@ export default async function ServicesManagementPage() {
           <h1 className="text-3xl font-bold">Services</h1>
           <p className="text-muted-foreground mt-1">Manage your service offerings</p>
         </div>
-        <Button asChild>
-          <Link href="/admin/services/new">
-            <Plus className="mr-2 h-4 w-4" />
-            New Service
-          </Link>
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button asChild variant="outline">
+            <Link href="/admin/section-pages/services">Edit Website Page</Link>
+          </Button>
+          <Button asChild>
+            <Link href="/admin/services/new">
+              <Plus className="mr-2 h-4 w-4" />
+              New Service
+            </Link>
+          </Button>
+        </div>
       </div>
 
       {/* Services List */}

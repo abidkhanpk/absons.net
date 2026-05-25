@@ -8,6 +8,7 @@ import { prisma } from "@/lib/prisma"
 import { getSiteSettings } from "@/lib/site-settings"
 import { buildSeoMetadata } from "@/lib/seo"
 import { resolveAssetUrl } from "@/lib/asset-url"
+import { RichContentRenderer } from "@/components/cms/rich-content-renderer"
 
 export async function generateMetadata() {
   const settings = await getSiteSettings()
@@ -27,6 +28,7 @@ export async function generateMetadata() {
 export default async function BlogPage() {
   const siteSettings = await getSiteSettings()
   const siteTitle = siteSettings.siteTitle || "Our Company"
+  const pageConfig = siteSettings.staticSeo.blog
   const approvalRequired = siteSettings.editorApprovalRequired ?? true
   const posts = await prisma.blogPost.findMany({
     where: approvalRequired ? { published: true, approved: true } : { published: true },
@@ -53,6 +55,11 @@ export default async function BlogPage() {
         {/* Blog Posts */}
         <section className="py-16 bg-background">
           <div className="container mx-auto px-4 lg:px-8">
+            {pageConfig.beforeListContent ? (
+              <div className="mb-10">
+                <RichContentRenderer content={pageConfig.beforeListContent} className="prose prose-lg max-w-none" />
+              </div>
+            ) : null}
             {posts && posts.length > 0 ? (
               <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {posts.map((post) => (
@@ -101,6 +108,11 @@ export default async function BlogPage() {
                 <p className="text-lg text-muted-foreground">No blog posts available yet. Check back soon!</p>
               </div>
             )}
+            {pageConfig.afterListContent ? (
+              <div className="mt-10">
+                <RichContentRenderer content={pageConfig.afterListContent} className="prose prose-lg max-w-none" />
+              </div>
+            ) : null}
           </div>
         </section>
       </main>

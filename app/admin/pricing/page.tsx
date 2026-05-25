@@ -30,12 +30,17 @@ export default async function PricingManagementPage() {
           <h1 className="text-3xl font-bold">Pricing Plans</h1>
           <p className="text-muted-foreground mt-1">Manage pricing plans and features</p>
         </div>
-        <Button asChild>
-          <Link href="/admin/pricing/new">
-            <Plus className="mr-2 h-4 w-4" />
-            New Plan
-          </Link>
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button asChild variant="outline">
+            <Link href="/admin/section-pages/pricing">Edit Website Page</Link>
+          </Button>
+          <Button asChild>
+            <Link href="/admin/pricing/new">
+              <Plus className="mr-2 h-4 w-4" />
+              New Plan
+            </Link>
+          </Button>
+        </div>
       </div>
 
       {plans.length > 0 ? (

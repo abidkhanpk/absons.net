@@ -7,12 +7,19 @@ import { ArrowRight, Check } from "lucide-react"
 import { prisma } from "@/lib/prisma"
 import { getSiteSettings } from "@/lib/site-settings"
 import { buildSeoMetadata } from "@/lib/seo"
+import { RichContentRenderer } from "@/components/cms/rich-content-renderer"
 
 export async function generateMetadata() {
   const settings = await getSiteSettings()
+  const override = settings.staticSeo.pricing
   return buildSeoMetadata(settings, {
-    title: "Pricing",
-    description: "Choose a plan that fits your stage and team requirements.",
+    title: override.title || "Pricing",
+    description: override.description || "Choose a plan that fits your stage and team requirements.",
+    keywords: override.keywords || undefined,
+    ogImage: override.ogImage || undefined,
+    canonical: override.canonical || undefined,
+    noIndex: override.noIndex,
+    noFollow: override.noFollow,
   })
 }
 
@@ -24,6 +31,7 @@ export default async function PricingPage() {
     }),
     getSiteSettings(),
   ])
+  const pageConfig = siteSettings.staticSeo.pricing
 
   return (
     <div className="flex flex-col min-h-screen">
@@ -43,6 +51,11 @@ export default async function PricingPage() {
 
         <section className="py-16 bg-background">
           <div className="container mx-auto px-4 lg:px-8">
+            {pageConfig.beforeListContent ? (
+              <div className="mb-10">
+                <RichContentRenderer content={pageConfig.beforeListContent} className="prose prose-lg max-w-none" />
+              </div>
+            ) : null}
             {plans.length > 0 ? (
               <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {plans.map((plan) => {
@@ -83,22 +96,11 @@ export default async function PricingPage() {
                 </CardContent>
               </Card>
             )}
-          </div>
-        </section>
-
-        <section className="py-16 bg-primary text-primary-foreground">
-          <div className="container mx-auto px-4 lg:px-8">
-            <div className="max-w-3xl mx-auto text-center space-y-6">
-              <h2 className="text-3xl md:text-4xl font-bold text-balance">Need a Custom Quote?</h2>
-              <p className="text-lg text-primary-foreground/90 text-pretty leading-relaxed">
-                Let us tailor a plan for your organization and team size.
-              </p>
-              <Button asChild size="lg" variant="secondary">
-                <Link href="/contact">
-                  Request Quote <ArrowRight className="ml-2 h-5 w-5" />
-                </Link>
-              </Button>
-            </div>
+            {pageConfig.afterListContent ? (
+              <div className="mt-10">
+                <RichContentRenderer content={pageConfig.afterListContent} className="prose prose-lg max-w-none" />
+              </div>
+            ) : null}
           </div>
         </section>
       </main>

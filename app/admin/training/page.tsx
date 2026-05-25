@@ -31,12 +31,17 @@ export default async function TrainingManagementPage() {
           <h1 className="text-3xl font-bold">Training Courses</h1>
           <p className="text-muted-foreground mt-1">Manage training programs and courses</p>
         </div>
-        <Button asChild>
-          <Link href="/admin/training/new">
-            <Plus className="mr-2 h-4 w-4" />
-            New Course
-          </Link>
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button asChild variant="outline">
+            <Link href="/admin/section-pages/training">Edit Website Page</Link>
+          </Button>
+          <Button asChild>
+            <Link href="/admin/training/new">
+              <Plus className="mr-2 h-4 w-4" />
+              New Course
+            </Link>
+          </Button>
+        </div>
       </div>
 
       {/* Courses List */}

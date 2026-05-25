@@ -31,12 +31,17 @@ export default async function ProductsManagementPage() {
           <h1 className="text-3xl font-bold">Products</h1>
           <p className="text-muted-foreground mt-1">Manage product listings</p>
         </div>
-        <Button asChild>
-          <Link href="/admin/products/new">
-            <Plus className="mr-2 h-4 w-4" />
-            New Product
-          </Link>
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button asChild variant="outline">
+            <Link href="/admin/section-pages/products">Edit Website Page</Link>
+          </Button>
+          <Button asChild>
+            <Link href="/admin/products/new">
+              <Plus className="mr-2 h-4 w-4" />
+              New Product
+            </Link>
+          </Button>
+        </div>
       </div>
 
       {products.length > 0 ? (

@@ -10,6 +10,7 @@ import { getSiteSettings } from "@/lib/site-settings"
 import { buildSeoMetadata } from "@/lib/seo"
 import { resolveAssetUrl } from "@/lib/asset-url"
 import { getItemLinkTargetProps, resolveItemLinkHref } from "@/lib/item-link"
+import { RichContentRenderer } from "@/components/cms/rich-content-renderer"
 
 export async function generateMetadata() {
   const settings = await getSiteSettings()
@@ -37,6 +38,7 @@ export default async function TrainingPage() {
   })
   const siteSettings = await getSiteSettings()
   const siteTitle = siteSettings.siteTitle || "Our Company"
+  const pageConfig = siteSettings.staticSeo.training
 
   return (
     <div className="flex flex-col min-h-screen">
@@ -55,25 +57,14 @@ export default async function TrainingPage() {
           </div>
         </section>
 
-        {/* About Training */}
-        <section className="py-16 bg-background">
-          <div className="container mx-auto px-4 lg:px-8">
-            <div className="space-y-6">
-              <h2 className="text-3xl font-bold">World-Class Certification Programs</h2>
-              <p className="text-lg text-muted-foreground leading-relaxed">
-                {siteTitle} offers comprehensive training programs designed to equip professionals with the knowledge and skills needed to excel in reliability and condition monitoring. Our courses cover a wide range of topics, from fundamental principles to advanced techniques, ensuring that participants gain a deep understanding of the subject matter.
-              </p>
-              <p className="text-lg text-muted-foreground leading-relaxed">
-                Whether you're a new professional or looking to advance your expertise, our structured programs
-                provide the knowledge and hands-on experience needed to excel in the field.
-              </p>
-            </div>
-          </div>
-        </section>
-
         {/* Training Courses */}
         <section className="py-16 bg-muted/30">
           <div className="container mx-auto px-4 lg:px-8">
+            {pageConfig.beforeListContent ? (
+              <div className="mb-10">
+                <RichContentRenderer content={pageConfig.beforeListContent} className="prose prose-lg max-w-none" />
+              </div>
+            ) : null}
             <div className="mb-10">
               <h2 className="text-3xl font-bold mb-3">Available Courses</h2>
               <p className="text-lg text-muted-foreground leading-relaxed">
@@ -136,91 +127,11 @@ export default async function TrainingPage() {
                 </Card>
               ))}
             </div>
-          </div>
-        </section>
-
-        {/* Why Train With Us */}
-        <section className="py-16 bg-background">
-          <div className="container mx-auto px-4 lg:px-8">
-            <div>
-              <h2 className="text-3xl font-bold mb-8">Why Train With {siteTitle}</h2>
-              <div className="grid md:grid-cols-2 gap-6">
-                <div className="flex gap-3">
-                  <CheckCircle2 className="h-6 w-6 text-primary flex-shrink-0 mt-1" />
-                  <div>
-                    <h3 className="font-semibold mb-2">Expert Instructors</h3>
-                    <p className="text-muted-foreground leading-relaxed">
-                      Learn from certified professionals with extensive industry experience
-                    </p>
-                  </div>
-                </div>
-
-                <div className="flex gap-3">
-                  <CheckCircle2 className="h-6 w-6 text-primary flex-shrink-0 mt-1" />
-                  <div>
-                    <h3 className="font-semibold mb-2">Hands-On Training</h3>
-                    <p className="text-muted-foreground leading-relaxed">
-                      Practical exercises and real-world case studies for comprehensive learning
-                    </p>
-                  </div>
-                </div>
-
-                <div className="flex gap-3">
-                  <CheckCircle2 className="h-6 w-6 text-primary flex-shrink-0 mt-1" />
-                  <div>
-                    <h3 className="font-semibold mb-2">Flexible Training Delivery Options</h3>
-                    <p className="text-muted-foreground leading-relaxed">
-                      Training can be conducted at client site, our hosted venue, or online
-                    </p>
-                  </div>
-                </div>
-
-                <div className="flex gap-3">
-                  <CheckCircle2 className="h-6 w-6 text-primary flex-shrink-0 mt-1" />
-                  <div>
-                    <h3 className="font-semibold mb-2">Exam Preparation</h3>
-                    <p className="text-muted-foreground leading-relaxed">
-                      Comprehensive preparation materials and practice tests
-                    </p>
-                  </div>
-                </div>
-
-                <div className="flex gap-3">
-                  <CheckCircle2 className="h-6 w-6 text-primary flex-shrink-0 mt-1" />
-                  <div>
-                    <h3 className="font-semibold mb-2">Flexible Scheduling</h3>
-                    <p className="text-muted-foreground leading-relaxed">
-                      Course schedules designed to accommodate working professionals
-                    </p>
-                  </div>
-                </div>
-
-                <div className="flex gap-3">
-                  <CheckCircle2 className="h-6 w-6 text-primary flex-shrink-0 mt-1" />
-                  <div>
-                    <h3 className="font-semibold mb-2">Post-Training Support</h3>
-                    <p className="text-muted-foreground leading-relaxed">
-                      Ongoing guidance and resources after course completion
-                    </p>
-                  </div>
-                </div>
+            {pageConfig.afterListContent ? (
+              <div className="mt-10">
+                <RichContentRenderer content={pageConfig.afterListContent} className="prose prose-lg max-w-none" />
               </div>
-            </div>
-          </div>
-        </section>
-
-        {/* CTA Section */}
-        <section className="py-16 bg-primary text-primary-foreground">
-          <div className="container mx-auto px-4 lg:px-8">
-            <div className="max-w-3xl mx-auto text-center space-y-6">
-              <h2 className="text-3xl md:text-4xl font-bold text-balance">Ready to Advance Your Career?</h2>
-              <p className="text-lg text-primary-foreground/90 text-pretty leading-relaxed">
-                Contact us today to learn more about our training programs and upcoming course schedules.
-              </p>
-              <Button asChild size="lg" variant="secondary">
-                <Link href="/contact">Inquire About Training</Link>
-              </Button>
-            </div>
+            ) : null}
           </div>
         </section>
       </main>

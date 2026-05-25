@@ -148,7 +148,7 @@ function normalizeStaticSeo(raw: unknown, headingTypographyRaw: unknown) {
   if ((!raw || typeof raw !== "object" || Array.isArray(raw)) && typeof headingTypographyRaw === "undefined") {
     return undefined
   }
-  const allowedKeys = ["home", "about", "services", "training", "contact", "blog"] as const
+  const allowedKeys = ["home", "about", "services", "training", "products", "departments", "pricing", "contact", "blog"] as const
   const parsedRaw = raw && typeof raw === "object" && !Array.isArray(raw) ? (raw as Record<string, unknown>) : {}
   const normalized: Record<string, unknown> = {}
   for (const key of allowedKeys) {

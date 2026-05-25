@@ -11,12 +11,19 @@ import { contentIconMap } from "@/lib/content-icons"
 import { resolveAssetUrl } from "@/lib/asset-url"
 import { findManyDepartmentsCompat } from "@/lib/department-compat"
 import { getItemLinkTargetProps, resolveItemLinkHref } from "@/lib/item-link"
+import { RichContentRenderer } from "@/components/cms/rich-content-renderer"
 
 export async function generateMetadata() {
   const settings = await getSiteSettings()
+  const override = settings.staticSeo.departments
   return buildSeoMetadata(settings, {
-    title: "Departments",
-    description: "Explore our core departments and their capabilities.",
+    title: override.title || "Departments",
+    description: override.description || "Explore our core departments and their capabilities.",
+    keywords: override.keywords || undefined,
+    ogImage: override.ogImage || undefined,
+    canonical: override.canonical || undefined,
+    noIndex: override.noIndex,
+    noFollow: override.noFollow,
   })
 }
 
@@ -31,6 +38,7 @@ export default async function DepartmentsPage() {
     }),
     getSiteSettings(),
   ])
+  const pageConfig = siteSettings.staticSeo.departments
 
   return (
     <div className="flex flex-col min-h-screen">
@@ -50,6 +58,11 @@ export default async function DepartmentsPage() {
 
         <section className="py-16 bg-background">
           <div className="container mx-auto px-4 lg:px-8">
+            {pageConfig.beforeListContent ? (
+              <div className="mb-10">
+                <RichContentRenderer content={pageConfig.beforeListContent} className="prose prose-lg max-w-none" />
+              </div>
+            ) : null}
             {departments.length > 0 ? (
               <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {departments.map((department) => {
@@ -91,6 +104,11 @@ export default async function DepartmentsPage() {
                 </CardContent>
               </Card>
             )}
+            {pageConfig.afterListContent ? (
+              <div className="mt-10">
+                <RichContentRenderer content={pageConfig.afterListContent} className="prose prose-lg max-w-none" />
+              </div>
+            ) : null}
           </div>
         </section>
       </main>

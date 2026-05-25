@@ -10,6 +10,7 @@ import { buildSeoMetadata } from "@/lib/seo"
 import { contentIconMap } from "@/lib/content-icons"
 import { resolveAssetUrl } from "@/lib/asset-url"
 import { getItemLinkTargetProps, resolveItemLinkHref } from "@/lib/item-link"
+import { RichContentRenderer } from "@/components/cms/rich-content-renderer"
 
 export async function generateMetadata() {
   const settings = await getSiteSettings()
@@ -32,6 +33,7 @@ export default async function ServicesPage() {
 
   const services = await prisma.service.findMany({ orderBy: { displayOrder: "asc" } })
   const siteSettings = await getSiteSettings()
+  const pageConfig = siteSettings.staticSeo.services
 
   return (
     <div className="flex flex-col min-h-screen">
@@ -52,6 +54,11 @@ export default async function ServicesPage() {
 
         <section className="py-16 bg-background">
           <div className="container mx-auto px-4 lg:px-8">
+            {pageConfig.beforeListContent ? (
+              <div className="mb-10">
+                <RichContentRenderer content={pageConfig.beforeListContent} className="prose prose-lg max-w-none" />
+              </div>
+            ) : null}
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
               {services.map((service) => {
                 const IconComponent = contentIconMap[service.icon as keyof typeof contentIconMap] || Package
@@ -84,24 +91,11 @@ export default async function ServicesPage() {
                 )
               })}
             </div>
-          </div>
-        </section>
-
-        {/* CTA Section */}
-        <section className="py-16 bg-primary text-primary-foreground">
-          <div className="container mx-auto px-4 lg:px-8">
-            <div className="max-w-3xl mx-auto text-center space-y-6">
-              <h2 className="text-3xl md:text-4xl font-bold text-balance">Need a Custom Solution?</h2>
-              <p className="text-lg text-primary-foreground/90 text-pretty leading-relaxed">
-                Contact us today to discuss your specific requirements and learn how we can help your organization
-                succeed.
-              </p>
-              <Button asChild size="lg" variant="secondary">
-                <Link href="/contact">
-                  Get in Touch <ArrowRight className="ml-2 h-5 w-5" />
-                </Link>
-              </Button>
-            </div>
+            {pageConfig.afterListContent ? (
+              <div className="mt-10">
+                <RichContentRenderer content={pageConfig.afterListContent} className="prose prose-lg max-w-none" />
+              </div>
+            ) : null}
           </div>
         </section>
       </main>
