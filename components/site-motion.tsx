@@ -37,12 +37,12 @@ export function SiteMotion() {
     const desktopPercent = Number.isFinite(desktopPercentRaw) ? Math.min(90, Math.max(0, desktopPercentRaw)) : 34
     const mobilePercent = Number.isFinite(mobilePercentRaw) ? Math.min(90, Math.max(0, mobilePercentRaw)) : 50
     const sectionRootMargin = `0px 0px -${isMobile ? mobilePercent : desktopPercent}% 0px`
-    const cardRootMargin = `0px 0px -${mobilePercent}% 0px`
-    const mobileCards = Array.from(document.querySelectorAll<HTMLElement>(`main ${SECTION_CARD_SELECTOR}`)).filter(
+    const cardRootMargin = `0px 0px -${isMobile ? mobilePercent : desktopPercent}% 0px`
+    const observedCards = Array.from(document.querySelectorAll<HTMLElement>(`main ${SECTION_CARD_SELECTOR}`)).filter(
       (card) => !card.closest(".home-section-scroll-card") && !card.closest(".scrolling-loop"),
     )
 
-    if (sections.length === 0 && mobileCards.length === 0) return
+    if (sections.length === 0 && observedCards.length === 0) return
 
     sections.forEach((section, index) => {
       section.classList.add("motion-reveal")
@@ -103,7 +103,7 @@ export function SiteMotion() {
     })
 
     if (isMobile) {
-      mobileCards.forEach((card, index) => {
+      observedCards.forEach((card, index) => {
         card.classList.add("motion-card-reveal")
         card.setAttribute("data-motion-card-variant", index % 2 === 0 ? "from-left" : "from-right")
         card.style.setProperty("--motion-card-delay", `${Math.min((index % 4) * 60, 180)}ms`)
@@ -112,7 +112,7 @@ export function SiteMotion() {
 
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
       sections.forEach((section) => section.classList.add("is-visible"))
-      mobileCards.forEach((card) => card.classList.add("is-visible"))
+      observedCards.forEach((card) => card.classList.add("is-visible"))
       return
     }
 
@@ -139,7 +139,7 @@ export function SiteMotion() {
     })
 
     let cardObserver: IntersectionObserver | null = null
-    if (isMobile && mobileCards.length > 0) {
+    if (observedCards.length > 0) {
       cardObserver = new IntersectionObserver(
         (entries) => {
           entries.forEach((entry) => {
@@ -157,7 +157,7 @@ export function SiteMotion() {
           threshold: CARD_TRIGGER_THRESHOLD,
         },
       )
-      mobileCards.forEach((card) => cardObserver?.observe(card))
+      observedCards.forEach((card) => cardObserver?.observe(card))
     }
 
     return () => {

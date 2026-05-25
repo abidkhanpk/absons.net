@@ -363,7 +363,13 @@
     --motion-node-y: 0px;
   }
 
-  body.site-motion-enabled .motion-reveal.is-visible .motion-section-node {
+  body.site-motion-enabled .motion-reveal.is-visible .motion-section-node:not(.motion-section-card) {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+    filter: blur(0);
+  }
+
+  body.site-motion-enabled .motion-reveal.is-visible .motion-section-card.is-visible {
     opacity: 1;
     transform: translate3d(0, 0, 0);
     filter: blur(0);
