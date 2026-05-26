@@ -247,7 +247,7 @@ export function RichContentRenderer({ content, className }: { content: string; c
           part.html ? <div key={part.key} dangerouslySetInnerHTML={{ __html: part.html }} /> : null
         ) : (
           <CmsVideoPlayer key={part.key} config={part.config} />
-        ),
+        )
       )}
     </div>
   )
