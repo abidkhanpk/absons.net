@@ -5,22 +5,24 @@ import { getSiteSettings } from "@/lib/site-settings"
 export const dynamic = "force-dynamic"
 export const revalidate = 0
 
-const STATIC_ROUTES = ["/", "/about", "/services", "/training", "/products", "/departments", "/pricing", "/contact", "/blog"] as const
+const STATIC_ROUTE_CONFIG = [
+  { path: "/", seoKey: "home" },
+  { path: "/about", seoKey: "about" },
+  { path: "/services", seoKey: "services", sectionId: "services" },
+  { path: "/training", seoKey: "training", sectionId: "training" },
+  { path: "/products", seoKey: "products", sectionId: "products" },
+  { path: "/departments", seoKey: "departments", sectionId: "departments" },
+  { path: "/pricing", seoKey: "pricing", sectionId: "pricing" },
+  { path: "/contact", seoKey: "contact" },
+  { path: "/blog", seoKey: "blog" },
+] as const
 
-const STATIC_ROUTE_SEO_KEY: Record<(typeof STATIC_ROUTES)[number], "home" | "about" | "services" | "training" | "products" | "departments" | "pricing" | "contact" | "blog"> =
-  {
-    "/": "home",
-    "/about": "about",
-    "/services": "services",
-    "/training": "training",
-    "/products": "products",
-    "/departments": "departments",
-    "/pricing": "pricing",
-    "/contact": "contact",
-    "/blog": "blog",
-  }
+type StaticSeoKey = (typeof STATIC_ROUTE_CONFIG)[number]["seoKey"]
+type SectionRouteId = Extract<(typeof STATIC_ROUTE_CONFIG)[number]["sectionId"], string>
 
-const RESERVED_STATIC_SLUGS = new Set(STATIC_ROUTES.filter((route) => route !== "/").map((route) => route.slice(1)))
+const RESERVED_STATIC_SLUGS = new Set(
+  STATIC_ROUTE_CONFIG.filter((route) => route.path !== "/").map((route) => route.path.slice(1)),
+)
 
 function normalizeBaseUrl(input: string) {
   const trimmed = input.trim().replace(/\/+$/g, "")
@@ -51,10 +53,46 @@ function toAbsoluteUrl(baseUrl: string, path: string) {
   return `${baseUrl}${normalizedPath === "/" ? "" : normalizedPath}`
 }
 
+function isLikelyAbsoluteUrl(value: string) {
+  const trimmed = value.trim()
+  if (!trimmed) return false
+  if (/^https?:\/\//i.test(trimmed)) return true
+  return /^[a-z0-9.-]+\.[a-z]{2,}(?:[/:?#]|$)/i.test(trimmed)
+}
+
+function normalizeAbsoluteUrl(value: string) {
+  const trimmed = value.trim()
+  if (!trimmed) return ""
+  const withProtocol = /^https?:\/\//i.test(trimmed) ? trimmed : `https://${trimmed}`
+  try {
+    return new URL(withProtocol).toString().replace(/\/+$/g, "")
+  } catch {
+    return ""
+  }
+}
+
+function resolveEntryUrl(baseUrl: string, canonicalUrl: string | null | undefined, fallbackPath: string) {
+  const canonical = canonicalUrl?.trim() || ""
+  if (!canonical) return toAbsoluteUrl(baseUrl, fallbackPath)
+  if (isLikelyAbsoluteUrl(canonical)) {
+    return normalizeAbsoluteUrl(canonical) || toAbsoluteUrl(baseUrl, fallbackPath)
+  }
+  return toAbsoluteUrl(baseUrl, canonical)
+}
+
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const settings = await getSiteSettings()
   const baseUrl = resolvePublicBaseUrl(settings.seoDefaultCanonicalBase || "")
   const approvalRequired = settings.editorApprovalRequired ?? true
+  const enabledSectionRoutes = new Set<SectionRouteId>(
+    settings.homeSections
+      .filter((section) => section.enabled)
+      .map((section) => section.id)
+      .filter(
+        (id): id is SectionRouteId =>
+          id === "services" || id === "training" || id === "products" || id === "departments" || id === "pricing",
+      ),
+  )
 
   const [blogPosts, pages] = await Promise.all([
     prisma.blogPost.findMany({
@@ -63,6 +101,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
         : { published: true, seoNoIndex: false },
       select: {
         slug: true,
+        seoCanonicalUrl: true,
         updatedAt: true,
         publishedAt: true,
       },
@@ -74,6 +113,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
         : { published: true, seoNoIndex: false },
       select: {
         slug: true,
+        seoCanonicalUrl: true,
         updatedAt: true,
         publishedAt: true,
       },
@@ -84,24 +124,25 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const entries: MetadataRoute.Sitemap = []
   const seen = new Set<string>()
 
-  for (const route of STATIC_ROUTES) {
-    const seoKey = STATIC_ROUTE_SEO_KEY[route]
+  for (const route of STATIC_ROUTE_CONFIG) {
+    if (route.sectionId && !enabledSectionRoutes.has(route.sectionId)) continue
+    const seoKey: StaticSeoKey = route.seoKey
     if (settings.staticSeo[seoKey]?.noIndex) continue
-    const url = toAbsoluteUrl(baseUrl, route)
+    const url = toAbsoluteUrl(baseUrl, route.path)
     if (seen.has(url)) continue
     seen.add(url)
     entries.push({
       url,
       lastModified: new Date(),
-      changeFrequency: route === "/" ? "daily" : "weekly",
-      priority: route === "/" ? 1 : route === "/blog" ? 0.8 : 0.7,
+      changeFrequency: route.path === "/" ? "daily" : "weekly",
+      priority: route.path === "/" ? 1 : route.path === "/blog" ? 0.8 : 0.7,
     })
   }
 
   for (const post of blogPosts) {
     const slug = post.slug?.trim()
     if (!slug) continue
-    const url = toAbsoluteUrl(baseUrl, `/blog/${slug}`)
+    const url = resolveEntryUrl(baseUrl, post.seoCanonicalUrl, `/blog/${slug}`)
     if (seen.has(url)) continue
     seen.add(url)
     entries.push({
@@ -115,7 +156,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   for (const page of pages) {
     const slug = page.slug?.trim()
     if (!slug || RESERVED_STATIC_SLUGS.has(slug)) continue
-    const url = toAbsoluteUrl(baseUrl, `/${slug}`)
+    const url = resolveEntryUrl(baseUrl, page.seoCanonicalUrl, `/${slug}`)
     if (seen.has(url)) continue
     seen.add(url)
     entries.push({
