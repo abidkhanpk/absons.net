@@ -123,7 +123,7 @@ VALUES
   ),
   (
     'blog',
-    '',
+    '<section class="cms-rich-section transition-colors relative left-1/2 right-1/2 ml-[-50vw] mr-[-50vw] w-screen max-w-none px-4 md:px-6 lg:px-8 py-10 px-4 md:px-6 mt-0 mb-2 rounded-none border-0" data-cms-section-preset="frosted-steel" data-cms-section-full-width="true" data-cms-section-animate-entrance="true" data-cms-section-animate-exit="true" data-cms-section-animate-content="true" data-cms-section-gap-before="none" data-cms-section-gap-after="minimal" data-cms-section-spacing="spacious" data-cms-section-radius="none" data-cms-section-border="none" data-cms-section-shadow="none" data-cms-section="true" style="background: linear-gradient(135deg, rgba(222, 230, 236, 0.98), rgba(247, 249, 251, 0.98) 50%, rgba(220, 230, 236, 0.98)); color: rgb(91, 101, 114); --tw-prose-body: #5b6572; --tw-prose-headings: #030712; --tw-prose-bold: #030712; --tw-prose-links: #0b67b2; --tw-prose-bullets: #0b67b2; --tw-prose-counters: #0b67b2; --tw-prose-quote-borders: #0b67b2;"><h1 style="text-align: center;">Blog &amp; News</h1><p style="text-align: center;">Stay updated with the latest insights, news, and updates from ABSONS Innovations.</p></section>',
     ''
   )
 ON CONFLICT ("section_key") DO UPDATE

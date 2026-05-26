@@ -6,14 +6,20 @@ import { Plus, Calendar, Edit } from "lucide-react"
 import { DeleteBlogButton } from "@/components/admin/delete-blog-button"
 import { getSession } from "@/lib/auth"
 import { withRls } from "@/lib/prisma"
+import { redirect } from "next/navigation"
 
 export default async function BlogManagementPage() {
   const session = await getSession()
-  if (!session) return null
+  if (!session?.userId) {
+    redirect("/auth/login")
+  }
 
   const user = await withRls(session.userId, (tx) =>
     tx.user.findUnique({ where: { id: session.userId }, select: { role: true } }),
   )
+  if (!user || (user.role !== "admin" && user.role !== "super_admin" && user.role !== "editor")) {
+    redirect("/admin")
+  }
   const isEditor = user?.role === "editor"
 
   const posts = await withRls(session.userId, (tx) =>
