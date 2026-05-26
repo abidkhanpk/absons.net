@@ -142,7 +142,6 @@ export async function POST(request: Request) {
         "SMTP settings test completed successfully.",
         `Triggered by: ${session.email}`,
         `Triggered at: ${new Date().toISOString()}`,
-        `Logged in user: Yes`,
       ].join("\n"),
     })
 

@@ -1,7 +1,6 @@
 import { NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 import { getSiteSettings } from "@/lib/site-settings"
-import { getSession } from "@/lib/auth"
 import nodemailer from "nodemailer"
 
 type ContactStatus = "new" | "deletion_requested"
@@ -84,7 +83,6 @@ async function sendContactEmail({
   company,
   purpose,
   message,
-  loggedIn,
 }: {
   name: string
   email: string
@@ -92,7 +90,6 @@ async function sendContactEmail({
   company: string
   purpose: string
   message: string
-  loggedIn: boolean
 }) {
   const settings = await getSiteSettings()
   const to = sanitizeField(settings.emailSettings.inquiryReceiverEmail) || sanitizeField(settings.contactEmail)
@@ -136,7 +133,6 @@ async function sendContactEmail({
     <p><strong>Purpose:</strong> ${escapeHtml(purpose)}</p>
     <p><strong>Name:</strong> ${escapeHtml(name)}</p>
     <p><strong>Email:</strong> ${escapeHtml(email)}</p>
-    <p><strong>Logged In User:</strong> ${loggedIn ? "Yes" : "No"}</p>
     <p><strong>Phone:</strong> ${escapeHtml(phone || "-")}</p>
     <p><strong>Company:</strong> ${escapeHtml(company || "-")}</p>
     <p><strong>Message:</strong></p>
@@ -149,7 +145,6 @@ async function sendContactEmail({
     `Purpose: ${purpose}`,
     `Name: ${name}`,
     `Email: ${email}`,
-    `Logged In User: ${loggedIn ? "Yes" : "No"}`,
     `Phone: ${phone || "-"}`,
     `Company: ${company || "-"}`,
     "",
@@ -187,7 +182,6 @@ export async function POST(request: Request) {
     const purpose = sanitizeField(body.purpose)
     const message = sanitizeField(body.message)
     const status = sanitizeField(body.status)
-    const session = await getSession()
 
     if (!name || !email || !message) {
       return NextResponse.json({ error: "Name, email, and message are required" }, { status: 400 })
@@ -220,7 +214,6 @@ export async function POST(request: Request) {
         company,
         purpose,
         message,
-        loggedIn: Boolean(session),
       })
     }
 
