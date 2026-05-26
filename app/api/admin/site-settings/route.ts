@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma"
 import { getSession } from "@/lib/auth"
 import { normalizeAssetDbValue } from "@/lib/asset-key"
 import { normalizeHeadingTypography } from "@/lib/heading-typography"
+import { encryptSecret } from "@/lib/settings-secret"
 
 function normalizeWhyChooseItems(raw: unknown) {
   if (!Array.isArray(raw)) return undefined
@@ -75,6 +76,33 @@ function normalizeFooterMeta(raw: unknown) {
     typeof base.motionEntranceMobilePercent === "number" && Number.isFinite(base.motionEntranceMobilePercent)
       ? Math.min(90, Math.max(0, Math.round(base.motionEntranceMobilePercent)))
       : 50
+  const rawEmailSettings =
+    base.emailSettings && typeof base.emailSettings === "object" && !Array.isArray(base.emailSettings)
+      ? (base.emailSettings as Record<string, unknown>)
+      : {}
+  const smtpPortCandidate = Number(rawEmailSettings.smtpPort)
+  const emailSettings = {
+    inquiryReceiverEmail:
+      typeof rawEmailSettings.inquiryReceiverEmail === "string" ? rawEmailSettings.inquiryReceiverEmail.trim() : "",
+    smtpSenderEmail: typeof rawEmailSettings.smtpSenderEmail === "string" ? rawEmailSettings.smtpSenderEmail.trim() : "",
+    smtpHost: typeof rawEmailSettings.smtpHost === "string" ? rawEmailSettings.smtpHost.trim() : "",
+    smtpPort: Number.isFinite(smtpPortCandidate) && smtpPortCandidate > 0 ? Math.round(smtpPortCandidate) : 587,
+    smtpEncryption:
+      rawEmailSettings.smtpEncryption === "none" ||
+      rawEmailSettings.smtpEncryption === "tls" ||
+      rawEmailSettings.smtpEncryption === "ssl"
+        ? rawEmailSettings.smtpEncryption
+        : rawEmailSettings.smtpSecure === true
+          ? "ssl"
+          : "tls",
+    smtpUser: typeof rawEmailSettings.smtpUser === "string" ? rawEmailSettings.smtpUser.trim() : "",
+    smtpPass:
+      typeof rawEmailSettings.smtpPass === "string" ? encryptSecret(rawEmailSettings.smtpPass) : "",
+    contactFormMode:
+      rawEmailSettings.contactFormMode === "external_embed" ? "external_embed" : "internal",
+    externalFormEmbedHtml:
+      typeof rawEmailSettings.externalFormEmbedHtml === "string" ? rawEmailSettings.externalFormEmbedHtml : "",
+  }
   const secondary =
     Array.isArray(base.secondary)
       ? base.secondary
@@ -106,6 +134,7 @@ function normalizeFooterMeta(raw: unknown) {
     showFooterTagline,
     motionEntranceDesktopPercent,
     motionEntranceMobilePercent,
+    emailSettings,
     secondary,
   }
 }
@@ -408,6 +437,12 @@ export async function PUT(request: Request) {
 
     return NextResponse.json({ success: true, updatedAt: updatedSettings.updatedAt.toISOString() })
   } catch (error) {
+    if (error instanceof Error && /Missing encryption key/i.test(error.message)) {
+      return NextResponse.json(
+        { error: "Missing settings encryption key. Configure SETTINGS_ENCRYPTION_KEY or AUTH_SECRET." },
+        { status: 400 },
+      )
+    }
     console.error("Error updating site settings:", error)
     return NextResponse.json({ error: "Failed to update settings" }, { status: 500 })
   }

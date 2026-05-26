@@ -28,6 +28,15 @@ type SiteSettings = {
   contact_email: string | null
   contact_phone: string | null
   contact_address: string | null
+  inquiry_receiver_email?: string | null
+  smtp_sender_email?: string | null
+  smtp_host?: string | null
+  smtp_port?: number | null
+  smtp_encryption?: "none" | "tls" | "ssl" | null
+  smtp_user?: string | null
+  smtp_pass?: string | null
+  contact_form_mode?: "internal" | "external_embed" | null
+  external_form_embed_html?: string | null
   business_hours?: string | null
   business_days?: string | null
   business_hours_schedule?: string | null
@@ -166,6 +175,17 @@ type FooterMetaSettings = {
   showFooterTagline: boolean
   motionEntranceDesktopPercent: number
   motionEntranceMobilePercent: number
+  emailSettings: {
+    inquiryReceiverEmail: string
+    smtpSenderEmail: string
+    smtpHost: string
+    smtpPort: number
+    smtpEncryption: "none" | "tls" | "ssl"
+    smtpUser: string
+    smtpPass: string
+    contactFormMode: "internal" | "external_embed"
+    externalFormEmbedHtml: string
+  }
 }
 
 type HomeSection = {
@@ -334,6 +354,17 @@ function safeParseNavItemsGroup(
     showFooterTagline: true,
     motionEntranceDesktopPercent: 34,
     motionEntranceMobilePercent: 50,
+    emailSettings: {
+      inquiryReceiverEmail: "info@absons.net",
+      smtpSenderEmail: "",
+      smtpHost: "",
+      smtpPort: 587,
+      smtpEncryption: "tls",
+      smtpUser: "",
+      smtpPass: "",
+      contactFormMode: "internal",
+      externalFormEmbedHtml: "",
+    },
   }
 
   const normalizeFooterMeta = (rawMeta: unknown): FooterMetaSettings => {
@@ -377,6 +408,53 @@ function safeParseNavItemsGroup(
         typeof meta.motionEntranceMobilePercent === "number" && Number.isFinite(meta.motionEntranceMobilePercent)
           ? Math.min(90, Math.max(0, Math.round(meta.motionEntranceMobilePercent)))
           : defaultFooterMeta.motionEntranceMobilePercent,
+      emailSettings: (() => {
+        const raw = meta.emailSettings
+        if (!raw || typeof raw !== "object" || Array.isArray(raw)) return defaultFooterMeta.emailSettings
+        const source = raw as Record<string, unknown>
+        const smtpPortCandidate = Number(source.smtpPort)
+        const smtpEncryption =
+          source.smtpEncryption === "none" || source.smtpEncryption === "tls" || source.smtpEncryption === "ssl"
+            ? source.smtpEncryption
+            : source.smtpSecure === true
+              ? "ssl"
+              : defaultFooterMeta.emailSettings.smtpEncryption
+        return {
+          inquiryReceiverEmail:
+            typeof source.inquiryReceiverEmail === "string"
+              ? source.inquiryReceiverEmail.trim()
+              : defaultFooterMeta.emailSettings.inquiryReceiverEmail,
+          smtpSenderEmail:
+            typeof source.smtpSenderEmail === "string"
+              ? source.smtpSenderEmail.trim()
+              : defaultFooterMeta.emailSettings.smtpSenderEmail,
+          smtpHost:
+            typeof source.smtpHost === "string"
+              ? source.smtpHost.trim()
+              : defaultFooterMeta.emailSettings.smtpHost,
+          smtpPort:
+            Number.isFinite(smtpPortCandidate) && smtpPortCandidate > 0
+              ? Math.round(smtpPortCandidate)
+              : defaultFooterMeta.emailSettings.smtpPort,
+          smtpEncryption,
+          smtpUser:
+            typeof source.smtpUser === "string"
+              ? source.smtpUser.trim()
+              : defaultFooterMeta.emailSettings.smtpUser,
+          smtpPass:
+            typeof source.smtpPass === "string"
+              ? source.smtpPass
+              : defaultFooterMeta.emailSettings.smtpPass,
+          contactFormMode:
+            source.contactFormMode === "external_embed"
+              ? "external_embed"
+              : defaultFooterMeta.emailSettings.contactFormMode,
+          externalFormEmbedHtml:
+            typeof source.externalFormEmbedHtml === "string"
+              ? source.externalFormEmbedHtml
+              : defaultFooterMeta.emailSettings.externalFormEmbedHtml,
+        }
+      })(),
     }
   }
 
@@ -726,6 +804,15 @@ export function SiteSettingsForm({ initial, pages }: { initial: SiteSettings; pa
     contactEmail: initial.contact_email || "",
     contactPhone: initial.contact_phone || "",
     contactAddress: initial.contact_address || "",
+    inquiryReceiverEmail: initial.inquiry_receiver_email || initial.contact_email || "info@absons.net",
+    smtpSenderEmail: initial.smtp_sender_email || initialFooterMeta.emailSettings.smtpSenderEmail || "",
+    smtpHost: initial.smtp_host || "",
+    smtpPort: initial.smtp_port || 587,
+    smtpEncryption: (initial.smtp_encryption as "none" | "tls" | "ssl") || "tls",
+    smtpUser: initial.smtp_user || "",
+    smtpPass: initial.smtp_pass || "",
+    contactFormMode: (initial.contact_form_mode as "internal" | "external_embed") || "internal",
+    externalFormEmbedHtml: initial.external_form_embed_html || "",
     businessHours: initial.business_hours || "Mon - Sat, 9:00 AM - 6:00 PM",
     businessDays: initial.business_days || "Mon - Sat",
     businessHoursSchedule:
@@ -799,9 +886,11 @@ export function SiteSettingsForm({ initial, pages }: { initial: SiteSettings; pa
   const [isSaving, setIsSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState(false)
+  const [smtpTestResult, setSmtpTestResult] = useState<string | null>(null)
+  const [isTestingSmtp, setIsTestingSmtp] = useState(false)
   const [uploading, setUploading] = useState(false)
   const [uploadingHeroIndex, setUploadingHeroIndex] = useState<number | null>(null)
-  const [activeTab, setActiveTab] = useState<"general" | "headings" | "home-sections" | "navigation" | "hero" | "contact" | "seo">(
+  const [activeTab, setActiveTab] = useState<"general" | "headings" | "home-sections" | "navigation" | "hero" | "contact" | "email" | "seo">(
     "general",
   )
   const [selectedHeaderPage, setSelectedHeaderPage] = useState("")
@@ -1220,6 +1309,7 @@ export function SiteSettingsForm({ initial, pages }: { initial: SiteSettings; pa
     setIsSaving(true)
     setError(null)
     setSuccess(false)
+    setSmtpTestResult(null)
 
     try {
       const whyChooseSection = formData.homeSections.find((section) => section.id === "why-choose")
@@ -1247,6 +1337,17 @@ export function SiteSettingsForm({ initial, pages }: { initial: SiteSettings; pa
             showFooterTagline: formData.showFooterTagline,
             motionEntranceDesktopPercent: formData.motionEntranceDesktopPercent,
             motionEntranceMobilePercent: formData.motionEntranceMobilePercent,
+            emailSettings: {
+              inquiryReceiverEmail: formData.inquiryReceiverEmail,
+              smtpSenderEmail: formData.smtpSenderEmail,
+              smtpHost: formData.smtpHost,
+              smtpPort: formData.smtpPort,
+              smtpEncryption: formData.smtpEncryption,
+              smtpUser: formData.smtpUser,
+              smtpPass: formData.smtpPass,
+              contactFormMode: formData.contactFormMode,
+              externalFormEmbedHtml: formData.externalFormEmbedHtml,
+            },
           },
           homeSections: formData.homeSections,
           editorApprovalRequired: formData.editorApprovalRequired,
@@ -1291,6 +1392,39 @@ export function SiteSettingsForm({ initial, pages }: { initial: SiteSettings; pa
       setError(err instanceof Error ? err.message : "Failed to save settings")
     } finally {
       setIsSaving(false)
+    }
+  }
+
+  const handleTestSmtp = async () => {
+    setIsTestingSmtp(true)
+    setError(null)
+    setSuccess(false)
+    setSmtpTestResult(null)
+
+    try {
+      const response = await fetch("/api/admin/site-settings/test-email", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          inquiryReceiverEmail: formData.inquiryReceiverEmail,
+          smtpSenderEmail: formData.smtpSenderEmail,
+          smtpHost: formData.smtpHost,
+          smtpPort: formData.smtpPort,
+          smtpEncryption: formData.smtpEncryption,
+          smtpUser: formData.smtpUser,
+          smtpPass: formData.smtpPass,
+        }),
+      })
+      const result = await response.json().catch(() => ({}))
+      if (!response.ok) {
+        const reason = typeof result.reason === "string" && result.reason.trim() ? ` (${result.reason})` : ""
+        throw new Error(`${result.error || "SMTP test failed"}${reason}`)
+      }
+      setSmtpTestResult(result.message || "SMTP test email sent successfully.")
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "SMTP test failed")
+    } finally {
+      setIsTestingSmtp(false)
     }
   }
 
@@ -1387,6 +1521,12 @@ export function SiteSettingsForm({ initial, pages }: { initial: SiteSettings; pa
             className="border border-transparent text-muted-foreground transition-all data-[state=active]:border-primary/25 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground hover:bg-background/80 hover:text-foreground"
           >
             Contact
+          </TabsTrigger>
+          <TabsTrigger
+            value="email"
+            className="border border-transparent text-muted-foreground transition-all data-[state=active]:border-primary/25 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground hover:bg-background/80 hover:text-foreground"
+          >
+            Email
           </TabsTrigger>
           <TabsTrigger
             value="seo"
@@ -2054,6 +2194,148 @@ export function SiteSettingsForm({ initial, pages }: { initial: SiteSettings; pa
               </div>
             )}
           </div>
+        </TabsContent>
+
+        <TabsContent value="email" className="space-y-6">
+          <div className="space-y-2">
+            <Label htmlFor="contactFormMode">Contact Form Source</Label>
+            <Select
+              value={formData.contactFormMode}
+              onValueChange={(value: "internal" | "external_embed") =>
+                setFormData({ ...formData, contactFormMode: value })
+              }
+            >
+              <SelectTrigger id="contactFormMode">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="internal">Internal Website Form</SelectItem>
+                <SelectItem value="external_embed">External Service Embed</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          {formData.contactFormMode === "external_embed" && (
+            <div className="space-y-2">
+              <Label htmlFor="externalFormEmbedHtml">External Form Embed HTML</Label>
+              <Textarea
+                id="externalFormEmbedHtml"
+                value={formData.externalFormEmbedHtml}
+                onChange={(e) => setFormData({ ...formData, externalFormEmbedHtml: e.target.value })}
+                placeholder="<iframe ...></iframe> or provider embed HTML"
+                rows={8}
+              />
+              <p className="text-xs text-muted-foreground">
+                This code will be rendered in the same place as the internal contact form on <code>/contact</code>.
+              </p>
+            </div>
+          )}
+
+          {formData.contactFormMode === "internal" && (
+            <>
+              <div className="grid gap-4 md:grid-cols-2">
+                <div className="space-y-2">
+                  <Label htmlFor="inquiryReceiverEmail">Inquiry Receiver Email</Label>
+                  <Input
+                    id="inquiryReceiverEmail"
+                    type="email"
+                    value={formData.inquiryReceiverEmail}
+                    onChange={(e) => setFormData({ ...formData, inquiryReceiverEmail: e.target.value })}
+                    placeholder="info@example.com"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="smtpSenderEmail">SMTP Sender Email</Label>
+                  <Input
+                    id="smtpSenderEmail"
+                    type="email"
+                    value={formData.smtpSenderEmail}
+                    onChange={(e) => setFormData({ ...formData, smtpSenderEmail: e.target.value })}
+                    placeholder="no-reply@example.com"
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    Used as the sender address for outgoing contact emails. Reply-to will still be the form sender email.
+                  </p>
+                </div>
+              </div>
+
+              <div className="grid gap-4 md:grid-cols-3">
+                <div className="space-y-2 md:col-span-2">
+                  <Label htmlFor="smtpHost">SMTP Host</Label>
+                  <Input
+                    id="smtpHost"
+                    value={formData.smtpHost}
+                    onChange={(e) => setFormData({ ...formData, smtpHost: e.target.value })}
+                    placeholder="smtp.example.com"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="smtpPort">SMTP Port</Label>
+                  <Input
+                    id="smtpPort"
+                    type="number"
+                    min={1}
+                    value={formData.smtpPort}
+                    onChange={(e) => setFormData({ ...formData, smtpPort: Number(e.target.value) || 587 })}
+                  />
+                </div>
+              </div>
+
+              <div className="grid gap-4 md:grid-cols-2">
+                <div className="space-y-2">
+                  <Label htmlFor="smtpUser">SMTP Username</Label>
+                  <Input
+                    id="smtpUser"
+                    value={formData.smtpUser}
+                    onChange={(e) => setFormData({ ...formData, smtpUser: e.target.value })}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="smtpPass">SMTP Password</Label>
+                  <Input
+                    id="smtpPass"
+                    type="password"
+                    value={formData.smtpPass}
+                    onChange={(e) => setFormData({ ...formData, smtpPass: e.target.value })}
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="smtpEncryption">SMTP Encryption</Label>
+                <Select
+                  value={formData.smtpEncryption}
+                  onValueChange={(value: "none" | "tls" | "ssl") =>
+                    setFormData({ ...formData, smtpEncryption: value })
+                  }
+                >
+                  <SelectTrigger id="smtpEncryption">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="none">None (no encryption)</SelectItem>
+                    <SelectItem value="tls">TLS / STARTTLS (usually port 587)</SelectItem>
+                    <SelectItem value="ssl">SSL (usually port 465)</SelectItem>
+                  </SelectContent>
+                </Select>
+                <p className="text-xs text-muted-foreground">
+                  Choose the mode required by your SMTP provider. Wrong mode/port pairing can cause connection failure.
+                </p>
+              </div>
+
+              <div className="space-y-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  disabled={isTestingSmtp}
+                  onClick={handleTestSmtp}
+                >
+                  {isTestingSmtp ? "Testing SMTP..." : "Test SMTP Settings"}
+                </Button>
+                {smtpTestResult && <p className="text-sm text-emerald-600">{smtpTestResult}</p>}
+              </div>
+            </>
+          )}
         </TabsContent>
 
         <TabsContent value="seo" className="space-y-6">

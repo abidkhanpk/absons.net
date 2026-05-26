@@ -5,6 +5,7 @@ import {
   normalizeHeadingTypography,
   type HeadingTypographySettings,
 } from "./heading-typography"
+import { decryptSecret } from "./settings-secret"
 
 export type SiteSettings = {
   siteTitle: string
@@ -71,6 +72,7 @@ export type SiteSettings = {
   seoDefaultCanonicalBase: string
   staticSeo: StaticSeoSettings
   sectionPageContent: SectionPageContentSettings
+  emailSettings: EmailSettings
   contactEmail: string | null
   contactPhone: string | null
   contactAddress: string | null
@@ -154,6 +156,18 @@ export type SectionPageContentSettings = Record<
   "services" | "training" | "products" | "departments" | "pricing" | "blog",
   SectionPageContentEntry
 >
+
+export type EmailSettings = {
+  inquiryReceiverEmail: string
+  smtpSenderEmail: string
+  smtpHost: string
+  smtpPort: number
+  smtpEncryption: "none" | "tls" | "ssl"
+  smtpUser: string
+  smtpPass: string
+  contactFormMode: "internal" | "external_embed"
+  externalFormEmbedHtml: string
+}
 
 const defaultSettings: SiteSettings = {
   siteTitle: "Site",
@@ -493,6 +507,17 @@ const defaultSettings: SiteSettings = {
       afterListContent: "",
     },
   },
+  emailSettings: {
+    inquiryReceiverEmail: "info@absons.net",
+    smtpSenderEmail: "",
+    smtpHost: "",
+    smtpPort: 587,
+    smtpEncryption: "tls",
+    smtpUser: "",
+    smtpPass: "",
+    contactFormMode: "internal",
+    externalFormEmbedHtml: "",
+  },
   whyChooseItems: [
     { title: "Proven Expertise", description: "Years of experience delivering quality solutions", icon: "check" },
     { title: "Certified Training", description: "Mobius Institute certified vibration analysis programs", icon: "award" },
@@ -612,11 +637,38 @@ function parseNavItemsGroup(raw: unknown, fallbackCompanyName: string) {
     showFooterTagline: defaultSettings.showFooterTagline,
     motionEntranceDesktopPercent: defaultSettings.motionEntranceDesktopPercent,
     motionEntranceMobilePercent: defaultSettings.motionEntranceMobilePercent,
+    emailSettings: defaultSettings.emailSettings,
   }
 
   const parseFooterMeta = (rawMeta: unknown) => {
     if (!rawMeta || typeof rawMeta !== "object" || Array.isArray(rawMeta)) return defaultFooterMeta
     const meta = rawMeta as Record<string, unknown>
+    const rawEmailSettings =
+      meta.emailSettings && typeof meta.emailSettings === "object" && !Array.isArray(meta.emailSettings)
+        ? (meta.emailSettings as Record<string, unknown>)
+        : {}
+    const smtpPortCandidate = Number(rawEmailSettings.smtpPort)
+    const smtpPort =
+      Number.isFinite(smtpPortCandidate) && smtpPortCandidate > 0 ? Math.round(smtpPortCandidate) : defaultFooterMeta.emailSettings.smtpPort
+    const smtpEncryptionRaw =
+      rawEmailSettings.smtpEncryption === "none" ||
+      rawEmailSettings.smtpEncryption === "tls" ||
+      rawEmailSettings.smtpEncryption === "ssl"
+        ? rawEmailSettings.smtpEncryption
+        : undefined
+    const smtpEncryption =
+      smtpEncryptionRaw ?? (rawEmailSettings.smtpSecure === true ? "ssl" : defaultFooterMeta.emailSettings.smtpEncryption)
+    const smtpPassRaw =
+      typeof rawEmailSettings.smtpPass === "string"
+        ? rawEmailSettings.smtpPass
+        : defaultFooterMeta.emailSettings.smtpPass
+    let smtpPass = smtpPassRaw
+    try {
+      smtpPass = decryptSecret(smtpPassRaw)
+    } catch (error) {
+      console.error("Failed to decrypt SMTP password from site settings:", error)
+      smtpPass = smtpPassRaw
+    }
     return {
       quickLinksTitle:
         typeof meta.quickLinksTitle === "string" && meta.quickLinksTitle.trim()
@@ -655,6 +707,35 @@ function parseNavItemsGroup(raw: unknown, fallbackCompanyName: string) {
         typeof meta.motionEntranceMobilePercent === "number" && Number.isFinite(meta.motionEntranceMobilePercent)
           ? Math.min(90, Math.max(0, Math.round(meta.motionEntranceMobilePercent)))
           : defaultFooterMeta.motionEntranceMobilePercent,
+      emailSettings: {
+        inquiryReceiverEmail:
+          typeof rawEmailSettings.inquiryReceiverEmail === "string"
+            ? rawEmailSettings.inquiryReceiverEmail.trim()
+            : defaultFooterMeta.emailSettings.inquiryReceiverEmail,
+        smtpSenderEmail:
+          typeof rawEmailSettings.smtpSenderEmail === "string"
+            ? rawEmailSettings.smtpSenderEmail.trim()
+            : defaultFooterMeta.emailSettings.smtpSenderEmail,
+        smtpHost:
+          typeof rawEmailSettings.smtpHost === "string"
+            ? rawEmailSettings.smtpHost.trim()
+            : defaultFooterMeta.emailSettings.smtpHost,
+        smtpPort,
+        smtpEncryption,
+        smtpUser:
+          typeof rawEmailSettings.smtpUser === "string"
+            ? rawEmailSettings.smtpUser.trim()
+            : defaultFooterMeta.emailSettings.smtpUser,
+        smtpPass,
+        contactFormMode:
+          rawEmailSettings.contactFormMode === "external_embed"
+            ? "external_embed"
+            : defaultFooterMeta.emailSettings.contactFormMode,
+        externalFormEmbedHtml:
+          typeof rawEmailSettings.externalFormEmbedHtml === "string"
+            ? rawEmailSettings.externalFormEmbedHtml
+            : defaultFooterMeta.emailSettings.externalFormEmbedHtml,
+      },
     }
   }
 
@@ -1150,6 +1231,7 @@ export async function getSiteSettings(): Promise<SiteSettings> {
       staticSeo: parseStaticSeo(settings.staticSeo),
       sectionPageContent: parseSectionPageContent(settings.staticSeo, sectionRows),
       headingTypography: parseHeadingTypography(settings.staticSeo),
+      emailSettings: navItemsGroup.footerMeta.emailSettings,
       contactEmail: settings.contactEmail ?? defaultSettings.contactEmail,
       contactPhone: settings.contactPhone ?? defaultSettings.contactPhone,
       contactAddress: settings.contactAddress ?? defaultSettings.contactAddress,
