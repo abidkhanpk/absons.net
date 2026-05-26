@@ -338,6 +338,17 @@
     filter: blur(0);
   }
 
+  body.site-motion-enabled .motion-reveal.motion-enter-disabled.is-visible {
+    transition-duration: 0ms !important;
+    transition-delay: 0ms !important;
+  }
+
+  body.site-motion-enabled .motion-reveal.motion-enter-disabled.is-visible .motion-section-node,
+  body.site-motion-enabled .motion-reveal.motion-enter-disabled.is-visible[data-motion-variant="from-sides"] .container > * {
+    transition-duration: 0ms !important;
+    transition-delay: 0ms !important;
+  }
+
   body.site-motion-enabled .motion-reveal.motion-composite {
     opacity: 1;
     transform: none;
@@ -357,6 +368,23 @@
     will-change: opacity, transform, filter;
   }
 
+  body.site-motion-enabled section[data-cms-section="true"].motion-reveal .motion-cms-section-node {
+    opacity: 0;
+    filter: blur(16px);
+    transform: translate3d(var(--motion-node-x, 0px), var(--motion-node-y, 60px), 0);
+    transition:
+      opacity var(--motion-node-duration, 600ms) cubic-bezier(0.22, 1, 0.36, 1),
+      transform var(--motion-node-duration, 600ms) cubic-bezier(0.34, 1.56, 0.64, 1),
+      filter var(--motion-node-duration, 600ms) cubic-bezier(0.22, 1, 0.36, 1);
+    transition-delay: var(--motion-node-delay, 0ms);
+    will-change: opacity, transform, filter;
+  }
+
+  body.site-motion-enabled section[data-cms-section="true"].motion-reveal .motion-cms-section-node.motion-node-enter-disabled.is-visible {
+    transition-duration: 0ms !important;
+    transition-delay: 0ms !important;
+  }
+
   body.site-motion-enabled .motion-reveal .motion-section-card {
     --motion-node-duration: 700ms;
     --motion-node-x: -80px;
@@ -364,6 +392,12 @@
   }
 
   body.site-motion-enabled .motion-reveal.is-visible .motion-section-node {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+    filter: blur(0);
+  }
+
+  body.site-motion-enabled section[data-cms-section="true"].motion-reveal .motion-cms-section-node.is-visible {
     opacity: 1;
     transform: translate3d(0, 0, 0);
     filter: blur(0);
@@ -393,6 +427,11 @@
   body.site-motion-enabled .motion-card-reveal.is-visible {
     opacity: 1;
     transform: translate3d(0, 0, 0) scale(1);
+  }
+
+  body.site-motion-enabled .motion-card-reveal.motion-card-enter-disabled.is-visible {
+    transition-duration: 0ms !important;
+    transition-delay: 0ms !important;
   }
 
   body.site-motion-enabled main [data-slot="card"] {

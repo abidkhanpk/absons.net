@@ -284,7 +284,8 @@ const DEFAULT_SECTION_NODE_GAP_AFTER: SectionGap = "none"
 const DEFAULT_SECTION_NODE_RADIUS: SectionRadius = "none"
 const DEFAULT_SECTION_NODE_BORDER: SectionBorder = "none"
 const DEFAULT_SECTION_NODE_SHADOW: SectionShadow = "none"
-const DEFAULT_SECTION_NODE_ANIMATE_CONTENT = true
+const DEFAULT_SECTION_NODE_ANIMATE_ENTRANCE = true
+const DEFAULT_SECTION_NODE_ANIMATE_EXIT = true
 
 const DEFAULT_SECTION_INSERT_PRESET: SectionPresetId = "soft-slate"
 const DEFAULT_SECTION_INSERT_SPACING: SectionSpacing = "spacious"
@@ -294,7 +295,8 @@ const DEFAULT_SECTION_INSERT_RADIUS: SectionRadius = "none"
 const DEFAULT_SECTION_INSERT_BORDER: SectionBorder = "none"
 const DEFAULT_SECTION_INSERT_SHADOW: SectionShadow = "none"
 const DEFAULT_SECTION_INSERT_FULL_WIDTH = true
-const DEFAULT_SECTION_INSERT_ANIMATE_CONTENT = true
+const DEFAULT_SECTION_INSERT_ANIMATE_ENTRANCE = true
+const DEFAULT_SECTION_INSERT_ANIMATE_EXIT = true
 
 const includesValue = <T extends string>(pool: readonly T[], value: unknown): value is T => typeof value === "string" && pool.includes(value as T)
 
@@ -319,7 +321,8 @@ const normalizeSectionShadow = (value: unknown): SectionShadow =>
   includesValue(SECTION_SHADOW_VALUES, value) ? value : DEFAULT_SECTION_NODE_SHADOW
 
 const normalizeSectionFullWidth = (value: unknown) => value === true || value === "true"
-const normalizeSectionAnimateContent = (value: unknown) => value !== false && value !== "false"
+const normalizeSectionAnimateFlag = (value: unknown, fallback = true) =>
+  value === undefined || value === null ? fallback : value !== false && value !== "false"
 
 const inferSectionGapFromClass = (classText: string | null, direction: "before" | "after"): SectionGap => {
   if (!classText) {
@@ -408,7 +411,8 @@ const buildSectionStyle = ({
 const buildSectionNodeAttrs = ({
   preset,
   fullWidth,
-  animateContent,
+  animateEntrance,
+  animateExit,
   spacing,
   gapBefore,
   gapAfter,
@@ -418,7 +422,8 @@ const buildSectionNodeAttrs = ({
 }: {
   preset: SectionPresetId
   fullWidth: boolean
-  animateContent: boolean
+  animateEntrance: boolean
+  animateExit: boolean
   spacing: SectionSpacing
   gapBefore: SectionGap
   gapAfter: SectionGap
@@ -430,7 +435,8 @@ const buildSectionNodeAttrs = ({
   style: buildSectionStyle({ presetId: preset, border }),
   preset,
   fullWidth,
-  animateContent,
+  animateEntrance,
+  animateExit,
   spacing,
   gapBefore,
   gapAfter,
@@ -656,17 +662,46 @@ const CmsSection = Node.create({
         parseHTML: (element) => normalizeSectionFullWidth(element.getAttribute("data-cms-section-full-width")),
         renderHTML: (attributes) => ({ "data-cms-section-full-width": normalizeSectionFullWidth(attributes.fullWidth) ? "true" : "false" }),
       },
-      animateContent: {
-        default: DEFAULT_SECTION_NODE_ANIMATE_CONTENT,
-        parseHTML: (element) =>
-          normalizeSectionAnimateContent(
-            element.getAttribute("data-cms-section-animate-content") ??
-              (element.hasAttribute("data-motion-skip") ? "false" : "true"),
-          ),
-        renderHTML: (attributes) =>
-          normalizeSectionAnimateContent(attributes.animateContent)
-            ? { "data-cms-section-animate-content": "true" }
-            : { "data-cms-section-animate-content": "false", "data-motion-skip": "true" },
+      animateEntrance: {
+        default: DEFAULT_SECTION_NODE_ANIMATE_ENTRANCE,
+        parseHTML: (element) => {
+          const explicit = element.getAttribute("data-cms-section-animate-entrance")
+          if (explicit !== null) return normalizeSectionAnimateFlag(explicit, DEFAULT_SECTION_NODE_ANIMATE_ENTRANCE)
+          const legacy = element.getAttribute("data-cms-section-animate-content")
+          if (legacy !== null) return normalizeSectionAnimateFlag(legacy, DEFAULT_SECTION_NODE_ANIMATE_ENTRANCE)
+          return !element.hasAttribute("data-motion-skip")
+        },
+        renderHTML: (attributes) => ({
+          "data-cms-section-animate-entrance": normalizeSectionAnimateFlag(
+            attributes.animateEntrance,
+            DEFAULT_SECTION_NODE_ANIMATE_ENTRANCE,
+          )
+            ? "true"
+            : "false",
+        }),
+      },
+      animateExit: {
+        default: DEFAULT_SECTION_NODE_ANIMATE_EXIT,
+        parseHTML: (element) => {
+          const explicit = element.getAttribute("data-cms-section-animate-exit")
+          if (explicit !== null) return normalizeSectionAnimateFlag(explicit, DEFAULT_SECTION_NODE_ANIMATE_EXIT)
+          const legacy = element.getAttribute("data-cms-section-animate-content")
+          if (legacy !== null) return normalizeSectionAnimateFlag(legacy, DEFAULT_SECTION_NODE_ANIMATE_EXIT)
+          return !element.hasAttribute("data-motion-skip")
+        },
+        renderHTML: (attributes) => {
+          const animateEntrance = normalizeSectionAnimateFlag(
+            attributes.animateEntrance,
+            DEFAULT_SECTION_NODE_ANIMATE_ENTRANCE,
+          )
+          const animateExit = normalizeSectionAnimateFlag(attributes.animateExit, DEFAULT_SECTION_NODE_ANIMATE_EXIT)
+          const anyAnimationEnabled = animateEntrance || animateExit
+          return {
+            "data-cms-section-animate-exit": animateExit ? "true" : "false",
+            "data-cms-section-animate-content": anyAnimationEnabled ? "true" : "false",
+            ...(anyAnimationEnabled ? {} : { "data-motion-skip": "true" }),
+          }
+        },
       },
       gapBefore: {
         default: DEFAULT_SECTION_NODE_GAP_BEFORE,
@@ -1020,6 +1055,12 @@ const SOURCE_EDITOR_NOWRAP_THEME = EditorView.theme({
   },
 })
 
+const INLINE_SVG_PATTERN = /<svg\b/i
+
+function containsInlineSvgMarkup(raw: string) {
+  return INLINE_SVG_PATTERN.test(raw || "")
+}
+
 const TEXT_COLOR_OPTIONS = [
   { label: "Default", value: "" },
   { label: "White", value: "#ffffff" },
@@ -1069,6 +1110,11 @@ export function RichTextEditor({ content, onChange }: RichTextEditorProps) {
   const [faIcons, setFaIcons] = useState<Array<{ name: string; className: string }>>(fontAwesomeIcons)
   const [sourceSeed, setSourceSeed] = useState("")
   const [ignoreSourceInitChange, setIgnoreSourceInitChange] = useState(false)
+  const [sourceDirty, setSourceDirty] = useState(false)
+  const [allowSvgVisualMode, setAllowSvgVisualMode] = useState(false)
+  const latestModeRef = useRef<"visual" | "source" | "preview">("visual")
+  const latestContentRef = useRef(content || "")
+  const allowSvgVisualModeRef = useRef(false)
   const [isCursorInTable, setIsCursorInTable] = useState(false)
   const [isMobileStackActive, setIsMobileStackActive] = useState(true)
   const [tableAlignState, setTableAlignState] = useState<"left" | "center" | "right">("left")
@@ -1089,7 +1135,8 @@ export function RichTextEditor({ content, onChange }: RichTextEditorProps) {
   const [editingSectionPos, setEditingSectionPos] = useState<number | null>(null)
   const [sectionPreset, setSectionPreset] = useState<SectionPresetId>(DEFAULT_SECTION_INSERT_PRESET)
   const [sectionFullWidth, setSectionFullWidth] = useState(DEFAULT_SECTION_INSERT_FULL_WIDTH)
-  const [sectionAnimateContent, setSectionAnimateContent] = useState(DEFAULT_SECTION_INSERT_ANIMATE_CONTENT)
+  const [sectionAnimateEntrance, setSectionAnimateEntrance] = useState(DEFAULT_SECTION_INSERT_ANIMATE_ENTRANCE)
+  const [sectionAnimateExit, setSectionAnimateExit] = useState(DEFAULT_SECTION_INSERT_ANIMATE_EXIT)
   const [sectionSpacing, setSectionSpacing] = useState<SectionSpacing>(DEFAULT_SECTION_INSERT_SPACING)
   const [sectionGapBefore, setSectionGapBefore] = useState<SectionGap>(DEFAULT_SECTION_INSERT_GAP_BEFORE)
   const [sectionGapAfter, setSectionGapAfter] = useState<SectionGap>(DEFAULT_SECTION_INSERT_GAP_AFTER)
@@ -1463,7 +1510,8 @@ export function RichTextEditor({ content, onChange }: RichTextEditorProps) {
   const resetSectionForm = () => {
     setSectionPreset(DEFAULT_SECTION_INSERT_PRESET)
     setSectionFullWidth(DEFAULT_SECTION_INSERT_FULL_WIDTH)
-    setSectionAnimateContent(DEFAULT_SECTION_INSERT_ANIMATE_CONTENT)
+    setSectionAnimateEntrance(DEFAULT_SECTION_INSERT_ANIMATE_ENTRANCE)
+    setSectionAnimateExit(DEFAULT_SECTION_INSERT_ANIMATE_EXIT)
     setSectionSpacing(DEFAULT_SECTION_INSERT_SPACING)
     setSectionGapBefore(DEFAULT_SECTION_INSERT_GAP_BEFORE)
     setSectionGapAfter(DEFAULT_SECTION_INSERT_GAP_AFTER)
@@ -1502,7 +1550,9 @@ export function RichTextEditor({ content, onChange }: RichTextEditorProps) {
     const attrs = node.attrs as Record<string, unknown>
     setSectionPreset(normalizeSectionPreset(attrs.preset))
     setSectionFullWidth(normalizeSectionFullWidth(attrs.fullWidth))
-    setSectionAnimateContent(normalizeSectionAnimateContent(attrs.animateContent))
+    const legacyAnimateFlag = normalizeSectionAnimateFlag(attrs.animateContent, true)
+    setSectionAnimateEntrance(normalizeSectionAnimateFlag(attrs.animateEntrance, legacyAnimateFlag))
+    setSectionAnimateExit(normalizeSectionAnimateFlag(attrs.animateExit, legacyAnimateFlag))
     setSectionSpacing(normalizeSectionSpacing(attrs.spacing))
     setSectionGapBefore(normalizeSectionGap(attrs.gapBefore, DEFAULT_SECTION_NODE_GAP_BEFORE))
     setSectionGapAfter(normalizeSectionGap(attrs.gapAfter, DEFAULT_SECTION_NODE_GAP_AFTER))
@@ -1523,7 +1573,8 @@ export function RichTextEditor({ content, onChange }: RichTextEditorProps) {
     const nextAttrs = buildSectionNodeAttrs({
       preset: sectionPreset,
       fullWidth: sectionFullWidth,
-      animateContent: sectionAnimateContent,
+      animateEntrance: sectionAnimateEntrance,
+      animateExit: sectionAnimateExit,
       spacing: sectionSpacing,
       gapBefore: sectionGapBefore,
       gapAfter: sectionGapAfter,
@@ -1690,7 +1741,11 @@ export function RichTextEditor({ content, onChange }: RichTextEditorProps) {
     ],
     content,
     onUpdate: ({ editor }) => {
-      onChange(editor.getHTML())
+      if (latestModeRef.current !== "visual") return
+      const nextHtml = editor.getHTML()
+      const incoming = latestContentRef.current
+      if (!allowSvgVisualModeRef.current && containsInlineSvgMarkup(incoming) && !containsInlineSvgMarkup(nextHtml)) return
+      onChange(nextHtml)
     },
     editorProps: {
       attributes: {
@@ -1702,6 +1757,23 @@ export function RichTextEditor({ content, onChange }: RichTextEditorProps) {
   })
 
   useEffect(() => {
+    latestModeRef.current = mode
+  }, [mode])
+
+  useEffect(() => {
+    latestContentRef.current = content || ""
+  }, [content])
+
+  useEffect(() => {
+    allowSvgVisualModeRef.current = allowSvgVisualMode
+  }, [allowSvgVisualMode])
+
+  useEffect(() => {
+    if (containsInlineSvgMarkup(content || "")) return
+    setAllowSvgVisualMode(false)
+  }, [content])
+
+  useEffect(() => {
     if (!editor) return
     const incoming = content || ""
     if (mode !== "source") {
@@ -1711,6 +1783,18 @@ export function RichTextEditor({ content, onChange }: RichTextEditorProps) {
       editor.commands.setContent(incoming, { emitUpdate: false })
     }
   }, [content, editor, mode])
+
+  useEffect(() => {
+    if (!editor || mode !== "visual" || allowSvgVisualMode) return
+    const incoming = content || ""
+    if (!containsInlineSvgMarkup(incoming)) return
+    const editorHtml = editor.getHTML()
+    if (containsInlineSvgMarkup(editorHtml)) return
+    setSourceSeed(incoming)
+    setSourceHtml(incoming)
+    setIgnoreSourceInitChange(true)
+    setMode("source")
+  }, [allowSvgVisualMode, content, editor, mode])
 
   useEffect(() => {
     if (faIcons.length === 0) setFaIcons(fontAwesomeIcons)
@@ -2622,19 +2706,31 @@ export function RichTextEditor({ content, onChange }: RichTextEditorProps) {
   const switchModeAny = (next: "visual" | "source" | "preview") => {
     if (next === mode) return
     if (next === "source") {
-      const raw = mode === "preview" ? sourceHtml || sourceSeed || content || editor.getHTML() || "" : editor.getHTML() || content || ""
-      const formatted = prettyFormatHtml(raw) || raw
-      setSourceSeed(formatted)
-      setSourceHtml(formatted)
+      const raw =
+        mode === "preview"
+          ? sourceHtml || content || sourceSeed || editor.getHTML() || ""
+          : sourceHtml || content || sourceSeed || editor.getHTML() || ""
+      setSourceSeed(raw)
+      setSourceHtml(raw)
       setIgnoreSourceInitChange(true)
+      setSourceDirty(false)
     } else if (mode === "source") {
-      const preserved = sourceHtml.trim().length > 0 ? sourceHtml : sourceSeed
-      const resolvedHtml = preserved.trim().length > 0 ? preserved : editor.getHTML()
-      onChange(resolvedHtml || "")
+      const resolvedHtml = sourceDirty
+        ? sourceHtml
+        : sourceHtml.trim().length > 0
+          ? sourceHtml
+          : sourceSeed.trim().length > 0
+            ? sourceSeed
+            : content || editor.getHTML()
+      if (sourceDirty) {
+        onChange(resolvedHtml || "")
+      }
       if (next === "visual") {
         editor.commands.setContent(resolvedHtml || "", { emitUpdate: false })
       }
       setIgnoreSourceInitChange(false)
+      setSourceSeed(resolvedHtml || "")
+      setSourceDirty(false)
     }
     setMode(next)
   }
@@ -3346,52 +3442,26 @@ export function RichTextEditor({ content, onChange }: RichTextEditorProps) {
       .run()
   }
 
-  const prettyFormatHtml = (raw: string) => {
-    const source = (raw || "").trim()
-    if (!source) return ""
-    try {
-      const text = source
-        .replace(/>\s*</g, ">\n<")
-        .replace(/\n{2,}/g, "\n")
-        .trim()
-      const lines = text.split("\n")
-      let indentLevel = 0
-      const formatted: string[] = []
-      const selfClosing = /<(area|base|br|col|embed|hr|img|input|link|meta|param|source|track|wbr)\b/i
-
-      for (const rawLine of lines) {
-        const line = rawLine.trim()
-        if (!line) continue
-
-        if (/^<\//.test(line)) {
-          indentLevel = Math.max(0, indentLevel - 1)
-        }
-
-        formatted.push(`${"  ".repeat(indentLevel)}${line}`)
-
-        const opens = (line.match(/<[^/!][^>]*?>/g) || []).filter((tag) => !/\/>$/.test(tag) && !selfClosing.test(tag)).length
-        const closes = (line.match(/<\/[^>]+>/g) || []).length
-        if (!/^<\//.test(line)) {
-          indentLevel = Math.max(0, indentLevel + opens - closes)
-        } else {
-          indentLevel = Math.max(0, indentLevel + opens - closes + 1)
-        }
-      }
-
-      return formatted.join("\n").trim()
-    } catch {
-      return source
-    }
-  }
-
   const preservedLeadingVisual = pendingButtonLeadingVisualHtml.trim()
   const preservedLeadingImagePreview = extractImagePreviewFromHtml(preservedLeadingVisual)
+  const hasInlineSvgInContent = containsInlineSvgMarkup(content || "")
+  const visualModeLockedBySvg = hasInlineSvgInContent && !allowSvgVisualMode
+  const sourceEditorValue = sourceDirty ? sourceHtml : sourceHtml || sourceSeed || content || editor.getHTML()
+  const previewContentValue =
+    mode === "preview" ? sourceHtml : sourceDirty ? sourceHtml : sourceHtml || content || editor.getHTML()
 
   return (
     <div className="border border-input rounded-md">
       <div className="flex items-center justify-between gap-2 p-2 border-b border-input bg-muted/30">
         <div className="flex items-center gap-1">
-          <Button type="button" size="sm" variant={mode === "visual" ? "default" : "ghost"} onClick={() => switchModeAny("visual")}>
+          <Button
+            type="button"
+            size="sm"
+            variant={mode === "visual" ? "default" : "ghost"}
+            onClick={() => switchModeAny("visual")}
+            disabled={visualModeLockedBySvg}
+            title={visualModeLockedBySvg ? "Inline SVG content is locked to HTML Source mode." : undefined}
+          >
             <Eye className="h-4 w-4 mr-1" />
             Visual
           </Button>
@@ -3404,6 +3474,47 @@ export function RichTextEditor({ content, onChange }: RichTextEditorProps) {
             Preview
           </Button>
         </div>
+        {hasInlineSvgInContent ? (
+          <div className="flex items-center gap-2">
+            <p className="text-xs text-muted-foreground">
+              {allowSvgVisualMode
+                ? "Visual mode unlocked for SVG content. SVG bullets may change while editing."
+                : "Inline SVG detected. Visual mode is locked to prevent SVG bullet loss."}
+            </p>
+            {allowSvgVisualMode ? (
+              <Button
+                type="button"
+                size="sm"
+                variant="outline"
+                onClick={() => {
+                  setAllowSvgVisualMode(false)
+                  if (mode === "visual") switchModeAny("source")
+                }}
+              >
+                Re-lock Safety
+              </Button>
+            ) : (
+              <Button
+                type="button"
+                size="sm"
+                variant="outline"
+                onClick={() => {
+                  if (
+                    !window.confirm(
+                      "Unlock Visual mode for SVG content?\n\nWarning: editing in Visual mode may alter or remove SVG bullet icons.",
+                    )
+                  ) {
+                    return
+                  }
+                  setAllowSvgVisualMode(true)
+                  switchModeAny("visual")
+                }}
+              >
+                Unlock Visual Mode
+              </Button>
+            )}
+          </div>
+        ) : null}
       </div>
 
       {mode === "visual" ? (
@@ -3826,16 +3937,27 @@ export function RichTextEditor({ content, onChange }: RichTextEditorProps) {
             </div>
             <div className="space-y-1.5 md:col-span-2 lg:col-span-3">
               <label className="text-xs font-medium text-muted-foreground">Content Animation</label>
-              <label className="inline-flex items-center gap-2 text-xs">
-                <input
-                  type="checkbox"
-                  checked={sectionAnimateContent}
-                  onChange={(event) => setSectionAnimateContent(event.target.checked)}
-                />
-                Enable entrance and exit animation
-              </label>
+              <div className="grid gap-2 sm:grid-cols-2">
+                <label className="inline-flex items-center gap-2 text-xs">
+                  <input
+                    type="checkbox"
+                    checked={sectionAnimateEntrance}
+                    onChange={(event) => setSectionAnimateEntrance(event.target.checked)}
+                  />
+                  Enable entrance animation
+                </label>
+                <label className="inline-flex items-center gap-2 text-xs">
+                  <input
+                    type="checkbox"
+                    checked={sectionAnimateExit}
+                    onChange={(event) => setSectionAnimateExit(event.target.checked)}
+                  />
+                  Enable exit animation
+                </label>
+              </div>
               <p className="text-[11px] text-muted-foreground">
-                Animates this section content on scroll enter and scroll leave.
+                Entrance controls reveal animation. Exit controls hide animation when section leaves viewport. Cards inside this section follow
+                these settings with their own card animation style.
               </p>
             </div>
             <div className="space-y-1.5">
@@ -4591,7 +4713,7 @@ export function RichTextEditor({ content, onChange }: RichTextEditorProps) {
       ) : mode === "source" ? (
         <div className="p-3 max-w-full overflow-hidden">
           <CodeMirror
-            value={sourceHtml || sourceSeed || prettyFormatHtml(editor.getHTML())}
+            value={sourceEditorValue}
             extensions={[
               htmlLang(),
               SOURCE_EDITOR_THEME,
@@ -4601,13 +4723,14 @@ export function RichTextEditor({ content, onChange }: RichTextEditorProps) {
               if (ignoreSourceInitChange && !viewUpdate.docChanged) {
                 return
               }
-              if (ignoreSourceInitChange && value.trim().length === 0 && sourceSeed.trim().length > 0) {
-                return
-              }
               if (ignoreSourceInitChange) {
                 setIgnoreSourceInitChange(false)
               }
               setSourceHtml(value)
+              if (viewUpdate.docChanged) {
+                setSourceDirty(true)
+                onChange(value)
+              }
             }}
             basicSetup={{
               lineNumbers: true,
@@ -4632,7 +4755,7 @@ export function RichTextEditor({ content, onChange }: RichTextEditorProps) {
         </div>
       ) : (
         <div className="p-4 bg-background min-h-[300px]">
-          <RichContentRenderer content={sourceHtml || editor.getHTML()} className="prose prose-sm max-w-none" />
+          <RichContentRenderer content={previewContentValue} className="prose prose-sm max-w-none" />
         </div>
       )}
     </div>
