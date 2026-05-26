@@ -9,6 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Switch } from "@/components/ui/switch"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion"
+import { ImageUrlUploadField } from "@/components/admin/image-url-upload-field"
 import { ArrowDown, ArrowUp, Trash2, UploadCloud } from "lucide-react"
 import {
   DEFAULT_HEADING_TYPOGRAPHY,
@@ -2253,15 +2254,14 @@ export function SiteSettingsForm({ initial, pages }: { initial: SiteSettings; pa
                             placeholder="keyword1, keyword2"
                           />
                         </div>
-                        <div className="space-y-2">
-                          <Label htmlFor={`seo-${key}-og`}>SEO OG Image URL</Label>
-                          <Input
-                            id={`seo-${key}-og`}
-                            value={formData.staticSeo[key].ogImage}
-                            onChange={(e) => updateStaticSeo(key, { ogImage: e.target.value })}
-                            placeholder="https://example.com/og-image.jpg"
-                          />
-                        </div>
+                        <ImageUrlUploadField
+                          id={`seo-${key}-og`}
+                          label="SEO OG Image URL"
+                          value={formData.staticSeo[key].ogImage}
+                          onChange={(value) => updateStaticSeo(key, { ogImage: value })}
+                          placeholder="https://example.com/og-image.jpg"
+                          folder="seo"
+                        />
                       </div>
                       <div className="flex flex-wrap gap-4">
                         <div className="flex items-center space-x-2">
