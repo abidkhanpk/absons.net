@@ -7,7 +7,6 @@ export const revalidate = 0
 
 const STATIC_ROUTE_CONFIG = [
   { path: "/", seoKey: "home" },
-  { path: "/about", seoKey: "about" },
   { path: "/services", seoKey: "services", sectionId: "services" },
   { path: "/training", seoKey: "training", sectionId: "training" },
   { path: "/products", seoKey: "products", sectionId: "products" },
