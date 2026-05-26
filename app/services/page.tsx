@@ -46,7 +46,7 @@ export default async function ServicesPage() {
         <section className={`${startsWithSection ? "pt-0" : "pt-16"} ${endsWithSection ? "pb-0" : "pb-16"} bg-background`}>
           <div className="container mx-auto px-4 lg:px-8">
             {pageConfig.beforeListContent ? (
-              <div className="mb-10">
+              <div className={startsWithSection ? "mb-0" : "mb-10"}>
                 <RichContentRenderer content={pageConfig.beforeListContent} className="prose prose-lg max-w-none" />
               </div>
             ) : null}
@@ -83,7 +83,7 @@ export default async function ServicesPage() {
               })}
             </div>
             {pageConfig.afterListContent ? (
-              <div className="mt-10">
+              <div className={endsWithSection ? "mt-0" : "mt-10"}>
                 <RichContentRenderer content={pageConfig.afterListContent} className="prose prose-lg max-w-none" />
               </div>
             ) : null}
