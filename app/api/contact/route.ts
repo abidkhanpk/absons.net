@@ -130,11 +130,11 @@ async function sendContactEmail({
 
   const html = `
     <h2>New Contact Form Inquiry</h2>
-    <p><strong>Purpose:</strong> ${escapeHtml(purpose)}</p>
     <p><strong>Name:</strong> ${escapeHtml(name)}</p>
     <p><strong>Email:</strong> ${escapeHtml(email)}</p>
     <p><strong>Phone:</strong> ${escapeHtml(phone || "-")}</p>
     <p><strong>Company:</strong> ${escapeHtml(company || "-")}</p>
+    <p><strong>Purpose:</strong> ${escapeHtml(purpose)}</p>
     <p><strong>Message:</strong></p>
     <p>${escapeHtml(message).replace(/\n/g, "<br/>")}</p>
   `.trim()
@@ -142,11 +142,11 @@ async function sendContactEmail({
   const text = [
     "New Contact Form Inquiry",
     "",
-    `Purpose: ${purpose}`,
     `Name: ${name}`,
     `Email: ${email}`,
     `Phone: ${phone || "-"}`,
     `Company: ${company || "-"}`,
+    `Purpose: ${purpose}`,
     "",
     "Message:",
     message,
