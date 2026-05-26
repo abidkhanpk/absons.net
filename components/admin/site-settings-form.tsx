@@ -116,6 +116,25 @@ type StaticSeoSettings = Record<
   StaticSeoEntry
 >
 
+type StaticSeoPageConfig = {
+  key: keyof StaticSeoSettings
+  label: string
+  path: string
+  supportsAiFromPage: boolean
+}
+
+const STATIC_SEO_PAGE_CONFIGS: StaticSeoPageConfig[] = [
+  { key: "home", label: "Home", path: "/", supportsAiFromPage: false },
+  { key: "about", label: "About", path: "/about", supportsAiFromPage: false },
+  { key: "services", label: "Services", path: "/services", supportsAiFromPage: true },
+  { key: "training", label: "Training", path: "/training", supportsAiFromPage: true },
+  { key: "products", label: "Products", path: "/products", supportsAiFromPage: true },
+  { key: "departments", label: "Departments", path: "/departments", supportsAiFromPage: true },
+  { key: "pricing", label: "Pricing", path: "/pricing", supportsAiFromPage: true },
+  { key: "contact", label: "Contact", path: "/contact", supportsAiFromPage: false },
+  { key: "blog", label: "Blog List", path: "/blog", supportsAiFromPage: false },
+]
+
 type PageSummary = {
   id: string
   title: string
@@ -788,6 +807,7 @@ export function SiteSettingsForm({ initial, pages }: { initial: SiteSettings; pa
   const [selectedFooterPage, setSelectedFooterPage] = useState("")
   const [selectedFooterSecondaryPage, setSelectedFooterSecondaryPage] = useState("")
   const [settingsUpdatedAt, setSettingsUpdatedAt] = useState<string | null>(initial.settings_updated_at || null)
+  const [generatingStaticSeoKey, setGeneratingStaticSeoKey] = useState<keyof StaticSeoSettings | null>(null)
 
   const moveItem = <T,>(items: T[], fromIndex: number, toIndex: number) => {
     if (toIndex < 0 || toIndex >= items.length) return items
@@ -1010,6 +1030,76 @@ export function SiteSettingsForm({ initial, pages }: { initial: SiteSettings; pa
         [key]: { ...prev.staticSeo[key], ...updates },
       },
     }))
+  }
+
+  const normalizeSeoSourceText = (value: string) => value.replace(/\s+/g, " ").trim()
+
+  const extractSeoSourceFromHtml = (html: string) => {
+    if (typeof window === "undefined") return normalizeSeoSourceText(html)
+    const doc = new DOMParser().parseFromString(html, "text/html")
+    const source = doc.querySelector("main") ?? doc.body
+    if (!source) return ""
+    source.querySelectorAll("script, style, noscript, template").forEach((node) => node.remove())
+    return normalizeSeoSourceText(source.textContent || "")
+  }
+
+  const generateStaticSeoFromPage = async (key: keyof StaticSeoSettings) => {
+    const pageConfig = STATIC_SEO_PAGE_CONFIGS.find((entry) => entry.key === key)
+    if (!pageConfig || !pageConfig.supportsAiFromPage) return
+
+    setGeneratingStaticSeoKey(key)
+    setError(null)
+    setSuccess(false)
+
+    try {
+      const pageResponse = await fetch(pageConfig.path, {
+        headers: { Accept: "text/html" },
+        cache: "no-store",
+      })
+      if (!pageResponse.ok) {
+        throw new Error(`Failed to load page content from ${pageConfig.path}`)
+      }
+
+      const pageHtml = await pageResponse.text()
+      const sourceContent = extractSeoSourceFromHtml(pageHtml).slice(0, 12000)
+      if (!sourceContent) {
+        throw new Error("Unable to extract content from the selected page.")
+      }
+
+      const response = await fetch("/api/admin/seo/generate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          kind: "section-page",
+          title: formData.staticSeo[key].title || pageConfig.label,
+          slug: pageConfig.path.replace(/^\/+/, ""),
+          content: sourceContent,
+        }),
+      })
+
+      const result = await response.json().catch(() => ({}))
+      if (!response.ok) {
+        throw new Error(result.error || "Failed to generate SEO metadata")
+      }
+
+      setFormData((prev) => ({
+        ...prev,
+        staticSeo: {
+          ...prev.staticSeo,
+          [key]: {
+            ...prev.staticSeo[key],
+            title: typeof result.seoTitle === "string" ? result.seoTitle : prev.staticSeo[key].title,
+            description:
+              typeof result.seoDescription === "string" ? result.seoDescription : prev.staticSeo[key].description,
+            keywords: typeof result.seoKeywords === "string" ? result.seoKeywords : prev.staticSeo[key].keywords,
+          },
+        },
+      }))
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to generate SEO metadata")
+    } finally {
+      setGeneratingStaticSeoKey(null)
+    }
   }
 
   const updateHeadingTypography = (
@@ -2106,21 +2196,24 @@ export function SiteSettingsForm({ initial, pages }: { initial: SiteSettings; pa
               </p>
             </div>
             <Accordion type="multiple" className="space-y-3">
-              {([
-                { key: "home", label: "Home" },
-                { key: "about", label: "About" },
-                { key: "services", label: "Services" },
-                { key: "training", label: "Training" },
-                { key: "products", label: "Products" },
-                { key: "departments", label: "Departments" },
-                { key: "pricing", label: "Pricing" },
-                { key: "contact", label: "Contact" },
-                { key: "blog", label: "Blog List" },
-              ] as const).map(({ key, label }) => (
+              {STATIC_SEO_PAGE_CONFIGS.map(({ key, label, supportsAiFromPage }) => (
                 <AccordionItem key={key} value={`seo-${key}`} className="border border-border rounded-lg">
                   <AccordionTrigger className="px-4 py-3 text-sm font-semibold">{label}</AccordionTrigger>
                   <AccordionContent className="px-4 pb-4">
                     <div className="space-y-4">
+                      {supportsAiFromPage ? (
+                        <div className="flex justify-end">
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            disabled={generatingStaticSeoKey === key}
+                            onClick={() => generateStaticSeoFromPage(key)}
+                          >
+                            {generatingStaticSeoKey === key ? "Generating..." : "Generate SEO from Page (AI)"}
+                          </Button>
+                        </div>
+                      ) : null}
                       <div className="grid gap-4 md:grid-cols-2">
                         <div className="space-y-2">
                           <Label htmlFor={`seo-${key}-title`}>SEO Title</Label>
