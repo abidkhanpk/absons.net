@@ -8,7 +8,7 @@ import { Label } from "@/components/ui/label"
 import { RichTextEditor } from "@/components/admin/rich-text-editor"
 
 type SectionPageSettingsFormProps = {
-  sectionKey: "services" | "training" | "products" | "departments" | "pricing"
+  sectionKey: "services" | "training" | "products" | "departments" | "pricing" | "blog"
   sectionLabel: string
   initial: {
     beforeListContent: string

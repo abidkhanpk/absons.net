@@ -31,12 +31,19 @@ export default async function BlogManagementPage() {
           <h1 className="text-3xl font-bold">Blog Posts</h1>
           <p className="text-muted-foreground mt-1">Create and manage blog content</p>
         </div>
-        <Button asChild>
-          <Link href="/admin/blog/new">
-            <Plus className="mr-2 h-4 w-4" />
-            New Post
-          </Link>
-        </Button>
+        <div className="flex items-center gap-2">
+          {!isEditor ? (
+            <Button asChild variant="outline">
+              <Link href="/admin/section-pages/blog">Edit Website Page</Link>
+            </Button>
+          ) : null}
+          <Button asChild>
+            <Link href="/admin/blog/new">
+              <Plus className="mr-2 h-4 w-4" />
+              New Post
+            </Link>
+          </Button>
+        </div>
       </div>
 
       {/* Posts List */}

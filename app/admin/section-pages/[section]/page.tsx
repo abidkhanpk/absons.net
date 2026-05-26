@@ -11,6 +11,7 @@ const SECTION_META = {
   products: { label: "Products", publicPath: "/products" },
   departments: { label: "Departments", publicPath: "/departments" },
   pricing: { label: "Pricing", publicPath: "/pricing" },
+  blog: { label: "Blog", publicPath: "/blog" },
 } as const
 
 type SectionKey = keyof typeof SECTION_META

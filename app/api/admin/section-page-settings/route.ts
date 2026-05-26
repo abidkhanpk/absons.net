@@ -2,7 +2,7 @@ import { NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 import { getSession } from "@/lib/auth"
 
-const ALLOWED_SECTIONS = ["services", "training", "products", "departments", "pricing"] as const
+const ALLOWED_SECTIONS = ["services", "training", "products", "departments", "pricing", "blog"] as const
 type AllowedSection = (typeof ALLOWED_SECTIONS)[number]
 
 function isAllowedSection(section: string): section is AllowedSection {
