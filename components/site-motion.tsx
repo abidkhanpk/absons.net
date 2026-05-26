@@ -5,7 +5,7 @@ import { usePathname } from "next/navigation"
 
 const DISABLED_PREFIXES = ["/admin", "/auth"]
 const SECTION_VARIANTS = ["from-left", "from-right", "from-sides", "lift"] as const
-const SECTION_CARD_SELECTOR = "[data-slot='card'], .why-choose-grid-tile, .why-choose-tile"
+const SECTION_CARD_SELECTOR = "[data-slot='card'], [data-cms-card='true'], .why-choose-grid-tile, .why-choose-tile"
 const NS_INTRO_DELAY_BASE_MS = 100
 const NS_INTRO_DELAY_STEP_MS = 100
 const SECTION_TRIGGER_THRESHOLD = 0.14
@@ -184,7 +184,11 @@ export function SiteMotion() {
         const cardAnimateEntrance = sectionMotion.animateEntrance
         const cardAnimateExit = sectionMotion.animateExit
         const hasCardAnimation = cardAnimateEntrance || cardAnimateExit
-        card.classList.remove("motion-section-card", "motion-section-node")
+        card.classList.remove("motion-section-card", "motion-section-node", "motion-cms-section-node", "motion-node-enter-disabled")
+        card.style.removeProperty("--motion-node-delay")
+        card.style.removeProperty("--motion-node-duration")
+        card.style.removeProperty("--motion-node-x")
+        card.style.removeProperty("--motion-node-y")
         card.setAttribute("data-motion-enter", cardAnimateEntrance ? "true" : "false")
         card.setAttribute("data-motion-exit", cardAnimateExit ? "true" : "false")
         if (!hasCardAnimation) {
