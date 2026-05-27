@@ -18,6 +18,14 @@ const SITE_TITLE_TOKEN_REGEX = /\{\s*(?:siteTitle|sitetitle|site_title|site-titl
 const TITLE_TOKEN_DETECT_REGEX = /\{\s*title\s*[}\]]/i
 const SITE_TITLE_TOKEN_DETECT_REGEX = /\{\s*(?:siteTitle|sitetitle|site_title|site-title|sitetile)\s*[}\]]/i
 
+function resolveSeoText(value: string, settings: SiteSettings, pageTitle: string, fallbackSiteTitle: string) {
+  if (!value) return ""
+  return resolveContentKeywordTokens(value, settings)
+    .replace(TITLE_TOKEN_REGEX, pageTitle)
+    .replace(SITE_TITLE_TOKEN_REGEX, fallbackSiteTitle)
+    .trim()
+}
+
 function applyTitleTemplate(title: string, template: string, fallbackSiteTitle: string, settings: SiteSettings) {
   const trimmedTemplate = template.trim()
   if (!trimmedTemplate) return title
@@ -41,15 +49,16 @@ function applyTitleTemplate(title: string, template: string, fallbackSiteTitle: 
 export function buildSeoMetadata(settings: SiteSettings, overrides: SeoOverrides): Metadata {
   const fallbackSiteTitle = settings.siteTitle || "Site"
   const rawBaseTitle = (overrides.title || settings.seoDefaultTitle || settings.siteTitle).trim()
-  const baseTitleResolved = resolveContentKeywordTokens(rawBaseTitle, settings).trim()
+  const baseTitleResolved = resolveSeoText(rawBaseTitle, settings, fallbackSiteTitle, fallbackSiteTitle)
   const baseTitle = (baseTitleResolved.replace(TITLE_TOKEN_REGEX, fallbackSiteTitle).trim() || fallbackSiteTitle)
   const resolvedTitle = applyTitleTemplate(baseTitle, settings.seoTitleTemplate || "", fallbackSiteTitle, settings)
   const descriptionRaw = (overrides.description ?? settings.seoDefaultDescription)?.trim() || ""
   const keywordsRaw = (overrides.keywords ?? settings.seoDefaultKeywords)?.trim() || ""
-  const description = resolveContentKeywordTokens(descriptionRaw, settings).trim() || undefined
-  const keywords = resolveContentKeywordTokens(keywordsRaw, settings).trim() || undefined
+  const description = resolveSeoText(descriptionRaw, settings, baseTitle, fallbackSiteTitle) || undefined
+  const keywords = resolveSeoText(keywordsRaw, settings, baseTitle, fallbackSiteTitle) || undefined
   const ogImage = resolveAssetUrl((overrides.ogImage ?? settings.seoDefaultOgImage)?.trim() || undefined)
-  const canonical = overrides.canonical?.trim() || undefined
+  const canonicalRaw = overrides.canonical?.trim() || ""
+  const canonical = resolveSeoText(canonicalRaw, settings, baseTitle, fallbackSiteTitle) || undefined
 
   const noIndex = !settings.allowIndexing || Boolean(overrides.noIndex)
   const noFollow = !settings.allowIndexing || Boolean(overrides.noFollow)
