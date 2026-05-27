@@ -41,6 +41,14 @@ export const DEFAULT_HEADING_TYPOGRAPHY: HeadingTypographySettings = {
   },
 }
 
+const HEADING_SPACING_PRESETS: Record<string, string> = {
+  none: "0px",
+  minimum: "0.5rem",
+  minimal: "0.5rem",
+  moderate: "1.5rem",
+  maximum: "3rem",
+}
+
 export function normalizeHeadingTextStyle(value: unknown): HeadingTextStyle {
   const normalized = typeof value === "string" ? value.trim().toLowerCase() : ""
   if (normalized === "normal") return "normal"
@@ -55,6 +63,8 @@ export function normalizeCssLength(value: unknown) {
   if (typeof value !== "string") return ""
   const raw = value.trim()
   if (!raw) return ""
+  const preset = HEADING_SPACING_PRESETS[raw.toLowerCase()]
+  if (preset) return preset
   if (/^\d+(\.\d+)?$/i.test(raw)) return `${raw}px`
   if (/^\d+(\.\d+)?em$/i.test(raw)) return raw.replace(/em$/i, "rem")
   if (/^\d+(\.\d+)?(px|rem|%)$/i.test(raw)) return raw

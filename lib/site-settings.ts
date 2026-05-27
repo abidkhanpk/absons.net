@@ -1116,7 +1116,14 @@ function parseHeadingTypography(raw: unknown): HeadingTypographySettings {
     if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) {
       return DEFAULT_HEADING_TYPOGRAPHY
     }
-    return normalizeHeadingTypography((parsed as Record<string, unknown>).typography)
+    const source = parsed as Record<string, unknown>
+    if (source.typography && typeof source.typography === "object" && !Array.isArray(source.typography)) {
+      return normalizeHeadingTypography(source.typography)
+    }
+    if (source.h1 || source.h2 || source.h3) {
+      return normalizeHeadingTypography(source)
+    }
+    return DEFAULT_HEADING_TYPOGRAPHY
   } catch {
     return DEFAULT_HEADING_TYPOGRAPHY
   }

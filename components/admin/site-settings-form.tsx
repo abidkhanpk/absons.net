@@ -709,6 +709,12 @@ function safeParseHeadingTypography(raw: string | HeadingTypographySettings | nu
   if (!raw) return DEFAULT_HEADING_TYPOGRAPHY
   try {
     const parsed = typeof raw === "string" ? JSON.parse(raw) : raw
+    if (parsed && typeof parsed === "object" && !Array.isArray(parsed)) {
+      const source = parsed as Record<string, unknown>
+      if (source.typography && typeof source.typography === "object" && !Array.isArray(source.typography)) {
+        return normalizeHeadingTypography(source.typography)
+      }
+    }
     return normalizeHeadingTypography(parsed)
   } catch {
     return DEFAULT_HEADING_TYPOGRAPHY
@@ -1717,6 +1723,10 @@ export function SiteSettingsForm({ initial, pages }: { initial: SiteSettings; pa
               <Label className="font-semibold">Heading Typography</Label>
               <p className="text-xs text-muted-foreground">
                 Applies site-wide to rich-content headings. Page and blog titles use the H1 settings.
+              </p>
+              <p className="text-xs text-muted-foreground">
+                Spacing accepts CSS lengths (for example <code>24px</code>, <code>1.5rem</code>) or presets:{" "}
+                <code>minimum</code>, <code>moderate</code>, <code>maximum</code>.
               </p>
             </div>
             <div className="space-y-3">

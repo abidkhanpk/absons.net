@@ -628,6 +628,7 @@
 /* Added TipTap editor prose styles for rich text content */
 .prose {
   color: var(--foreground);
+  display: flow-root;
 }
 
 .prose h1,
@@ -666,46 +667,28 @@
   line-height: 1.2;
 }
 
-.prose > h1:first-child,
-.prose > h2:first-child,
-.prose > h3:first-child {
-  margin-top: 0 !important;
-}
-
-.prose > div:first-child > h1:first-child,
-.prose > div:first-child > h2:first-child,
-.prose > div:first-child > h3:first-child {
-  margin-top: 0 !important;
-}
-
-.prose > div:first-child > h1:first-of-type,
-.prose > div:first-child > h2:first-of-type,
-.prose > div:first-child > h3:first-of-type {
-  margin-top: 0 !important;
-}
-
 .prose section[data-cms-section][data-cms-section-gap-before="minimal"] {
-  margin-top: 0.625rem;
+  margin-top: 0.625rem !important;
 }
 
 .prose section[data-cms-section][data-cms-section-gap-before="moderate"] {
-  margin-top: 1.875rem;
+  margin-top: 1.875rem !important;
 }
 
 .prose section[data-cms-section][data-cms-section-gap-before="maximum"] {
-  margin-top: 3.125rem;
+  margin-top: 3.125rem !important;
 }
 
 .prose section[data-cms-section][data-cms-section-gap-after="minimal"] {
-  margin-bottom: 0.625rem;
+  margin-bottom: 0.625rem !important;
 }
 
 .prose section[data-cms-section][data-cms-section-gap-after="moderate"] {
-  margin-bottom: 1.875rem;
+  margin-bottom: 1.875rem !important;
 }
 
 .prose section[data-cms-section][data-cms-section-gap-after="maximum"] {
-  margin-bottom: 3.125rem;
+  margin-bottom: 3.125rem !important;
 }
 
 .prose > section.cms-rich-section:first-child[data-cms-section-gap-before="none"],
