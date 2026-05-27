@@ -1051,7 +1051,7 @@ function parseStaticSeo(raw: unknown): StaticSeoSettings {
 
 function parseSectionPageContent(
   legacyStaticSeoRaw: unknown,
-  tableRows?: Array<{ sectionKey: string; beforeListContent: string; afterListContent: string; listLayout: string }>,
+  tableRows?: Array<{ sectionKey: string; beforeListContent: string; afterListContent: string; listLayout?: string | null }>,
 ): SectionPageContentSettings {
   const normalizeEntry = (entry: unknown, fallback: SectionPageContentEntry): SectionPageContentEntry => {
     if (!entry || typeof entry !== "object" || Array.isArray(entry)) return fallback
@@ -1127,6 +1127,34 @@ function parseSectionPageContent(
   return next
 }
 
+async function findSectionPageSettingsRows(): Promise<
+  Array<{ sectionKey: string; beforeListContent: string; afterListContent: string; listLayout?: string | null }>
+> {
+  try {
+    return (await (prisma.sectionPageSetting as unknown as {
+      findMany(args: {
+        select: {
+          sectionKey: true
+          beforeListContent: true
+          afterListContent: true
+          listLayout: true
+        }
+      }): Promise<
+        Array<{ sectionKey: string; beforeListContent: string; afterListContent: string; listLayout: string }>
+      >
+    }).findMany({
+      select: { sectionKey: true, beforeListContent: true, afterListContent: true, listLayout: true },
+    })) as Array<{ sectionKey: string; beforeListContent: string; afterListContent: string; listLayout: string }>
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error)
+    if (!/Unknown field `listLayout`/i.test(message)) throw error
+    // Fallback for environments where Prisma Client was generated before `listLayout` existed.
+    return prisma.sectionPageSetting.findMany({
+      select: { sectionKey: true, beforeListContent: true, afterListContent: true },
+    })
+  }
+}
+
 function parseHeadingTypography(raw: unknown): HeadingTypographySettings {
   try {
     const parsed = typeof raw === "string" ? JSON.parse(raw) : raw
@@ -1154,9 +1182,7 @@ export async function getSiteSettings(options: GetSiteSettingsOptions = {}): Pro
   try {
     const [settings, sectionRows] = await Promise.all([
       prisma.siteSettings.findUnique({ where: { id: "site" } }),
-      prisma.sectionPageSetting.findMany({
-        select: { sectionKey: true, beforeListContent: true, afterListContent: true, listLayout: true },
-      }),
+      findSectionPageSettingsRows(),
     ])
     if (!settings) return defaultSettings
 

@@ -10,7 +10,10 @@ export function Footer({ settings }: { settings: PublicFooterSettings }) {
   const showCompany = settings.footerShowCompanyInfo !== false
   const showSecondary = settings.footerShowSecondaryColumn !== false
   const showContact = settings.footerShowContactColumn !== false
-  const companyName = settings.footerCompanyName || settings.siteTitle || "Site"
+  const siteTitle = typeof settings.siteTitle === "string" ? settings.siteTitle.trim() : ""
+  const footerCompanyName =
+    typeof settings.footerCompanyName === "string" ? settings.footerCompanyName.trim() : ""
+  const companyName = footerCompanyName || siteTitle || "Site"
   const companyDescription =
     settings.footerCompanyDescription ||
     "Professional software solutions and training services for educational institutions and organizations."
@@ -29,7 +32,7 @@ export function Footer({ settings }: { settings: PublicFooterSettings }) {
                     // eslint-disable-next-line @next/next/no-img-element
                     <img
                       src={resolveAssetUrl(settings.logoUrl)}
-                      alt={settings.siteTitle || companyName}
+                      alt={siteTitle || companyName}
                       width={40}
                       height={40}
                       className="h-10 w-10 rounded-lg object-contain"
@@ -102,7 +105,7 @@ export function Footer({ settings }: { settings: PublicFooterSettings }) {
 
         <div className={`${showFooterMenu ? "mt-12 pt-8 border-t border-border" : ""} text-center`}>
           <p className="text-sm text-muted-foreground">
-            © {new Date().getFullYear()} {settings.siteTitle || "Site"}. All rights reserved.
+            © {new Date().getFullYear()} {siteTitle || "Site"}. All rights reserved.
           </p>
         </div>
       </div>

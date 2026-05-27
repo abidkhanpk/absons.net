@@ -302,7 +302,7 @@ export async function PUT(request: Request) {
 
     const existingSettings = await prisma.siteSettings.findUnique({
       where: { id: "site" },
-      select: { updatedAt: true, navItems: true },
+      select: { updatedAt: true, navItems: true, siteTitle: true },
     })
     if (!existingSettings) {
       return NextResponse.json({ error: "Site settings not found" }, { status: 404 })
@@ -329,9 +329,11 @@ export async function PUT(request: Request) {
         : undefined,
     )
     const normalizedFooterMeta = normalizedFooterMetaFromPayload ?? normalizedFooterMetaFromExisting
+    const normalizedSiteTitle =
+      typeof siteTitle === "string" ? siteTitle.trim() || existingSettings.siteTitle || "Site" : undefined
 
     const updateData = {
-      siteTitle,
+      siteTitle: normalizedSiteTitle,
       logoUrl: typeof normalizedLogoUrl === "undefined" ? undefined : normalizedLogoUrl,
       faviconUrl: typeof normalizedFaviconUrl === "undefined" ? undefined : normalizedFaviconUrl,
       contactEmail,

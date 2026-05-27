@@ -576,32 +576,39 @@ export default async function HomePage() {
             {renderSectionItems(
               "testimonials",
               testimonials,
-              (testimonial) => (
-                <Card
-                  key={testimonial.id}
-                  tabIndex={0}
-                  data-scroll-toggle="true"
-                  className="border-border group overflow-hidden transition-shadow hover:shadow-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
-                >
-                  <CardContent className="p-6 space-y-4">
-                    <div className="flex gap-1">
-                      {Array.from({ length: testimonial.rating }).map((_, i) => (
-                        <Star key={i} className="h-5 w-5 fill-primary text-primary" />
-                      ))}
-                    </div>
-                    <div className="max-h-20 overflow-hidden group-hover:max-h-[1000px] group-focus-within:max-h-[1000px] transition-all duration-300 ease-in-out">
-                      <p className="text-muted-foreground leading-relaxed italic testimonial-clamp">"{testimonial.content}"</p>
-                    </div>
-                    <div>
-                      <p className="font-semibold">{testimonial.clientName}</p>
-                      <p className="text-sm text-muted-foreground">
-                        {testimonial.clientPosition}
-                        {testimonial.clientCompany && `, ${testimonial.clientCompany}`}
-                      </p>
-                    </div>
-                  </CardContent>
-                </Card>
-              ),
+              (testimonial) => {
+                const testimonialContent = resolveText(testimonial.content || "")
+                const testimonialClientName = resolveText(testimonial.clientName || "")
+                const testimonialClientPosition = resolveText(testimonial.clientPosition || "")
+                const testimonialClientCompany = resolveText(testimonial.clientCompany || "")
+
+                return (
+                  <Card
+                    key={testimonial.id}
+                    tabIndex={0}
+                    data-scroll-toggle="true"
+                    className="border-border group overflow-hidden transition-shadow hover:shadow-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
+                  >
+                    <CardContent className="p-6 space-y-4">
+                      <div className="flex gap-1">
+                        {Array.from({ length: testimonial.rating }).map((_, i) => (
+                          <Star key={i} className="h-5 w-5 fill-primary text-primary" />
+                        ))}
+                      </div>
+                      <div className="max-h-20 overflow-hidden group-hover:max-h-[1000px] group-focus-within:max-h-[1000px] transition-all duration-300 ease-in-out">
+                        <p className="text-muted-foreground leading-relaxed italic testimonial-clamp">"{testimonialContent}"</p>
+                      </div>
+                      <div>
+                        <p className="font-semibold">{testimonialClientName}</p>
+                        <p className="text-sm text-muted-foreground">
+                          {testimonialClientPosition}
+                          {testimonialClientCompany && `, ${testimonialClientCompany}`}
+                        </p>
+                      </div>
+                    </CardContent>
+                  </Card>
+                )
+              },
               (testimonial) => testimonial.id,
             )}
           </div>
@@ -678,7 +685,7 @@ export default async function HomePage() {
   const primaryHomeSections = enabledHomeSections.slice(0, 2)
   const secondaryHomeSections = enabledHomeSections.slice(2)
   return (
-    <div className="flex flex-col min-h-screen">
+    <>
       <Header settings={headerSettings} />
 
       <main className="flex-1">
@@ -705,6 +712,6 @@ export default async function HomePage() {
       </main>
 
       <Footer settings={footerSettings} />
-    </div>
+    </>
   )
 }
