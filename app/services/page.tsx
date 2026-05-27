@@ -12,6 +12,7 @@ import { resolveAssetUrl } from "@/lib/asset-url"
 import { getItemLinkTargetProps, resolveItemLinkHref } from "@/lib/item-link"
 import { contentEndsWithSection, contentStartsWithSection } from "@/lib/section-page-layout"
 import { RichContentRenderer } from "@/components/cms/rich-content-renderer"
+import { resolveContentKeywordTokens } from "@/lib/content-keywords"
 
 export async function generateMetadata() {
   const settings = await getSiteSettings()
@@ -35,8 +36,11 @@ export default async function ServicesPage() {
   const services = await prisma.service.findMany({ orderBy: { displayOrder: "asc" } })
   const siteSettings = await getSiteSettings()
   const pageConfig = siteSettings.sectionPageContent.services
-  const startsWithSection = contentStartsWithSection(pageConfig.beforeListContent)
-  const endsWithSection = contentEndsWithSection(pageConfig.afterListContent)
+  const resolveText = (value: string | null | undefined) => resolveContentKeywordTokens(value || "", siteSettings)
+  const beforeListContent = resolveContentKeywordTokens(pageConfig.beforeListContent, siteSettings)
+  const afterListContent = resolveContentKeywordTokens(pageConfig.afterListContent, siteSettings)
+  const startsWithSection = contentStartsWithSection(beforeListContent)
+  const endsWithSection = contentEndsWithSection(afterListContent)
 
   return (
     <div className="flex flex-col min-h-screen">
@@ -45,21 +49,24 @@ export default async function ServicesPage() {
       <main className="flex-1">
         <section className={`${startsWithSection ? "pt-0" : "pt-16"} ${endsWithSection ? "pb-0" : "pb-16"} bg-background`}>
           <div className="container mx-auto px-4 lg:px-8">
-            {pageConfig.beforeListContent ? (
+            {beforeListContent ? (
               <div className={startsWithSection ? "mb-0" : "mb-10"}>
-                <RichContentRenderer content={pageConfig.beforeListContent} className="prose prose-lg max-w-none" />
+                <RichContentRenderer content={beforeListContent} className="prose prose-lg max-w-none" />
               </div>
             ) : null}
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
               {services.map((service) => {
                 const IconComponent = contentIconMap[service.icon as keyof typeof contentIconMap] || Package
+                const serviceTitle = resolveText(service.title)
+                const serviceDescription = resolveText(service.description)
+                const serviceLinkLabel = resolveText(service.linkLabel || "") || "Learn more"
                 return (
                   <Card key={service.id} className="border-border hover:shadow-lg transition-shadow">
                     <CardContent className="p-6 space-y-4 min-h-[10rem]">
                       {service.imageUrl ? (
                         <img
                           src={resolveAssetUrl(service.imageUrl)}
-                          alt={service.title}
+                          alt={serviceTitle}
                           className="w-full h-44 object-cover rounded-md border border-border/60"
                         />
                       ) : (
@@ -67,14 +74,14 @@ export default async function ServicesPage() {
                           <IconComponent className="h-6 w-6" />
                         </div>
                       )}
-                      <h3 className="text-xl font-semibold">{service.title}</h3>
-                      <p className="text-muted-foreground leading-relaxed">{service.description}</p>
+                      <h3 className="text-xl font-semibold">{serviceTitle}</h3>
+                      <p className="text-muted-foreground leading-relaxed">{serviceDescription}</p>
                       <Button asChild variant="link" className="p-0">
                         <Link
                           href={resolveItemLink(service.linkUrl, "/services")}
                           {...getItemLinkTargetProps(service.linkUrl)}
                         >
-                          {service.linkLabel || "Learn more"} <ArrowRight className="ml-2 h-4 w-4" />
+                          {serviceLinkLabel} <ArrowRight className="ml-2 h-4 w-4" />
                         </Link>
                       </Button>
                     </CardContent>
@@ -82,9 +89,9 @@ export default async function ServicesPage() {
                 )
               })}
             </div>
-            {pageConfig.afterListContent ? (
+            {afterListContent ? (
               <div className={endsWithSection ? "mt-0" : "mt-10"}>
-                <RichContentRenderer content={pageConfig.afterListContent} className="prose prose-lg max-w-none" />
+                <RichContentRenderer content={afterListContent} className="prose prose-lg max-w-none" />
               </div>
             ) : null}
           </div>

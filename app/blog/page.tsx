@@ -10,6 +10,7 @@ import { buildSeoMetadata } from "@/lib/seo"
 import { resolveAssetUrl } from "@/lib/asset-url"
 import { contentEndsWithSection, contentStartsWithSection } from "@/lib/section-page-layout"
 import { RichContentRenderer } from "@/components/cms/rich-content-renderer"
+import { resolveContentKeywordTokens } from "@/lib/content-keywords"
 
 export async function generateMetadata() {
   const settings = await getSiteSettings()
@@ -28,9 +29,12 @@ export async function generateMetadata() {
 
 export default async function BlogPage() {
   const siteSettings = await getSiteSettings()
+  const resolveText = (value: string | null | undefined) => resolveContentKeywordTokens(value || "", siteSettings)
   const pageConfig = siteSettings.sectionPageContent.blog
-  const startsWithSection = contentStartsWithSection(pageConfig.beforeListContent)
-  const endsWithSection = contentEndsWithSection(pageConfig.afterListContent)
+  const beforeListContent = resolveContentKeywordTokens(pageConfig.beforeListContent, siteSettings)
+  const afterListContent = resolveContentKeywordTokens(pageConfig.afterListContent, siteSettings)
+  const startsWithSection = contentStartsWithSection(beforeListContent)
+  const endsWithSection = contentEndsWithSection(afterListContent)
   const approvalRequired = siteSettings.editorApprovalRequired ?? true
   const posts = await prisma.blogPost.findMany({
     where: approvalRequired ? { published: true, approved: true } : { published: true },
@@ -44,62 +48,66 @@ export default async function BlogPage() {
       <main className="flex-1">
         <section className={`${startsWithSection ? "pt-0" : "pt-16"} ${endsWithSection ? "pb-0" : "pb-16"} bg-background`}>
           <div className="container mx-auto px-4 lg:px-8">
-            {pageConfig.beforeListContent ? (
+            {beforeListContent ? (
               <div className={startsWithSection ? "mb-0" : "mb-10"}>
-                <RichContentRenderer content={pageConfig.beforeListContent} className="prose prose-lg max-w-none" />
+                <RichContentRenderer content={beforeListContent} className="prose prose-lg max-w-none" />
               </div>
             ) : null}
             {posts && posts.length > 0 ? (
               <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {posts.map((post) => (
-                  <Card key={post.id} className="border-border hover:shadow-lg transition-shadow flex flex-col">
-                    <CardContent className="p-6 space-y-4 flex flex-col flex-1">
-                      {post.featuredImage && (
-                        <div className="w-full h-48 bg-muted rounded-lg overflow-hidden">
-                          <img
-                            src={resolveAssetUrl(post.featuredImage) || "/placeholder.svg"}
-                            alt={post.title}
-                            className="w-full h-full object-cover"
-                          />
+                {posts.map((post) => {
+                  const postTitle = resolveText(post.title)
+                  const postExcerpt = resolveText(post.excerpt)
+                  return (
+                    <Card key={post.id} className="border-border hover:shadow-lg transition-shadow flex flex-col">
+                      <CardContent className="p-6 space-y-4 flex flex-col flex-1">
+                        {post.featuredImage && (
+                          <div className="w-full h-48 bg-muted rounded-lg overflow-hidden">
+                            <img
+                              src={resolveAssetUrl(post.featuredImage) || "/placeholder.svg"}
+                              alt={postTitle}
+                              className="w-full h-full object-cover"
+                            />
+                          </div>
+                        )}
+                        <div className="flex flex-col gap-2">
+                          <Badge variant="secondary" className="w-fit">
+                            News
+                          </Badge>
+                          <h3 className="text-xl font-semibold line-clamp-2">{postTitle}</h3>
                         </div>
-                      )}
-                      <div className="flex flex-col gap-2">
-                        <Badge variant="secondary" className="w-fit">
-                          News
-                        </Badge>
-                        <h3 className="text-xl font-semibold line-clamp-2">{post.title}</h3>
-                      </div>
-                      <p className="text-muted-foreground leading-relaxed line-clamp-3 flex-1">{post.excerpt}</p>
-                      <div className="flex items-center gap-4 text-sm text-muted-foreground pt-4 border-t border-border">
-                        <div className="flex items-center gap-1">
-                          <Calendar className="h-4 w-4" />
-                          <span>
-                            {post.publishedAt ? new Date(post.publishedAt).toLocaleDateString() : ""}
-                          </span>
+                        <p className="text-muted-foreground leading-relaxed line-clamp-3 flex-1">{postExcerpt}</p>
+                        <div className="flex items-center gap-4 text-sm text-muted-foreground pt-4 border-t border-border">
+                          <div className="flex items-center gap-1">
+                            <Calendar className="h-4 w-4" />
+                            <span>
+                              {post.publishedAt ? new Date(post.publishedAt).toLocaleDateString() : ""}
+                            </span>
+                          </div>
+                          <div className="flex items-center gap-1">
+                            <Clock className="h-4 w-4" />
+                            <span>5 min read</span>
+                          </div>
                         </div>
-                        <div className="flex items-center gap-1">
-                          <Clock className="h-4 w-4" />
-                          <span>5 min read</span>
-                        </div>
-                      </div>
-                      <Link
-                        href={`/blog/${post.slug}`}
-                        className="flex items-center gap-2 text-primary font-medium hover:gap-3 transition-all"
-                      >
-                        Read more <ArrowRight className="h-4 w-4" />
-                      </Link>
-                    </CardContent>
-                  </Card>
-                ))}
+                        <Link
+                          href={`/blog/${post.slug}`}
+                          className="flex items-center gap-2 text-primary font-medium hover:gap-3 transition-all"
+                        >
+                          Read more <ArrowRight className="h-4 w-4" />
+                        </Link>
+                      </CardContent>
+                    </Card>
+                  )
+                })}
               </div>
             ) : (
               <div className="text-center py-12">
                 <p className="text-lg text-muted-foreground">No blog posts available yet. Check back soon!</p>
               </div>
             )}
-            {pageConfig.afterListContent ? (
+            {afterListContent ? (
               <div className={endsWithSection ? "mt-0" : "mt-10"}>
-                <RichContentRenderer content={pageConfig.afterListContent} className="prose prose-lg max-w-none" />
+                <RichContentRenderer content={afterListContent} className="prose prose-lg max-w-none" />
               </div>
             ) : null}
           </div>

@@ -20,6 +20,7 @@ import {
   type HeadingTextStyle,
   type HeadingTypographySettings,
 } from "@/lib/heading-typography"
+import { CONTENT_KEYWORD_OPTIONS } from "@/lib/content-keywords"
 
 type SiteSettings = {
   site_title: string
@@ -2417,6 +2418,24 @@ export function SiteSettingsForm({ initial, pages }: { initial: SiteSettings; pa
                 onChange={(e) => setFormData({ ...formData, seoDefaultOgImage: e.target.value })}
                 placeholder="https://example.com/og-image.jpg"
               />
+            </div>
+          </div>
+
+          <div className="space-y-2 rounded-md border border-border/60 bg-muted/30 p-4">
+            <Label className="font-semibold">Available Keywords</Label>
+            <p className="text-xs text-muted-foreground">
+              You can use these tokens in SEO title, description, and keywords fields. They are resolved to real values when pages render.
+            </p>
+            <div className="grid gap-2 pt-1 md:grid-cols-2">
+              {CONTENT_KEYWORD_OPTIONS.map((keyword) => (
+                <div
+                  key={keyword.token}
+                  className="flex items-center justify-between rounded-md border border-border/60 bg-background px-2 py-1 text-xs"
+                >
+                  <span className="text-muted-foreground">{keyword.label}</span>
+                  <code>{keyword.token}</code>
+                </div>
+              ))}
             </div>
           </div>
 

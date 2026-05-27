@@ -1,6 +1,7 @@
 import type { Metadata } from "next"
 import type { SiteSettings } from "@/lib/site-settings"
 import { resolveAssetUrl } from "@/lib/asset-url"
+import { resolveContentKeywordTokens } from "@/lib/content-keywords"
 
 type SeoOverrides = {
   title?: string
@@ -27,11 +28,14 @@ function applyTitleTemplate(title: string, template: string, fallbackSiteTitle: 
 }
 
 export function buildSeoMetadata(settings: SiteSettings, overrides: SeoOverrides): Metadata {
-  const baseTitle = (overrides.title || settings.seoDefaultTitle || settings.siteTitle).trim()
+  const rawBaseTitle = (overrides.title || settings.seoDefaultTitle || settings.siteTitle).trim()
   const fallbackSiteTitle = settings.siteTitle || "Site"
+  const baseTitle = resolveContentKeywordTokens(rawBaseTitle, settings).trim()
   const resolvedTitle = applyTitleTemplate(baseTitle, settings.seoTitleTemplate || "", fallbackSiteTitle)
-  const description = (overrides.description ?? settings.seoDefaultDescription)?.trim() || undefined
-  const keywords = (overrides.keywords ?? settings.seoDefaultKeywords)?.trim() || undefined
+  const descriptionRaw = (overrides.description ?? settings.seoDefaultDescription)?.trim() || ""
+  const keywordsRaw = (overrides.keywords ?? settings.seoDefaultKeywords)?.trim() || ""
+  const description = resolveContentKeywordTokens(descriptionRaw, settings).trim() || undefined
+  const keywords = resolveContentKeywordTokens(keywordsRaw, settings).trim() || undefined
   const ogImage = resolveAssetUrl((overrides.ogImage ?? settings.seoDefaultOgImage)?.trim() || undefined)
   const canonical = overrides.canonical?.trim() || undefined
 

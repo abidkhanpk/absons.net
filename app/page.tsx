@@ -18,6 +18,7 @@ import { resolveAssetUrl } from "@/lib/asset-url"
 import { findManyProductsCompat } from "@/lib/product-compat"
 import { findManyDepartmentsCompat } from "@/lib/department-compat"
 import { getItemLinkTargetProps, resolveItemLinkHref } from "@/lib/item-link"
+import { resolveContentKeywordTokens } from "@/lib/content-keywords"
 
 // Ensure the homepage is served dynamically so it can gracefully handle missing data in production
 export const dynamic = "force-dynamic"
@@ -94,6 +95,7 @@ export default async function HomePage() {
     })
 
   const siteSettings = await getSiteSettings()
+  const resolveText = (value: string | null | undefined) => resolveContentKeywordTokens(value || "", siteSettings)
   const defaultSectionConfig: Record<
     HomeSectionId,
     {
@@ -283,13 +285,16 @@ export default async function HomePage() {
             services || [],
             (service) => {
               const IconComponent = contentIconMap[service.icon as keyof typeof contentIconMap] || Package
+              const serviceTitle = resolveText(service.title)
+              const serviceDescription = resolveText(service.description)
+              const serviceLinkLabel = resolveText(service.linkLabel || "") || "Learn more"
               return (
                 <Card key={service.id} className="border-border hover:shadow-lg transition-shadow">
                   <CardContent className="p-6 space-y-4 min-h-[10rem]">
                     {service.imageUrl ? (
                       <img
                         src={resolveAssetUrl(service.imageUrl)}
-                        alt={service.title}
+                        alt={serviceTitle}
                         className="w-full h-44 object-cover rounded-md border border-border/60"
                       />
                     ) : (
@@ -297,14 +302,14 @@ export default async function HomePage() {
                         <IconComponent className="h-6 w-6" />
                       </div>
                     )}
-                    <h3 className="text-xl font-semibold">{service.title}</h3>
-                    <p className="text-muted-foreground leading-relaxed">{service.description}</p>
+                    <h3 className="text-xl font-semibold">{serviceTitle}</h3>
+                    <p className="text-muted-foreground leading-relaxed">{serviceDescription}</p>
                     <Button asChild variant="link" className="p-0">
                       <Link
                         href={resolveItemLink(service.linkUrl, "/services")}
                         {...getItemLinkTargetProps(service.linkUrl)}
                       >
-                        {service.linkLabel || "Learn more"} <ArrowRight className="ml-2 h-4 w-4" />
+                        {serviceLinkLabel} <ArrowRight className="ml-2 h-4 w-4" />
                       </Link>
                     </Button>
                   </CardContent>
@@ -336,13 +341,13 @@ export default async function HomePage() {
             "products",
             products.map((product) => ({
               id: product.id,
-              title: product.title,
-              description: product.description,
+              title: resolveText(product.title),
+              description: resolveText(product.description),
               imageUrl: product.imageUrl,
               linkUrl: product.linkUrl,
-              linkLabel: product.linkLabel || "Explore product",
+              linkLabel: resolveText(product.linkLabel || "") || "Explore product",
               isFeatured: product.isFeatured,
-              tags: product.tags,
+              tags: product.tags.map((tag) => resolveText(tag)),
             })),
             (product) => (
               <Card key={product.id} className="border-border hover:shadow-lg transition-shadow h-full">
@@ -394,11 +399,11 @@ export default async function HomePage() {
             "pricing",
             pricingPlans.map((plan) => ({
               id: plan.id,
-              name: plan.name,
-              price: plan.price,
-              period: plan.period || "",
+              name: resolveText(plan.name),
+              price: resolveText(plan.price),
+              period: resolveText(plan.period || ""),
               features: Array.isArray(plan.features)
-                ? plan.features.map((entry) => String(entry)).slice(0, 4)
+                ? plan.features.map((entry) => resolveText(String(entry))).slice(0, 4)
                 : ["Contact us for full plan details"],
             })),
             (plan) => (
@@ -443,33 +448,40 @@ export default async function HomePage() {
             {renderSectionItems(
               "training",
               trainings,
-              (course) => (
-                <Card key={course.id} className="border-border hover:shadow-lg transition-shadow">
-                  <CardContent className="p-6 space-y-4">
-                    {course.featuredImage ? (
-                      <img
-                        src={resolveAssetUrl(course.featuredImage)}
-                        alt={course.title}
-                        className="w-full h-44 object-cover rounded-md border border-border/60"
-                      />
-                    ) : null}
-                    <h3 className="text-xl font-semibold">{course.title}</h3>
-                    <p className="text-muted-foreground leading-relaxed">{course.description}</p>
-                    <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                      {course.duration && <span>Duration: {course.duration}</span>}
-                      {course.level && <span>Level: {course.level}</span>}
-                    </div>
-                    <Button asChild variant="link" className="p-0">
-                      <Link
-                        href={resolveItemLink(course.linkUrl, "/training")}
-                        {...getItemLinkTargetProps(course.linkUrl)}
-                      >
-                        {course.linkLabel || "Learn more"} <ArrowRight className="ml-2 h-4 w-4" />
-                      </Link>
-                    </Button>
-                  </CardContent>
-                </Card>
-              ),
+              (course) => {
+                const courseTitle = resolveText(course.title)
+                const courseDescription = resolveText(course.description)
+                const courseDuration = resolveText(course.duration || "")
+                const courseLevel = resolveText(course.level || "")
+                const courseLinkLabel = resolveText(course.linkLabel || "") || "Learn more"
+                return (
+                  <Card key={course.id} className="border-border hover:shadow-lg transition-shadow">
+                    <CardContent className="p-6 space-y-4">
+                      {course.featuredImage ? (
+                        <img
+                          src={resolveAssetUrl(course.featuredImage)}
+                          alt={courseTitle}
+                          className="w-full h-44 object-cover rounded-md border border-border/60"
+                        />
+                      ) : null}
+                      <h3 className="text-xl font-semibold">{courseTitle}</h3>
+                      <p className="text-muted-foreground leading-relaxed">{courseDescription}</p>
+                      <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                        {courseDuration && <span>Duration: {courseDuration}</span>}
+                        {courseLevel && <span>Level: {courseLevel}</span>}
+                      </div>
+                      <Button asChild variant="link" className="p-0">
+                        <Link
+                          href={resolveItemLink(course.linkUrl, "/training")}
+                          {...getItemLinkTargetProps(course.linkUrl)}
+                        >
+                          {courseLinkLabel} <ArrowRight className="ml-2 h-4 w-4" />
+                        </Link>
+                      </Button>
+                    </CardContent>
+                  </Card>
+                )
+              },
               (course) => course.id,
             )}
             <div className="text-center mt-6">
@@ -496,13 +508,16 @@ export default async function HomePage() {
               departments,
               (department) => {
                 const DepartmentIcon = contentIconMap[department.icon as keyof typeof contentIconMap] || Users
+                const departmentTitle = resolveText(department.title)
+                const departmentDescription = resolveText(department.description)
+                const departmentLinkLabel = resolveText(department.linkLabel || "") || "Learn more"
                 return (
                   <Card key={department.id} className="border-border hover:shadow-lg transition-shadow">
                     <CardContent className="p-6 space-y-4 min-h-[10rem]">
                       {department.imageUrl ? (
                         <img
                           src={resolveAssetUrl(department.imageUrl)}
-                          alt={department.title}
+                          alt={departmentTitle}
                           className="w-full h-44 object-cover rounded-md border border-border/60"
                         />
                       ) : (
@@ -510,14 +525,14 @@ export default async function HomePage() {
                           <DepartmentIcon className="h-6 w-6" />
                         </div>
                       )}
-                      <h3 className="text-xl font-semibold">{department.title}</h3>
-                      <p className="text-muted-foreground leading-relaxed">{department.description}</p>
+                      <h3 className="text-xl font-semibold">{departmentTitle}</h3>
+                      <p className="text-muted-foreground leading-relaxed">{departmentDescription}</p>
                       <Button asChild variant="link" className="p-0">
                         <Link
                           href={resolveItemLink(department.linkUrl, "/departments")}
                           {...getItemLinkTargetProps(department.linkUrl)}
                         >
-                          {department.linkLabel || "Learn more"} <ArrowRight className="ml-2 h-4 w-4" />
+                          {departmentLinkLabel} <ArrowRight className="ml-2 h-4 w-4" />
                         </Link>
                       </Button>
                     </CardContent>
@@ -605,14 +620,16 @@ export default async function HomePage() {
               whoWeServeItems,
               (segment) => {
                 const SegmentIcon = contentIconMap[segment.icon as keyof typeof contentIconMap] || Users
+                const segmentTitle = resolveText(segment.title)
+                const segmentDescription = resolveText(segment.description)
                 return (
                   <Card key={segment.id} className="border-border hover:shadow-lg transition-shadow">
                     <CardContent className="p-6 space-y-4">
                       <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-primary/10 text-primary">
                         <SegmentIcon className="h-6 w-6" />
                       </div>
-                      <h3 className="text-xl font-semibold">{segment.title}</h3>
-                      <p className="text-muted-foreground leading-relaxed">{segment.description}</p>
+                      <h3 className="text-xl font-semibold">{segmentTitle}</h3>
+                      <p className="text-muted-foreground leading-relaxed">{segmentDescription}</p>
                     </CardContent>
                   </Card>
                 )

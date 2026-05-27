@@ -55,6 +55,7 @@ export default async function ContentPage({ params }: { params: Promise<{ slug: 
     where: approvalRequired ? { slug: resolvedSlug, published: true, approved: true } : { slug: resolvedSlug, published: true },
   })
   if (!page) return notFound()
+  const resolvedTitle = resolveContentKeywordTokens(page.title || "", siteSettings)
   const resolvedContent = resolveContentKeywordTokens(page.content || "", siteSettings)
 
   return (
@@ -64,7 +65,7 @@ export default async function ContentPage({ params }: { params: Promise<{ slug: 
       <main className="flex-1">
         <section className="border-b border-border bg-muted/20">
           <div className="container mx-auto px-4 lg:px-8 cms-page-title-wrap">
-            <h1 className="cms-page-title">{page.title}</h1>
+            <h1 className="cms-page-title">{resolvedTitle}</h1>
           </div>
         </section>
 

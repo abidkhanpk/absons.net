@@ -13,6 +13,7 @@ import { findManyDepartmentsCompat } from "@/lib/department-compat"
 import { getItemLinkTargetProps, resolveItemLinkHref } from "@/lib/item-link"
 import { contentEndsWithSection, contentStartsWithSection } from "@/lib/section-page-layout"
 import { RichContentRenderer } from "@/components/cms/rich-content-renderer"
+import { resolveContentKeywordTokens } from "@/lib/content-keywords"
 
 export async function generateMetadata() {
   const settings = await getSiteSettings()
@@ -40,8 +41,11 @@ export default async function DepartmentsPage() {
     getSiteSettings(),
   ])
   const pageConfig = siteSettings.sectionPageContent.departments
-  const startsWithSection = contentStartsWithSection(pageConfig.beforeListContent)
-  const endsWithSection = contentEndsWithSection(pageConfig.afterListContent)
+  const resolveText = (value: string | null | undefined) => resolveContentKeywordTokens(value || "", siteSettings)
+  const beforeListContent = resolveContentKeywordTokens(pageConfig.beforeListContent, siteSettings)
+  const afterListContent = resolveContentKeywordTokens(pageConfig.afterListContent, siteSettings)
+  const startsWithSection = contentStartsWithSection(beforeListContent)
+  const endsWithSection = contentEndsWithSection(afterListContent)
 
   return (
     <div className="flex flex-col min-h-screen">
@@ -50,22 +54,25 @@ export default async function DepartmentsPage() {
       <main className="flex-1">
         <section className={`${startsWithSection ? "pt-0" : "pt-16"} ${endsWithSection ? "pb-0" : "pb-16"} bg-background`}>
           <div className="container mx-auto px-4 lg:px-8">
-            {pageConfig.beforeListContent ? (
+            {beforeListContent ? (
               <div className={startsWithSection ? "mb-0" : "mb-10"}>
-                <RichContentRenderer content={pageConfig.beforeListContent} className="prose prose-lg max-w-none" />
+                <RichContentRenderer content={beforeListContent} className="prose prose-lg max-w-none" />
               </div>
             ) : null}
             {departments.length > 0 ? (
               <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {departments.map((department) => {
                   const IconComponent = contentIconMap[department.icon as keyof typeof contentIconMap] || Building2
+                  const departmentTitle = resolveText(department.title)
+                  const departmentDescription = resolveText(department.description)
+                  const departmentLinkLabel = resolveText(department.linkLabel || "") || "Learn more"
                   return (
                     <Card key={department.id} className="border-border hover:shadow-lg transition-shadow h-full">
                       <CardContent className="p-6 h-full flex flex-col gap-4">
                         {department.imageUrl ? (
                           <img
                             src={resolveAssetUrl(department.imageUrl)}
-                            alt={department.title}
+                            alt={departmentTitle}
                             className="w-full h-44 object-cover rounded-md border border-border/60"
                           />
                         ) : (
@@ -73,14 +80,14 @@ export default async function DepartmentsPage() {
                             <IconComponent className="h-6 w-6" />
                           </div>
                         )}
-                        <h3 className="text-xl font-semibold">{department.title}</h3>
-                        <p className="text-muted-foreground leading-relaxed">{department.description}</p>
+                        <h3 className="text-xl font-semibold">{departmentTitle}</h3>
+                        <p className="text-muted-foreground leading-relaxed">{departmentDescription}</p>
                         <Button asChild variant="outline" className="w-full bg-transparent mt-auto">
                           <Link
                             href={resolveItemLink(department.linkUrl, "/departments")}
                             {...getItemLinkTargetProps(department.linkUrl)}
                           >
-                            {department.linkLabel || "Learn more"} <ArrowRight className="ml-2 h-4 w-4" />
+                            {departmentLinkLabel} <ArrowRight className="ml-2 h-4 w-4" />
                           </Link>
                         </Button>
                       </CardContent>
@@ -96,9 +103,9 @@ export default async function DepartmentsPage() {
                 </CardContent>
               </Card>
             )}
-            {pageConfig.afterListContent ? (
+            {afterListContent ? (
               <div className={endsWithSection ? "mt-0" : "mt-10"}>
-                <RichContentRenderer content={pageConfig.afterListContent} className="prose prose-lg max-w-none" />
+                <RichContentRenderer content={afterListContent} className="prose prose-lg max-w-none" />
               </div>
             ) : null}
           </div>

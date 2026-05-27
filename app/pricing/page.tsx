@@ -9,6 +9,7 @@ import { getSiteSettings } from "@/lib/site-settings"
 import { buildSeoMetadata } from "@/lib/seo"
 import { contentEndsWithSection, contentStartsWithSection } from "@/lib/section-page-layout"
 import { RichContentRenderer } from "@/components/cms/rich-content-renderer"
+import { resolveContentKeywordTokens } from "@/lib/content-keywords"
 
 export async function generateMetadata() {
   const settings = await getSiteSettings()
@@ -33,8 +34,11 @@ export default async function PricingPage() {
     getSiteSettings(),
   ])
   const pageConfig = siteSettings.sectionPageContent.pricing
-  const startsWithSection = contentStartsWithSection(pageConfig.beforeListContent)
-  const endsWithSection = contentEndsWithSection(pageConfig.afterListContent)
+  const resolveText = (value: string | null | undefined) => resolveContentKeywordTokens(value || "", siteSettings)
+  const beforeListContent = resolveContentKeywordTokens(pageConfig.beforeListContent, siteSettings)
+  const afterListContent = resolveContentKeywordTokens(pageConfig.afterListContent, siteSettings)
+  const startsWithSection = contentStartsWithSection(beforeListContent)
+  const endsWithSection = contentEndsWithSection(afterListContent)
 
   return (
     <div className="flex flex-col min-h-screen">
@@ -43,25 +47,28 @@ export default async function PricingPage() {
       <main className="flex-1">
         <section className={`${startsWithSection ? "pt-0" : "pt-16"} ${endsWithSection ? "pb-0" : "pb-16"} bg-background`}>
           <div className="container mx-auto px-4 lg:px-8">
-            {pageConfig.beforeListContent ? (
+            {beforeListContent ? (
               <div className={startsWithSection ? "mb-0" : "mb-10"}>
-                <RichContentRenderer content={pageConfig.beforeListContent} className="prose prose-lg max-w-none" />
+                <RichContentRenderer content={beforeListContent} className="prose prose-lg max-w-none" />
               </div>
             ) : null}
             {plans.length > 0 ? (
               <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {plans.map((plan) => {
                   const features = Array.isArray(plan.features)
-                    ? plan.features.map((entry) => String(entry)).filter(Boolean)
+                    ? plan.features.map((entry) => resolveText(String(entry))).filter(Boolean)
                     : []
+                  const planName = resolveText(plan.name)
+                  const planPrice = resolveText(plan.price)
+                  const planPeriod = resolveText(plan.period || "")
                   return (
                     <Card key={plan.id} className="border-border hover:shadow-lg transition-shadow">
                       <CardContent className="p-6 space-y-5">
                         <div>
-                          <h3 className="text-xl font-semibold">{plan.name}</h3>
+                          <h3 className="text-xl font-semibold">{planName}</h3>
                           <p className="mt-2 text-2xl font-bold">
-                            {plan.price}
-                            {plan.period && <span className="text-sm font-normal text-muted-foreground">{plan.period}</span>}
+                            {planPrice}
+                            {planPeriod && <span className="text-sm font-normal text-muted-foreground">{planPeriod}</span>}
                           </p>
                         </div>
                         <ul className="space-y-2">
@@ -88,9 +95,9 @@ export default async function PricingPage() {
                 </CardContent>
               </Card>
             )}
-            {pageConfig.afterListContent ? (
+            {afterListContent ? (
               <div className={endsWithSection ? "mt-0" : "mt-10"}>
-                <RichContentRenderer content={pageConfig.afterListContent} className="prose prose-lg max-w-none" />
+                <RichContentRenderer content={afterListContent} className="prose prose-lg max-w-none" />
               </div>
             ) : null}
           </div>

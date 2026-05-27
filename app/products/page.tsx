@@ -14,6 +14,7 @@ import { findManyProductsCompat } from "@/lib/product-compat"
 import { getItemLinkTargetProps, resolveItemLinkHref } from "@/lib/item-link"
 import { contentEndsWithSection, contentStartsWithSection } from "@/lib/section-page-layout"
 import { RichContentRenderer } from "@/components/cms/rich-content-renderer"
+import { resolveContentKeywordTokens } from "@/lib/content-keywords"
 
 export async function generateMetadata() {
   const settings = await getSiteSettings()
@@ -42,8 +43,11 @@ export default async function ProductsPage() {
     getSiteSettings(),
   ])
   const pageConfig = siteSettings.sectionPageContent.products
-  const startsWithSection = contentStartsWithSection(pageConfig.beforeListContent)
-  const endsWithSection = contentEndsWithSection(pageConfig.afterListContent)
+  const resolveText = (value: string | null | undefined) => resolveContentKeywordTokens(value || "", siteSettings)
+  const beforeListContent = resolveContentKeywordTokens(pageConfig.beforeListContent, siteSettings)
+  const afterListContent = resolveContentKeywordTokens(pageConfig.afterListContent, siteSettings)
+  const startsWithSection = contentStartsWithSection(beforeListContent)
+  const endsWithSection = contentEndsWithSection(afterListContent)
 
   return (
     <div className="flex flex-col min-h-screen">
@@ -52,22 +56,25 @@ export default async function ProductsPage() {
       <main className="flex-1">
         <section className={`${startsWithSection ? "pt-0" : "pt-16"} ${endsWithSection ? "pb-0" : "pb-16"} bg-background`}>
           <div className="container mx-auto px-4 lg:px-8">
-            {pageConfig.beforeListContent ? (
+            {beforeListContent ? (
               <div className={startsWithSection ? "mb-0" : "mb-10"}>
-                <RichContentRenderer content={pageConfig.beforeListContent} className="prose prose-lg max-w-none" />
+                <RichContentRenderer content={beforeListContent} className="prose prose-lg max-w-none" />
               </div>
             ) : null}
             {products.length > 0 ? (
               <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {products.map((product) => {
                   const IconComponent = contentIconMap[product.icon as keyof typeof contentIconMap] || Package
+                  const productTitle = resolveText(product.title)
+                  const productDescription = resolveText(product.description)
+                  const productLinkLabel = resolveText(product.linkLabel || "") || "Explore product"
                   return (
                     <Card key={product.id} className="border-border hover:shadow-lg transition-shadow h-full">
                       <CardContent className="p-6 h-full flex flex-col gap-4">
                         {product.imageUrl ? (
                           <img
                             src={resolveAssetUrl(product.imageUrl)}
-                            alt={product.title}
+                            alt={productTitle}
                             className="w-full h-44 object-cover rounded-md border border-border/60"
                           />
                         ) : (
@@ -77,14 +84,14 @@ export default async function ProductsPage() {
                         )}
                         <div className="flex flex-wrap items-center gap-2">
                           {product.isFeatured ? <Badge>Featured</Badge> : null}
-                          {product.tags.slice(0, 3).map((tag) => (
-                            <Badge key={`${product.id}-${tag}`} variant="secondary">
-                              {tag}
+                          {product.tags.slice(0, 3).map((tag, index) => (
+                            <Badge key={`${product.id}-${tag}-${index}`} variant="secondary">
+                              {resolveText(tag)}
                             </Badge>
                           ))}
                         </div>
-                        <h3 className="text-xl font-semibold">{product.title}</h3>
-                        <p className="text-muted-foreground leading-relaxed">{product.description}</p>
+                        <h3 className="text-xl font-semibold">{productTitle}</h3>
+                        <p className="text-muted-foreground leading-relaxed">{productDescription}</p>
                         <ul className="space-y-2">
                           <li className="flex items-start gap-2 text-sm">
                             <CheckCircle2 className="h-4 w-4 mt-0.5 text-primary flex-shrink-0" />
@@ -104,7 +111,7 @@ export default async function ProductsPage() {
                             href={resolveItemLink(product.linkUrl, "/products")}
                             {...getItemLinkTargetProps(product.linkUrl)}
                           >
-                            {product.linkLabel || "Explore product"} <ArrowRight className="ml-2 h-4 w-4" />
+                            {productLinkLabel} <ArrowRight className="ml-2 h-4 w-4" />
                           </Link>
                         </Button>
                       </CardContent>
@@ -120,9 +127,9 @@ export default async function ProductsPage() {
                 </CardContent>
               </Card>
             )}
-            {pageConfig.afterListContent ? (
+            {afterListContent ? (
               <div className={endsWithSection ? "mt-0" : "mt-10"}>
-                <RichContentRenderer content={pageConfig.afterListContent} className="prose prose-lg max-w-none" />
+                <RichContentRenderer content={afterListContent} className="prose prose-lg max-w-none" />
               </div>
             ) : null}
           </div>

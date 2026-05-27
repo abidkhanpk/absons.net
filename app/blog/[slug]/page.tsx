@@ -48,6 +48,8 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
   if (!post) {
     notFound()
   }
+  const resolveText = (value: string | null | undefined) => resolveContentKeywordTokens(value || "", siteSettings)
+  const postTitle = resolveText(post.title)
   const resolvedContent = resolveContentKeywordTokens(post.content || "", siteSettings)
 
   return (
@@ -69,14 +71,14 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
                 <div className="w-full h-96 bg-muted rounded-lg overflow-hidden mb-8">
                   <img
                     src={resolveAssetUrl(post.featuredImage) || "/placeholder.svg"}
-                    alt={post.title}
+                    alt={postTitle}
                     className="w-full h-full object-cover"
                   />
                 </div>
               )}
 
               <div className="space-y-4 mb-8 cms-page-title-wrap">
-                <h1 className="cms-page-title text-balance">{post.title}</h1>
+                <h1 className="cms-page-title text-balance">{postTitle}</h1>
                 <div className="flex items-center gap-2 text-muted-foreground">
                   <Calendar className="h-4 w-4" />
                   <time dateTime={post.publishedAt ?? undefined}>
