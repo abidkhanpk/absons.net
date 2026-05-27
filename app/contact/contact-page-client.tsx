@@ -11,17 +11,23 @@ import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Mail, Phone, MapPin, Send } from "lucide-react"
 import { useEffect, useRef, useState } from "react"
-import type { SiteSettings } from "@/lib/site-settings"
+import type {
+  PublicContactSettings,
+  PublicFooterSettings,
+  PublicHeaderSettings,
+} from "@/lib/site-public-settings"
 
 type ContactPageClientProps = {
-  settings: SiteSettings
+  headerSettings: PublicHeaderSettings
+  footerSettings: PublicFooterSettings
+  contactSettings: PublicContactSettings
 }
 
 type RequiredContactField = "name" | "email" | "purpose" | "message"
 
 const requiredContactFields: RequiredContactField[] = ["name", "email", "purpose", "message"]
 
-export function ContactPageClient({ settings }: ContactPageClientProps) {
+export function ContactPageClient({ headerSettings, footerSettings, contactSettings }: ContactPageClientProps) {
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -42,8 +48,8 @@ export function ContactPageClient({ settings }: ContactPageClientProps) {
   const [fieldErrors, setFieldErrors] = useState<Partial<Record<RequiredContactField, string>>>({})
   const externalFormRef = useRef<HTMLDivElement | null>(null)
   const useExternalForm =
-    settings.emailSettings.contactFormMode === "external_embed" &&
-    settings.emailSettings.externalFormEmbedHtml.trim().length > 0
+    contactSettings.emailSettings.contactFormMode === "external_embed" &&
+    contactSettings.emailSettings.externalFormEmbedHtml.trim().length > 0
 
   const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 
@@ -91,7 +97,7 @@ export function ContactPageClient({ settings }: ContactPageClientProps) {
       next.text = script.text
       script.parentNode?.replaceChild(next, script)
     })
-  }, [useExternalForm, settings.emailSettings.externalFormEmbedHtml])
+  }, [useExternalForm, contactSettings.emailSettings.externalFormEmbedHtml])
 
   const orderedDays = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
 
@@ -188,7 +194,7 @@ export function ContactPageClient({ settings }: ContactPageClientProps) {
 
   return (
     <div className="flex flex-col min-h-screen">
-      <Header settings={settings} />
+      <Header settings={headerSettings} />
 
       <main className="flex-1">
         {/* Hero Section */}
@@ -236,7 +242,7 @@ export function ContactPageClient({ settings }: ContactPageClientProps) {
                         <div
                           ref={externalFormRef}
                           className="w-full"
-                          dangerouslySetInnerHTML={{ __html: settings.emailSettings.externalFormEmbedHtml }}
+                          dangerouslySetInnerHTML={{ __html: contactSettings.emailSettings.externalFormEmbedHtml }}
                         />
                       </div>
                     ) : (
@@ -379,7 +385,7 @@ export function ContactPageClient({ settings }: ContactPageClientProps) {
                         </div>
                         <div>
                           <p className="font-medium mb-1">Email</p>
-                          <p className="text-sm text-muted-foreground">{settings.contactEmail}</p>
+                          <p className="text-sm text-muted-foreground">{contactSettings.contactEmail}</p>
                         </div>
                       </div>
 
@@ -389,7 +395,7 @@ export function ContactPageClient({ settings }: ContactPageClientProps) {
                         </div>
                         <div>
                           <p className="font-medium mb-1">Phone</p>
-                          <p className="text-sm text-muted-foreground">{settings.contactPhone}</p>
+                          <p className="text-sm text-muted-foreground">{contactSettings.contactPhone}</p>
                         </div>
                       </div>
 
@@ -399,7 +405,7 @@ export function ContactPageClient({ settings }: ContactPageClientProps) {
                         </div>
                         <div>
                           <p className="font-medium mb-1">Location</p>
-                          <p className="text-sm text-muted-foreground">{settings.contactAddress}</p>
+                          <p className="text-sm text-muted-foreground">{contactSettings.contactAddress}</p>
                         </div>
                       </div>
                     </div>
@@ -407,13 +413,14 @@ export function ContactPageClient({ settings }: ContactPageClientProps) {
                 </Card>
 
                 {(() => {
-                  const grouped = groupSchedule(settings.businessHoursSchedule)
+                  const grouped = groupSchedule(contactSettings.businessHoursSchedule)
                   const fallbackDays = grouped.map((g) => g.label).join(", ")
                   const fallbackHours = grouped.map((g) => `${g.label}: ${g.hours}`).join("; ")
-                  const summaryDays = settings.businessDays || fallbackDays
-                  const summaryHours = settings.businessHours || fallbackHours
+                  const summaryDays = contactSettings.businessDays || fallbackDays
+                  const summaryHours = contactSettings.businessHours || fallbackHours
                   const hasContent =
-                    settings.businessHoursMode !== "hidden" && (settings.showBusinessHours || summaryDays || summaryHours)
+                    contactSettings.businessHoursMode !== "hidden" &&
+                    (contactSettings.showBusinessHours || summaryDays || summaryHours)
 
                   if (!hasContent) return null
 
@@ -421,9 +428,9 @@ export function ContactPageClient({ settings }: ContactPageClientProps) {
                     <Card className="border-border bg-primary text-primary-foreground">
                       <CardContent className="p-3">
                         <h3 className="text-xl font-semibold mb-1">Business Hours</h3>
-                        {settings.businessHoursMode === "table" ? (
+                        {contactSettings.businessHoursMode === "table" ? (
                           <div className="space-y-2 text-sm">
-                            {groupSchedule(settings.businessHoursSchedule).map((group) => (
+                            {groupSchedule(contactSettings.businessHoursSchedule).map((group) => (
                               <div
                                 key={group.label}
                                 className="flex items-center justify-between rounded-md bg-primary-foreground/10 px-4 py-2"
@@ -433,7 +440,7 @@ export function ContactPageClient({ settings }: ContactPageClientProps) {
                               </div>
                             ))}
                           </div>
-                        ) : settings.businessHoursMode === "summary" ? (
+                        ) : contactSettings.businessHoursMode === "summary" ? (
                           <div className="space-y-1 text-sm rounded-md bg-primary-foreground/10 px-3 py-1 text-left">
                             {summaryDays && <div>{summaryDays}</div>}
                             {summaryHours && <div>{summaryHours}</div>}
@@ -449,7 +456,7 @@ export function ContactPageClient({ settings }: ContactPageClientProps) {
         </section>
       </main>
 
-      <Footer settings={settings} />
+      <Footer settings={footerSettings} />
     </div>
   )
 }

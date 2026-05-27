@@ -5,11 +5,11 @@ import { usePathname } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Menu, X, Lock } from "lucide-react"
 import { useEffect, useMemo, useRef, useState } from "react"
-import type { SiteSettings } from "@/lib/site-settings"
+import type { PublicHeaderSettings } from "@/lib/site-public-settings"
 import { resolveAssetUrl } from "@/lib/asset-url"
 
 type HeaderProps = {
-  settings: SiteSettings
+  settings: PublicHeaderSettings
 }
 
 export function Header({ settings }: HeaderProps) {

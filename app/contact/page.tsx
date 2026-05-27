@@ -1,6 +1,7 @@
 import { getSiteSettings } from "@/lib/site-settings"
 import { ContactPageClient } from "./contact-page-client"
 import { buildSeoMetadata } from "@/lib/seo"
+import { toPublicContactSettings, toPublicFooterSettings, toPublicHeaderSettings } from "@/lib/site-public-settings"
 
 export async function generateMetadata() {
   const settings = await getSiteSettings()
@@ -20,5 +21,11 @@ export async function generateMetadata() {
 export default async function ContactPage() {
   const settings = await getSiteSettings()
 
-  return <ContactPageClient settings={settings} />
+  return (
+    <ContactPageClient
+      headerSettings={toPublicHeaderSettings(settings)}
+      footerSettings={toPublicFooterSettings(settings)}
+      contactSettings={toPublicContactSettings(settings)}
+    />
+  )
 }

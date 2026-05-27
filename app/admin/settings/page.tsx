@@ -27,7 +27,7 @@ export default async function SettingsPage() {
 
   const [settings, resolved, pages] = await Promise.all([
     withRls(session.userId, (tx) => tx.siteSettings.findUnique({ where: { id: "site" } })),
-    getSiteSettings(),
+    getSiteSettings({ includeSensitiveEmailSettings: true }),
     withRls(session.userId, (tx) =>
       tx.page.findMany({
         select: { id: true, title: true, slug: true, published: true },

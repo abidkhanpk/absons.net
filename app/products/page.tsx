@@ -15,6 +15,7 @@ import { getItemLinkTargetProps, resolveItemLinkHref } from "@/lib/item-link"
 import { contentEndsWithSection, contentStartsWithSection } from "@/lib/section-page-layout"
 import { RichContentRenderer } from "@/components/cms/rich-content-renderer"
 import { resolveContentKeywordTokens } from "@/lib/content-keywords"
+import { toPublicFooterSettings, toPublicHeaderSettings } from "@/lib/site-public-settings"
 
 export async function generateMetadata() {
   const settings = await getSiteSettings()
@@ -43,6 +44,8 @@ export default async function ProductsPage() {
     getSiteSettings(),
   ])
   const pageConfig = siteSettings.sectionPageContent.products
+  const headerSettings = toPublicHeaderSettings(siteSettings)
+  const footerSettings = toPublicFooterSettings(siteSettings)
   const resolveText = (value: string | null | undefined) => resolveContentKeywordTokens(value || "", siteSettings)
   const beforeListContent = resolveContentKeywordTokens(pageConfig.beforeListContent, siteSettings)
   const afterListContent = resolveContentKeywordTokens(pageConfig.afterListContent, siteSettings)
@@ -51,7 +54,7 @@ export default async function ProductsPage() {
 
   return (
     <div className="flex flex-col min-h-screen">
-      <Header settings={siteSettings} />
+      <Header settings={headerSettings} />
 
       <main className="flex-1">
         <section className={`${startsWithSection ? "pt-0" : "pt-16"} ${endsWithSection ? "pb-0" : "pb-16"} bg-background`}>
@@ -136,7 +139,7 @@ export default async function ProductsPage() {
         </section>
       </main>
 
-      <Footer settings={siteSettings} />
+      <Footer settings={footerSettings} />
     </div>
   )
 }

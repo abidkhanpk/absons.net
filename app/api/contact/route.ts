@@ -91,7 +91,7 @@ async function sendContactEmail({
   purpose: string
   message: string
 }) {
-  const settings = await getSiteSettings()
+  const settings = await getSiteSettings({ includeSensitiveEmailSettings: true })
   const to = sanitizeField(settings.emailSettings.inquiryReceiverEmail) || sanitizeField(settings.contactEmail)
   const smtpHost = normalizeSmtpHost(sanitizeField(settings.emailSettings.smtpHost))
   const smtpPort = Number(settings.emailSettings.smtpPort)

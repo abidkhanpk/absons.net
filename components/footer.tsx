@@ -1,9 +1,9 @@
 import Link from "next/link"
 import { Mail, Phone, MapPin } from "lucide-react"
-import type { SiteSettings } from "@/lib/site-settings"
+import type { PublicFooterSettings } from "@/lib/site-public-settings"
 import { resolveAssetUrl } from "@/lib/asset-url"
 
-export function Footer({ settings }: { settings: SiteSettings }) {
+export function Footer({ settings }: { settings: PublicFooterSettings }) {
   const showFooterMenu = settings.footerMenuEnabled !== false
   const navItems = (settings.footerNavItems || []).filter((item) => item.enabled !== false)
   const secondaryItems = (settings.footerSecondaryNavItems || []).filter((item) => item.enabled !== false)

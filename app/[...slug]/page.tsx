@@ -6,6 +6,7 @@ import { getSiteSettings } from "@/lib/site-settings"
 import { buildSeoMetadata } from "@/lib/seo"
 import { RichContentRenderer } from "@/components/cms/rich-content-renderer"
 import { resolveContentKeywordTokens } from "@/lib/content-keywords"
+import { toPublicFooterSettings, toPublicHeaderSettings } from "@/lib/site-public-settings"
 
 export const dynamic = "force-dynamic"
 export const revalidate = 0
@@ -50,6 +51,8 @@ export default async function ContentPage({ params }: { params: Promise<{ slug: 
   const resolvedSlug = resolveSlugFromParams(slug)
   if (!resolvedSlug) return notFound()
   const siteSettings = await getSiteSettings()
+  const headerSettings = toPublicHeaderSettings(siteSettings)
+  const footerSettings = toPublicFooterSettings(siteSettings)
   const approvalRequired = siteSettings.editorApprovalRequired ?? true
   const page = await prisma.page.findFirst({
     where: approvalRequired ? { slug: resolvedSlug, published: true, approved: true } : { slug: resolvedSlug, published: true },
@@ -60,7 +63,7 @@ export default async function ContentPage({ params }: { params: Promise<{ slug: 
 
   return (
     <div className="flex flex-col min-h-screen">
-      <Header settings={siteSettings} />
+      <Header settings={headerSettings} />
 
       <main className="flex-1">
         <section className="border-b border-border bg-muted/20">
@@ -76,7 +79,7 @@ export default async function ContentPage({ params }: { params: Promise<{ slug: 
         </section>
       </main>
 
-      <Footer settings={siteSettings} />
+      <Footer settings={footerSettings} />
     </div>
   )
 }

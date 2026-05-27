@@ -145,8 +145,8 @@ const SITE_PRELOADER_SCRIPT = `
 (function () {
   if (typeof window === "undefined") return;
 
-  var DISABLED_ADMIN_PATH = /^\\/admin(\\/|$)/;
-  if (DISABLED_ADMIN_PATH.test(window.location.pathname || "")) {
+  var DISABLED_PRELOADER_PATH = /^\\/admin(?:\\/|$)/;
+  if (DISABLED_PRELOADER_PATH.test(window.location.pathname || "")) {
     var style = document.createElement("style");
     style.id = "site-preloader-disable-style";
     style.textContent = "#site-preloader{display:none !important;}";

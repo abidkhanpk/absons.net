@@ -10,6 +10,7 @@ import { buildSeoMetadata } from "@/lib/seo"
 import { resolveAssetUrl } from "@/lib/asset-url"
 import { RichContentRenderer } from "@/components/cms/rich-content-renderer"
 import { resolveContentKeywordTokens } from "@/lib/content-keywords"
+import { toPublicFooterSettings, toPublicHeaderSettings } from "@/lib/site-public-settings"
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params
@@ -40,6 +41,8 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
 export default async function BlogPostPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params
   const siteSettings = await getSiteSettings()
+  const headerSettings = toPublicHeaderSettings(siteSettings)
+  const footerSettings = toPublicFooterSettings(siteSettings)
   const approvalRequired = siteSettings.editorApprovalRequired ?? true
   const post = await prisma.blogPost.findFirst({
     where: approvalRequired ? { slug, published: true, approved: true } : { slug, published: true },
@@ -54,7 +57,7 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
 
   return (
     <div className="flex flex-col min-h-screen">
-      <Header settings={siteSettings} />
+      <Header settings={headerSettings} />
 
       <main className="flex-1">
         <article className="py-16 bg-background">
@@ -93,7 +96,7 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
         </article>
       </main>
 
-      <Footer settings={siteSettings} />
+      <Footer settings={footerSettings} />
     </div>
   )
 }

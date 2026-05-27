@@ -19,6 +19,7 @@ import { findManyProductsCompat } from "@/lib/product-compat"
 import { findManyDepartmentsCompat } from "@/lib/department-compat"
 import { getItemLinkTargetProps, resolveItemLinkHref } from "@/lib/item-link"
 import { resolveContentKeywordTokens } from "@/lib/content-keywords"
+import { toPublicFooterSettings, toPublicHeaderSettings } from "@/lib/site-public-settings"
 
 // Ensure the homepage is served dynamically so it can gracefully handle missing data in production
 export const dynamic = "force-dynamic"
@@ -95,6 +96,8 @@ export default async function HomePage() {
     })
 
   const siteSettings = await getSiteSettings()
+  const headerSettings = toPublicHeaderSettings(siteSettings)
+  const footerSettings = toPublicFooterSettings(siteSettings)
   const resolveText = (value: string | null | undefined) => resolveContentKeywordTokens(value || "", siteSettings)
   const defaultSectionConfig: Record<
     HomeSectionId,
@@ -676,7 +679,7 @@ export default async function HomePage() {
   const secondaryHomeSections = enabledHomeSections.slice(2)
   return (
     <div className="flex flex-col min-h-screen">
-      <Header settings={siteSettings} />
+      <Header settings={headerSettings} />
 
       <main className="flex-1">
         <HeroSlider
@@ -701,7 +704,7 @@ export default async function HomePage() {
 
       </main>
 
-      <Footer settings={siteSettings} />
+      <Footer settings={footerSettings} />
     </div>
   )
 }

@@ -620,7 +620,7 @@ function parseNavItems(raw: unknown, fallback: NavItem[] = defaultSettings.navIt
   }
 }
 
-function parseNavItemsGroup(raw: unknown, fallbackCompanyName: string) {
+function parseNavItemsGroup(raw: unknown, fallbackCompanyName: string, includeSensitiveEmailSettings = false) {
   const defaultFooterMeta = {
     quickLinksTitle: defaultSettings.footerQuickLinksTitle,
     secondaryTitle: defaultSettings.footerSecondaryTitle,
@@ -662,12 +662,15 @@ function parseNavItemsGroup(raw: unknown, fallbackCompanyName: string) {
       typeof rawEmailSettings.smtpPass === "string"
         ? rawEmailSettings.smtpPass
         : defaultFooterMeta.emailSettings.smtpPass
-    let smtpPass = smtpPassRaw
-    try {
-      smtpPass = decryptSecret(smtpPassRaw)
-    } catch (error) {
-      console.error("Failed to decrypt SMTP password from site settings:", error)
+    let smtpPass = ""
+    if (includeSensitiveEmailSettings) {
       smtpPass = smtpPassRaw
+      try {
+        smtpPass = decryptSecret(smtpPassRaw)
+      } catch (error) {
+        console.error("Failed to decrypt SMTP password from site settings:", error)
+        smtpPass = smtpPassRaw
+      }
     }
     return {
       quickLinksTitle:
@@ -713,19 +716,19 @@ function parseNavItemsGroup(raw: unknown, fallbackCompanyName: string) {
             ? rawEmailSettings.inquiryReceiverEmail.trim()
             : defaultFooterMeta.emailSettings.inquiryReceiverEmail,
         smtpSenderEmail:
-          typeof rawEmailSettings.smtpSenderEmail === "string"
+          includeSensitiveEmailSettings && typeof rawEmailSettings.smtpSenderEmail === "string"
             ? rawEmailSettings.smtpSenderEmail.trim()
-            : defaultFooterMeta.emailSettings.smtpSenderEmail,
+            : "",
         smtpHost:
-          typeof rawEmailSettings.smtpHost === "string"
+          includeSensitiveEmailSettings && typeof rawEmailSettings.smtpHost === "string"
             ? rawEmailSettings.smtpHost.trim()
-            : defaultFooterMeta.emailSettings.smtpHost,
-        smtpPort,
+            : "",
+        smtpPort: includeSensitiveEmailSettings ? smtpPort : defaultFooterMeta.emailSettings.smtpPort,
         smtpEncryption,
         smtpUser:
-          typeof rawEmailSettings.smtpUser === "string"
+          includeSensitiveEmailSettings && typeof rawEmailSettings.smtpUser === "string"
             ? rawEmailSettings.smtpUser.trim()
-            : defaultFooterMeta.emailSettings.smtpUser,
+            : "",
         smtpPass,
         contactFormMode:
           rawEmailSettings.contactFormMode === "external_embed"
@@ -1129,7 +1132,11 @@ function parseHeadingTypography(raw: unknown): HeadingTypographySettings {
   }
 }
 
-export async function getSiteSettings(): Promise<SiteSettings> {
+type GetSiteSettingsOptions = {
+  includeSensitiveEmailSettings?: boolean
+}
+
+export async function getSiteSettings(options: GetSiteSettingsOptions = {}): Promise<SiteSettings> {
   try {
     const [settings, sectionRows] = await Promise.all([
       prisma.siteSettings.findUnique({ where: { id: "site" } }),
@@ -1169,7 +1176,11 @@ export async function getSiteSettings(): Promise<SiteSettings> {
       },
     )
 
-    const navItemsGroup = parseNavItemsGroup(settings.navItems, settings.siteTitle ?? defaultSettings.siteTitle)
+    const navItemsGroup = parseNavItemsGroup(
+      settings.navItems,
+      settings.siteTitle ?? defaultSettings.siteTitle,
+      options.includeSensitiveEmailSettings === true,
+    )
 
     return {
       siteTitle: settings.siteTitle ?? defaultSettings.siteTitle,

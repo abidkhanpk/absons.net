@@ -13,6 +13,7 @@ import { getItemLinkTargetProps, resolveItemLinkHref } from "@/lib/item-link"
 import { contentEndsWithSection, contentStartsWithSection } from "@/lib/section-page-layout"
 import { RichContentRenderer } from "@/components/cms/rich-content-renderer"
 import { resolveContentKeywordTokens } from "@/lib/content-keywords"
+import { toPublicFooterSettings, toPublicHeaderSettings } from "@/lib/site-public-settings"
 
 export async function generateMetadata() {
   const settings = await getSiteSettings()
@@ -39,6 +40,8 @@ export default async function TrainingPage() {
     orderBy: { displayOrder: "asc" },
   })
   const siteSettings = await getSiteSettings()
+  const headerSettings = toPublicHeaderSettings(siteSettings)
+  const footerSettings = toPublicFooterSettings(siteSettings)
   const pageConfig = siteSettings.sectionPageContent.training
   const resolveText = (value: string | null | undefined) => resolveContentKeywordTokens(value || "", siteSettings)
   const beforeListContent = resolveContentKeywordTokens(pageConfig.beforeListContent, siteSettings)
@@ -48,7 +51,7 @@ export default async function TrainingPage() {
 
   return (
     <div className="flex flex-col min-h-screen">
-      <Header settings={siteSettings} />
+      <Header settings={headerSettings} />
 
       <main className="flex-1">
         <section className={`${startsWithSection ? "pt-0" : "pt-16"} ${endsWithSection ? "pb-0" : "pb-16"} bg-muted/30`}>
@@ -131,7 +134,7 @@ export default async function TrainingPage() {
         </section>
       </main>
 
-      <Footer settings={siteSettings} />
+      <Footer settings={footerSettings} />
     </div>
   )
 }
