@@ -14,7 +14,6 @@ import {
   BadgeDollarSign,
   MessageSquare,
   Star,
-  Mail,
   LogOut,
   Menu,
   X,
@@ -61,7 +60,6 @@ const baseNavBeforeSections: SidebarItem[] = [
 ]
 
 const baseNavAfterSections: SidebarItem[] = [
-  { href: "/admin/inquiries", label: "Inquiries", icon: Mail, roles: ["admin", "super_admin"] },
   { href: "/admin/approvals", label: "Approvals", icon: BadgeCheck, roles: ["admin", "super_admin"] },
   { href: "/admin/settings", label: "Settings", icon: Settings, roles: ["super_admin"] },
   { href: "/admin/users", label: "Users", icon: Users, roles: ["admin", "super_admin"] },
