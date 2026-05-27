@@ -13,25 +13,37 @@ type SeoOverrides = {
   noFollow?: boolean
 }
 
-function applyTitleTemplate(title: string, template: string, fallbackSiteTitle: string) {
+const TITLE_TOKEN_REGEX = /\{\s*title\s*[}\]]/gi
+const SITE_TITLE_TOKEN_REGEX = /\{\s*(?:siteTitle|sitetitle|site_title|site-title|sitetile)\s*[}\]]/gi
+const TITLE_TOKEN_DETECT_REGEX = /\{\s*title\s*[}\]]/i
+const SITE_TITLE_TOKEN_DETECT_REGEX = /\{\s*(?:siteTitle|sitetitle|site_title|site-title|sitetile)\s*[}\]]/i
+
+function applyTitleTemplate(title: string, template: string, fallbackSiteTitle: string, settings: SiteSettings) {
   const trimmedTemplate = template.trim()
   if (!trimmedTemplate) return title
-  if (trimmedTemplate.includes("{title}") || trimmedTemplate.includes("{siteTitle}")) {
-    return trimmedTemplate
-      .replace("{title}", title)
-      .replace("{siteTitle}", fallbackSiteTitle)
+
+  const hasTemplateTokens =
+    TITLE_TOKEN_DETECT_REGEX.test(trimmedTemplate) || SITE_TITLE_TOKEN_DETECT_REGEX.test(trimmedTemplate)
+  const resolvedKeywordTemplate = resolveContentKeywordTokens(trimmedTemplate, settings).trim()
+
+  if (hasTemplateTokens) {
+    return resolvedKeywordTemplate
+      .replace(TITLE_TOKEN_REGEX, title)
+      .replace(SITE_TITLE_TOKEN_REGEX, fallbackSiteTitle)
   }
-  if (trimmedTemplate === fallbackSiteTitle) {
+
+  if (resolvedKeywordTemplate === fallbackSiteTitle) {
     return `${title} - ${fallbackSiteTitle}`
   }
-  return `${title} - ${trimmedTemplate}`
+  return `${title} - ${resolvedKeywordTemplate}`
 }
 
 export function buildSeoMetadata(settings: SiteSettings, overrides: SeoOverrides): Metadata {
-  const rawBaseTitle = (overrides.title || settings.seoDefaultTitle || settings.siteTitle).trim()
   const fallbackSiteTitle = settings.siteTitle || "Site"
-  const baseTitle = resolveContentKeywordTokens(rawBaseTitle, settings).trim()
-  const resolvedTitle = applyTitleTemplate(baseTitle, settings.seoTitleTemplate || "", fallbackSiteTitle)
+  const rawBaseTitle = (overrides.title || settings.seoDefaultTitle || settings.siteTitle).trim()
+  const baseTitleResolved = resolveContentKeywordTokens(rawBaseTitle, settings).trim()
+  const baseTitle = (baseTitleResolved.replace(TITLE_TOKEN_REGEX, fallbackSiteTitle).trim() || fallbackSiteTitle)
+  const resolvedTitle = applyTitleTemplate(baseTitle, settings.seoTitleTemplate || "", fallbackSiteTitle, settings)
   const descriptionRaw = (overrides.description ?? settings.seoDefaultDescription)?.trim() || ""
   const keywordsRaw = (overrides.keywords ?? settings.seoDefaultKeywords)?.trim() || ""
   const description = resolveContentKeywordTokens(descriptionRaw, settings).trim() || undefined
