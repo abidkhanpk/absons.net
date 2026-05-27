@@ -22,6 +22,8 @@ export async function POST(request: Request) {
     const { title, description, duration, level, provider, featured_image, link_url, link_label, is_active, display_order } =
       body
     const normalizedFeaturedImage = normalizeAssetDbValue(featured_image)
+    const normalizedProvider =
+      typeof provider === "string" && provider.trim().length > 0 ? provider.trim() : "{sitetitle}"
     if (!title || !description) {
       return NextResponse.json({ error: "Missing required fields" }, { status: 400 })
     }
@@ -33,7 +35,7 @@ export async function POST(request: Request) {
           description,
           duration,
           level,
-          provider,
+          provider: normalizedProvider,
           featuredImage: typeof normalizedFeaturedImage === "undefined" ? undefined : normalizedFeaturedImage,
           linkUrl: link_url || null,
           linkLabel: link_label || null,
@@ -59,6 +61,8 @@ export async function PUT(request: Request) {
     const { id, title, description, duration, level, provider, featured_image, link_url, link_label, is_active, display_order } =
       body
     const normalizedFeaturedImage = normalizeAssetDbValue(featured_image)
+    const normalizedProvider =
+      typeof provider === "string" && provider.trim().length > 0 ? provider.trim() : "{sitetitle}"
     if (!id) return NextResponse.json({ error: "Course id is required" }, { status: 400 })
 
     await withRls(session!.userId, (tx) =>
@@ -69,7 +73,7 @@ export async function PUT(request: Request) {
           description,
           duration,
           level,
-          provider,
+          provider: normalizedProvider,
           featuredImage: typeof normalizedFeaturedImage === "undefined" ? undefined : normalizedFeaturedImage,
           linkUrl: link_url || null,
           linkLabel: link_label || null,

@@ -37,7 +37,7 @@ export function TrainingForm({ course }: { course?: TrainingCourse }) {
     description: course?.description || "",
     duration: course?.duration || "",
     level: course?.level || "Beginner",
-    provider: course?.provider || "Mobius Institute",
+    provider: course?.provider || "{sitetitle}",
     is_active: course?.isActive !== undefined ? course.isActive : true,
     display_order: course?.displayOrder ?? 0,
     featured_image: course?.featuredImage || "",
