@@ -2,6 +2,7 @@ import { Header } from "@/components/header"
 import { Footer } from "@/components/footer"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
 import Link from "next/link"
 import { Calendar, Clock, ArrowRight } from "lucide-react"
 import { prisma } from "@/lib/prisma"
@@ -28,13 +29,23 @@ export async function generateMetadata() {
   })
 }
 
-export default async function BlogPage() {
+export default async function BlogPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ view?: string | string[] }>
+}) {
+  const resolvedSearchParams = await searchParams
   const siteSettings = await getSiteSettings()
   const headerSettings = toPublicHeaderSettings(siteSettings)
   const footerSettings = toPublicFooterSettings(siteSettings)
   const resolveText = (value: string | null | undefined) => resolveContentKeywordTokens(value || "", siteSettings)
   const pageConfig = siteSettings.sectionPageContent.blog
-  const blogListLayout = pageConfig.listLayout === "grid" ? "grid" : "list"
+  const requestedView = Array.isArray(resolvedSearchParams?.view) ? resolvedSearchParams.view[0] : resolvedSearchParams?.view
+  const blogListLayout = requestedView === "grid" || requestedView === "list"
+    ? requestedView
+    : pageConfig.listLayout === "grid"
+      ? "grid"
+      : "list"
   const beforeListContent = resolveContentKeywordTokens(pageConfig.beforeListContent, siteSettings)
   const afterListContent = resolveContentKeywordTokens(pageConfig.afterListContent, siteSettings)
   const startsWithSection = contentStartsWithSection(beforeListContent)
@@ -55,6 +66,16 @@ export default async function BlogPage() {
             {beforeListContent ? (
               <div className={startsWithSection ? "mb-0" : "mb-10"}>
                 <RichContentRenderer content={beforeListContent} className="prose prose-lg max-w-none" />
+              </div>
+            ) : null}
+            {posts && posts.length > 0 ? (
+              <div className="mb-6 flex items-center justify-end gap-2">
+                <Button asChild variant={blogListLayout === "list" ? "default" : "outline"} size="sm">
+                  <Link href="/blog?view=list">List View</Link>
+                </Button>
+                <Button asChild variant={blogListLayout === "grid" ? "default" : "outline"} size="sm">
+                  <Link href="/blog?view=grid">Grid View</Link>
+                </Button>
               </div>
             ) : null}
             {posts && posts.length > 0 ? (
