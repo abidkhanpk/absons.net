@@ -150,6 +150,7 @@ export type StaticSeoSettings = Record<
 export type SectionPageContentEntry = {
   beforeListContent: string
   afterListContent: string
+  listLayout: "list" | "grid"
 }
 
 export type SectionPageContentSettings = Record<
@@ -485,26 +486,32 @@ const defaultSettings: SiteSettings = {
     services: {
       beforeListContent: "",
       afterListContent: "",
+      listLayout: "grid",
     },
     training: {
       beforeListContent: "",
       afterListContent: "",
+      listLayout: "grid",
     },
     products: {
       beforeListContent: "",
       afterListContent: "",
+      listLayout: "grid",
     },
     departments: {
       beforeListContent: "",
       afterListContent: "",
+      listLayout: "grid",
     },
     pricing: {
       beforeListContent: "",
       afterListContent: "",
+      listLayout: "grid",
     },
     blog: {
       beforeListContent: "",
       afterListContent: "",
+      listLayout: "list",
     },
   },
   emailSettings: {
@@ -1044,15 +1051,17 @@ function parseStaticSeo(raw: unknown): StaticSeoSettings {
 
 function parseSectionPageContent(
   legacyStaticSeoRaw: unknown,
-  tableRows?: Array<{ sectionKey: string; beforeListContent: string; afterListContent: string }>,
+  tableRows?: Array<{ sectionKey: string; beforeListContent: string; afterListContent: string; listLayout: string }>,
 ): SectionPageContentSettings {
   const normalizeEntry = (entry: unknown, fallback: SectionPageContentEntry): SectionPageContentEntry => {
     if (!entry || typeof entry !== "object" || Array.isArray(entry)) return fallback
     const source = entry as Record<string, unknown>
+    const listLayout = source.listLayout === "grid" || source.listLayout === "list" ? source.listLayout : fallback.listLayout
     return {
       beforeListContent:
         typeof source.beforeListContent === "string" ? source.beforeListContent : fallback.beforeListContent,
       afterListContent: typeof source.afterListContent === "string" ? source.afterListContent : fallback.afterListContent,
+      listLayout,
     }
   }
 
@@ -1085,6 +1094,10 @@ function parseSectionPageContent(
         typeof source.afterListContent === "string"
           ? source.afterListContent
           : defaultSettings.sectionPageContent[key].afterListContent,
+      listLayout:
+        source.listLayout === "grid" || source.listLayout === "list"
+          ? source.listLayout
+          : defaultSettings.sectionPageContent[key].listLayout,
     }
   }
 
@@ -1108,6 +1121,7 @@ function parseSectionPageContent(
     next[key] = {
       beforeListContent: row.beforeListContent || "",
       afterListContent: row.afterListContent || "",
+      listLayout: row.listLayout === "grid" || row.listLayout === "list" ? row.listLayout : base[key].listLayout,
     }
   }
   return next
@@ -1141,7 +1155,7 @@ export async function getSiteSettings(options: GetSiteSettingsOptions = {}): Pro
     const [settings, sectionRows] = await Promise.all([
       prisma.siteSettings.findUnique({ where: { id: "site" } }),
       prisma.sectionPageSetting.findMany({
-        select: { sectionKey: true, beforeListContent: true, afterListContent: true },
+        select: { sectionKey: true, beforeListContent: true, afterListContent: true, listLayout: true },
       }),
     ])
     if (!settings) return defaultSettings

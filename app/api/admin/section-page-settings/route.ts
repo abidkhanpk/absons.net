@@ -28,6 +28,12 @@ export async function PUT(request: Request) {
     const nextSection = {
       beforeListContent: typeof body.beforeListContent === "string" ? body.beforeListContent : "",
       afterListContent: typeof body.afterListContent === "string" ? body.afterListContent : "",
+      listLayout:
+        body.listLayout === "list" || body.listLayout === "grid"
+          ? body.listLayout
+          : section === "blog"
+            ? "list"
+            : "grid",
     }
 
     await prisma.sectionPageSetting.upsert({
@@ -36,10 +42,12 @@ export async function PUT(request: Request) {
         sectionKey: section,
         beforeListContent: nextSection.beforeListContent,
         afterListContent: nextSection.afterListContent,
+        listLayout: nextSection.listLayout,
       },
       update: {
         beforeListContent: nextSection.beforeListContent,
         afterListContent: nextSection.afterListContent,
+        listLayout: nextSection.listLayout,
         updatedAt: new Date(),
       },
     })

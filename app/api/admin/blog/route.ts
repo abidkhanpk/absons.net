@@ -18,6 +18,12 @@ async function isEditorApprovalRequired() {
   return settings?.editorApprovalRequired ?? true
 }
 
+function normalizeCategory(value: unknown) {
+  if (typeof value !== "string") return "News"
+  const trimmed = value.trim()
+  return trimmed.length > 0 ? trimmed : "News"
+}
+
 export async function POST(request: Request) {
   const { session, user, error } = await requireEditorAccess()
   if (error) return error
@@ -26,6 +32,7 @@ export async function POST(request: Request) {
     const body = await request.json()
     const {
       title,
+      category,
       slug,
       excerpt,
       content,
@@ -42,6 +49,7 @@ export async function POST(request: Request) {
     } = body
     const normalizedFeaturedImage = normalizeAssetDbValue(featured_image)
     const normalizedSeoOgImage = normalizeAssetDbValue(seoOgImage)
+    const normalizedCategory = normalizeCategory(category)
     if (!title || !slug || !excerpt || !content) {
       return NextResponse.json({ error: "Missing required fields" }, { status: 400 })
     }
@@ -55,6 +63,7 @@ export async function POST(request: Request) {
       tx.blogPost.create({
         data: {
           title,
+          category: normalizedCategory,
           slug,
           excerpt,
           content,
@@ -91,6 +100,7 @@ export async function PUT(request: Request) {
     const {
       id,
       title,
+      category,
       slug,
       excerpt,
       content,
@@ -108,6 +118,7 @@ export async function PUT(request: Request) {
     } = body
     const normalizedFeaturedImage = normalizeAssetDbValue(featured_image)
     const normalizedSeoOgImage = normalizeAssetDbValue(seoOgImage)
+    const normalizedCategory = normalizeCategory(category)
     if (!id) return NextResponse.json({ error: "Post id is required" }, { status: 400 })
 
     const approvalRequired = await isEditorApprovalRequired()
@@ -159,6 +170,7 @@ export async function PUT(request: Request) {
         where: { id },
         data: {
           title,
+          category: normalizedCategory,
           slug,
           excerpt,
           content,

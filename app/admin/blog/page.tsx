@@ -62,6 +62,7 @@ export default async function BlogManagementPage() {
                   <div className="flex-1 space-y-2">
                     <div className="flex items-center gap-2">
                       <h3 className="text-xl font-semibold">{post.title}</h3>
+                      <Badge variant="outline">{post.category || "News"}</Badge>
                       <Badge variant={post.published ? "default" : "secondary"}>
                         {post.published ? "Published" : "Draft"}
                       </Badge>

@@ -16,6 +16,7 @@ import { ImageUrlUploadField } from "@/components/admin/image-url-upload-field"
 type BlogPost = {
   id: string
   title: string
+  category?: string
   slug: string
   excerpt: string
   content: string
@@ -51,6 +52,7 @@ export function BlogForm({
   const [isGeneratingSeo, setIsGeneratingSeo] = useState(false)
   const [formData, setFormData] = useState({
     title: post?.title || "",
+    category: post?.category || "News",
     slug: post?.slug || "",
     excerpt: post?.excerpt || "",
     content: post?.content || "",
@@ -180,6 +182,26 @@ export function BlogForm({
               onChange={(e) => setFormData({ ...formData, title: e.target.value })}
               placeholder="Enter post title"
             />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="category">
+              Category <span className="text-destructive">*</span>
+            </Label>
+            <Input
+              id="category"
+              required
+              list="blog-category-options"
+              value={formData.category}
+              onChange={(e) => setFormData({ ...formData, category: e.target.value })}
+              placeholder="News"
+            />
+            <datalist id="blog-category-options">
+              <option value="News" />
+              <option value="Announcements" />
+              <option value="Insights" />
+              <option value="Updates" />
+            </datalist>
           </div>
 
           <div className="space-y-2">

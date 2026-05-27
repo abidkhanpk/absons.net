@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
 import { RichTextEditor } from "@/components/admin/rich-text-editor"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 
 type SectionPageSettingsFormProps = {
   sectionKey: "services" | "training" | "products" | "departments" | "pricing" | "blog"
@@ -13,6 +14,7 @@ type SectionPageSettingsFormProps = {
   initial: {
     beforeListContent: string
     afterListContent: string
+    listLayout: "list" | "grid"
   }
 }
 
@@ -24,6 +26,7 @@ export function SectionPageSettingsForm({ sectionKey, sectionLabel, initial }: S
   const [formData, setFormData] = useState({
     beforeListContent: initial.beforeListContent,
     afterListContent: initial.afterListContent,
+    listLayout: initial.listLayout,
   })
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -73,6 +76,25 @@ export function SectionPageSettingsForm({ sectionKey, sectionLabel, initial }: S
           onChange={(content) => setFormData((prev) => ({ ...prev, afterListContent: content }))}
         />
       </div>
+
+      {sectionKey === "blog" ? (
+        <div className="space-y-2">
+          <Label className="font-semibold">Blog List Layout</Label>
+          <Select
+            value={formData.listLayout}
+            onValueChange={(value) => setFormData((prev) => ({ ...prev, listLayout: value === "grid" ? "grid" : "list" }))}
+          >
+            <SelectTrigger className="max-w-xs">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="list">List (Default)</SelectItem>
+              <SelectItem value="grid">Card Grid</SelectItem>
+            </SelectContent>
+          </Select>
+          <p className="text-xs text-muted-foreground">Choose how posts render on the public <code>/blog</code> page.</p>
+        </div>
+      ) : null}
 
       {error ? <p className="text-sm text-destructive">{error}</p> : null}
       {success ? <p className="text-sm text-green-600">Saved successfully.</p> : null}

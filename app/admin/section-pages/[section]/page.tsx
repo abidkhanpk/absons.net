@@ -59,6 +59,7 @@ export default async function SectionPageSettingsPage({ params }: { params: Prom
             initial={{
               beforeListContent: entry?.beforeListContent || "",
               afterListContent: entry?.afterListContent || "",
+              listLayout: entry?.listLayout === "grid" ? "grid" : section === "blog" ? "list" : "grid",
             }}
           />
         </CardContent>

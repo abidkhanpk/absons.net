@@ -38,6 +38,7 @@ model Service {
 model BlogPost {
   id          String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   title       String
+  category    String   @default("News")
   slug        String   @unique
   excerpt     String
   content     String
@@ -270,6 +271,7 @@ model SectionPageSetting {
   sectionKey        String   @unique @map("section_key")
   beforeListContent String   @default("") @map("before_list_content")
   afterListContent  String   @default("") @map("after_list_content")
+  listLayout        String   @default("list") @map("list_layout")
   createdAt         DateTime @default(now()) @db.Timestamptz(6) @map("created_at")
   updatedAt         DateTime @default(now()) @db.Timestamptz(6) @map("updated_at")
 

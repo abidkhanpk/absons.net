@@ -1,6 +1,7 @@
 import { Header } from "@/components/header"
 import { Footer } from "@/components/footer"
 import { Button } from "@/components/ui/button"
+import { Badge } from "@/components/ui/badge"
 import Link from "next/link"
 import { Calendar, ArrowLeft } from "lucide-react"
 import { notFound } from "next/navigation"
@@ -53,6 +54,7 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
   }
   const resolveText = (value: string | null | undefined) => resolveContentKeywordTokens(value || "", siteSettings)
   const postTitle = resolveText(post.title)
+  const postCategory = resolveText(post.category || "News")
   const resolvedContent = resolveContentKeywordTokens(post.content || "", siteSettings)
 
   return (
@@ -81,6 +83,9 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
               )}
 
               <div className="space-y-4 mb-8 cms-page-title-wrap">
+                <Badge variant="secondary" className="w-fit">
+                  {postCategory}
+                </Badge>
                 <h1 className="cms-page-title text-balance">{postTitle}</h1>
                 <div className="flex items-center gap-2 text-muted-foreground">
                   <Calendar className="h-4 w-4" />
