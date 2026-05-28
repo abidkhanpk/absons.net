@@ -210,6 +210,7 @@ type HomeSection = {
   scrollSpeed?: number
   pauseOnHover?: boolean
   dragEnabled?: boolean
+  homeTestimonialLimit?: number
 }
 
 function parseStaticSeo(raw: string | null | undefined): StaticSeoSettings {
@@ -495,6 +496,7 @@ function safeParseHomeSections(
       scrollSpeed: number
       pauseOnHover: boolean
       dragEnabled: boolean
+      homeTestimonialLimit?: number
     }
   > = {
     services: {
@@ -550,6 +552,7 @@ function safeParseHomeSections(
       scrollSpeed: 30,
       pauseOnHover: true,
       dragEnabled: true,
+      homeTestimonialLimit: 3,
     },
     "who-we-serve": {
       title: "Who We Serve",
@@ -662,6 +665,13 @@ function safeParseHomeSections(
           typeof (entry as { dragEnabled?: unknown }).dragEnabled === "boolean"
             ? (entry as { dragEnabled: boolean }).dragEnabled
             : defaultMeta[id].dragEnabled,
+        homeTestimonialLimit:
+          id === "testimonials"
+            ? typeof (entry as { homeTestimonialLimit?: unknown }).homeTestimonialLimit === "number" &&
+                Number.isFinite((entry as { homeTestimonialLimit: number }).homeTestimonialLimit)
+              ? Math.max(0, Math.floor((entry as { homeTestimonialLimit: number }).homeTestimonialLimit))
+              : (defaultMeta[id].homeTestimonialLimit ?? 3)
+            : undefined,
       })
       seen.add(id)
     })

@@ -107,6 +107,7 @@ export type HomeSection = {
   scrollSpeed?: number
   pauseOnHover?: boolean
   dragEnabled?: boolean
+  homeTestimonialLimit?: number
 }
 
 export type HeroSlide = {
@@ -326,6 +327,7 @@ const defaultSettings: SiteSettings = {
       scrollSpeed: 30,
       pauseOnHover: true,
       dragEnabled: true,
+      homeTestimonialLimit: 3,
     },
     {
       id: "who-we-serve",
@@ -796,6 +798,7 @@ function parseHomeSections(
       scrollSpeed: number
       pauseOnHover: boolean
       dragEnabled: boolean
+      homeTestimonialLimit?: number
     }
   > = {
     services: {
@@ -851,6 +854,7 @@ function parseHomeSections(
       scrollSpeed: 30,
       pauseOnHover: true,
       dragEnabled: true,
+      homeTestimonialLimit: 3,
     },
     "who-we-serve": {
       title: "Who We Serve",
@@ -961,6 +965,13 @@ function parseHomeSections(
           typeof (entry as { dragEnabled?: unknown }).dragEnabled === "boolean"
             ? (entry as { dragEnabled: boolean }).dragEnabled
             : defaultMeta[id].dragEnabled,
+        homeTestimonialLimit:
+          id === "testimonials"
+            ? typeof (entry as { homeTestimonialLimit?: unknown }).homeTestimonialLimit === "number" &&
+                Number.isFinite((entry as { homeTestimonialLimit: number }).homeTestimonialLimit)
+              ? Math.max(0, Math.floor((entry as { homeTestimonialLimit: number }).homeTestimonialLimit))
+              : (defaultMeta[id].homeTestimonialLimit ?? 3)
+            : undefined,
       })
       seen.add(id)
     })

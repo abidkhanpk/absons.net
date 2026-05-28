@@ -54,48 +54,50 @@ export default async function HomePage() {
   const resolveItemLink = (link: string | null | undefined, fallback: string) =>
     resolveItemLinkHref(link, fallback)
 
-  const services = await prisma.service
-    .findMany({
+  const siteSettings = await getSiteSettings()
+  const testimonialSection = siteSettings.homeSections.find((section) => section.id === "testimonials")
+  const homeTestimonialLimit =
+    typeof testimonialSection?.homeTestimonialLimit === "number" && Number.isFinite(testimonialSection.homeTestimonialLimit)
+      ? Math.max(0, Math.floor(testimonialSection.homeTestimonialLimit))
+      : 3
+
+  const [services, testimonials, trainings, products, departments, pricingPlans, whoWeServeItems] = await Promise.all([
+    prisma.service.findMany({
       where: { isFeatured: true },
       orderBy: { displayOrder: "asc" },
       take: 3,
-    })
-
-  const testimonials = await prisma.testimonial
-    .findMany({
+    }),
+    prisma.testimonial.findMany({
       where: { isPublished: true },
-      take: 3,
-    })
-  const trainings = await prisma.trainingCourse
-    .findMany({
+      orderBy: { displayOrder: "asc" },
+      ...(homeTestimonialLimit > 0 ? { take: homeTestimonialLimit } : {}),
+    }),
+    prisma.trainingCourse.findMany({
       where: { isActive: true },
       orderBy: { displayOrder: "asc" },
       take: 3,
-    })
-  const products = await findManyProductsCompat(prisma, {
+    }),
+    findManyProductsCompat(prisma, {
     where: { isActive: true },
     orderBy: { displayOrder: "asc" },
     take: 6,
-  })
-  const departments = await findManyDepartmentsCompat(prisma, {
+    }),
+    findManyDepartmentsCompat(prisma, {
     where: { isActive: true },
     orderBy: { displayOrder: "asc" },
     take: 6,
-  })
-  const pricingPlans = await prisma.pricingPlan
-    .findMany({
+    }),
+    prisma.pricingPlan.findMany({
       where: { isActive: true },
       orderBy: { displayOrder: "asc" },
       take: 6,
-    })
-  const whoWeServeItems = await prisma.whoWeServe
-    .findMany({
+    }),
+    prisma.whoWeServe.findMany({
       where: { isActive: true },
       orderBy: { displayOrder: "asc" },
       take: 6,
-    })
-
-  const siteSettings = await getSiteSettings()
+    }),
+  ])
   const headerSettings = toPublicHeaderSettings(siteSettings)
   const footerSettings = toPublicFooterSettings(siteSettings)
   const resolveText = (value: string | null | undefined) => resolveContentKeywordTokens(value || "", siteSettings)
