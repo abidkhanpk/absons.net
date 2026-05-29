@@ -14,6 +14,22 @@ import { RichContentRenderer } from "@/components/cms/rich-content-renderer"
 import { resolveContentKeywordTokens } from "@/lib/content-keywords"
 import { toPublicFooterSettings, toPublicHeaderSettings } from "@/lib/site-public-settings"
 
+const BLOG_CARD_EXCERPT_LENGTH = 255
+
+function truncateExcerpt(excerpt: string, maxLength = BLOG_CARD_EXCERPT_LENGTH) {
+  const normalizedExcerpt = excerpt.trim()
+
+  if (normalizedExcerpt.length <= maxLength) return normalizedExcerpt
+
+  const clippedExcerpt = normalizedExcerpt.slice(0, maxLength).trimEnd()
+  const lastSpaceIndex = clippedExcerpt.lastIndexOf(" ")
+  const truncatedExcerpt = lastSpaceIndex > maxLength * 0.6
+    ? clippedExcerpt.slice(0, lastSpaceIndex)
+    : clippedExcerpt
+
+  return `${truncatedExcerpt}...`
+}
+
 export async function generateMetadata() {
   const settings = await getSiteSettings()
   const siteTitle = settings.siteTitle || "Our Company"
@@ -84,6 +100,7 @@ export default async function BlogPage({
                   {posts.map((post) => {
                     const postTitle = resolveText(post.title)
                     const postExcerpt = resolveText(post.excerpt)
+                    const postExcerptPreview = truncateExcerpt(postExcerpt)
                     const postCategory = resolveText(post.category || "News")
                     return (
                       <Card key={post.id} className="border-border hover:shadow-lg transition-shadow flex flex-col">
@@ -98,30 +115,36 @@ export default async function BlogPage({
                             </div>
                           )}
                           <div className="flex flex-col gap-2">
-                            <Badge variant="secondary" className="w-fit">
-                              {postCategory}
-                            </Badge>
                             <h3 className="text-xl font-semibold line-clamp-2">{postTitle}</h3>
                           </div>
-                          <p className="text-muted-foreground leading-relaxed line-clamp-3 flex-1">{postExcerpt}</p>
-                          <div className="flex items-center gap-4 text-sm text-muted-foreground pt-4 border-t border-border">
-                            <div className="flex items-center gap-1">
-                              <Calendar className="h-4 w-4" />
-                              <span>
-                                {post.publishedAt ? new Date(post.publishedAt).toLocaleDateString() : ""}
-                              </span>
-                            </div>
-                            <div className="flex items-center gap-1">
-                              <Clock className="h-4 w-4" />
-                              <span>5 min read</span>
+                          <div className="flex-1">
+                            <p className="text-muted-foreground leading-relaxed">
+                              {postExcerptPreview}{" "}
+                              <Link
+                                href={`/blog/${post.slug}`}
+                                className="ml-2 inline-flex items-center gap-2 whitespace-nowrap text-primary font-medium hover:gap-3 transition-all"
+                              >
+                                Read more <ArrowRight className="h-4 w-4" />
+                              </Link>
+                            </p>
+                          </div>
+                          <div className="flex flex-wrap items-center justify-between gap-3 pt-4 border-t border-border">
+                            <div className="flex flex-wrap items-center gap-4 text-sm text-muted-foreground">
+                              <Badge variant="secondary" className="w-fit">
+                                {postCategory}
+                              </Badge>
+                              <div className="flex items-center gap-1">
+                                <Calendar className="h-4 w-4" />
+                                <span>
+                                  {post.publishedAt ? new Date(post.publishedAt).toLocaleDateString() : ""}
+                                </span>
+                              </div>
+                              <div className="flex items-center gap-1">
+                                <Clock className="h-4 w-4" />
+                                <span>5 min read</span>
+                              </div>
                             </div>
                           </div>
-                          <Link
-                            href={`/blog/${post.slug}`}
-                            className="flex items-center gap-2 text-primary font-medium hover:gap-3 transition-all"
-                          >
-                            Read more <ArrowRight className="h-4 w-4" />
-                          </Link>
                         </CardContent>
                       </Card>
                     )
@@ -132,6 +155,7 @@ export default async function BlogPage({
                   {posts.map((post) => {
                     const postTitle = resolveText(post.title)
                     const postExcerpt = resolveText(post.excerpt)
+                    const postExcerptPreview = truncateExcerpt(postExcerpt)
                     const postCategory = resolveText(post.category || "News")
                     return (
                       <Card key={post.id} className="border-border hover:shadow-lg transition-shadow">
@@ -148,30 +172,36 @@ export default async function BlogPage({
                             ) : null}
                             <div className="flex-1 flex flex-col gap-4">
                               <div className="flex flex-col gap-2">
-                                <Badge variant="secondary" className="w-fit">
-                                  {postCategory}
-                                </Badge>
                                 <h3 className="text-2xl font-semibold line-clamp-2">{postTitle}</h3>
                               </div>
-                              <p className="text-muted-foreground leading-relaxed line-clamp-4">{postExcerpt}</p>
-                              <div className="flex flex-wrap items-center gap-4 text-sm text-muted-foreground pt-2 border-t border-border">
-                                <div className="flex items-center gap-1">
-                                  <Calendar className="h-4 w-4" />
-                                  <span>
-                                    {post.publishedAt ? new Date(post.publishedAt).toLocaleDateString() : ""}
-                                  </span>
-                                </div>
-                                <div className="flex items-center gap-1">
-                                  <Clock className="h-4 w-4" />
-                                  <span>5 min read</span>
+                              <div>
+                                <p className="text-muted-foreground leading-relaxed">
+                                  {postExcerptPreview}{" "}
+                                  <Link
+                                    href={`/blog/${post.slug}`}
+                                    className="ml-2 inline-flex items-center gap-2 whitespace-nowrap text-primary font-medium hover:gap-3 transition-all"
+                                  >
+                                    Read more <ArrowRight className="h-4 w-4" />
+                                  </Link>
+                                </p>
+                              </div>
+                              <div className="flex flex-wrap items-center justify-between gap-3 pt-2 border-t border-border">
+                                <div className="flex flex-wrap items-center gap-4 text-sm text-muted-foreground">
+                                  <Badge variant="secondary" className="w-fit">
+                                    {postCategory}
+                                  </Badge>
+                                  <div className="flex items-center gap-1">
+                                    <Calendar className="h-4 w-4" />
+                                    <span>
+                                      {post.publishedAt ? new Date(post.publishedAt).toLocaleDateString() : ""}
+                                    </span>
+                                  </div>
+                                  <div className="flex items-center gap-1">
+                                    <Clock className="h-4 w-4" />
+                                    <span>5 min read</span>
+                                  </div>
                                 </div>
                               </div>
-                              <Link
-                                href={`/blog/${post.slug}`}
-                                className="flex items-center gap-2 text-primary font-medium hover:gap-3 transition-all"
-                              >
-                                Read more <ArrowRight className="h-4 w-4" />
-                              </Link>
                             </div>
                           </div>
                         </CardContent>
