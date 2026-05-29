@@ -129,14 +129,16 @@ async function sendContactEmail({
   })
 
   const html = `
-    <h2>New Contact Form Inquiry</h2>
-    <p><strong>Name:</strong> ${escapeHtml(name)}</p>
-    <p><strong>Email:</strong> ${escapeHtml(email)}</p>
-    <p><strong>Phone:</strong> ${escapeHtml(phone || "-")}</p>
-    <p><strong>Company:</strong> ${escapeHtml(company || "-")}</p>
-    <p><strong>Purpose:</strong> ${escapeHtml(purpose)}</p>
-    <p><strong>Message:</strong></p>
-    <p>${escapeHtml(message).replace(/\n/g, "<br/>")}</p>
+    <div style="font-family: Arial, sans-serif; color: #222; line-height: 1.35;">
+      <h2 style="margin: 0 0 14px;">New Contact Form Inquiry</h2>
+      <p style="margin: 0 0 7px;"><strong>Name:</strong> ${escapeHtml(name)}</p>
+      <p style="margin: 0 0 7px;"><strong>Email:</strong> ${escapeHtml(email)}</p>
+      <p style="margin: 0 0 7px;"><strong>Phone:</strong> ${escapeHtml(phone || "-")}</p>
+      <p style="margin: 0 0 7px;"><strong>Company:</strong> ${escapeHtml(company || "-")}</p>
+      <p style="margin: 0 0 7px;"><strong>Purpose:</strong> ${escapeHtml(purpose)}</p>
+      <p style="margin: 10px 0 7px;"><strong>Message:</strong></p>
+      <p style="margin: 0;">${escapeHtml(message).replace(/\n/g, "<br/>")}</p>
+    </div>
   `.trim()
 
   const text = [
