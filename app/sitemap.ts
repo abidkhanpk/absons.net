@@ -23,12 +23,26 @@ const RESERVED_STATIC_SLUGS = new Set(
   STATIC_ROUTE_CONFIG.filter((route) => route.path !== "/").map((route) => route.path.slice(1)),
 )
 
+function preferWwwAbsonsUrl(input: string) {
+  if (!input) return input
+
+  try {
+    const url = new URL(input)
+    if (url.hostname === "absons.net") {
+      url.hostname = "www.absons.net"
+    }
+    return url.toString().replace(/\/+$/g, "")
+  } catch {
+    return input
+  }
+}
+
 function normalizeBaseUrl(input: string) {
   const trimmed = input.trim().replace(/\/+$/g, "")
   if (!trimmed) return ""
   const withProtocol = /^https?:\/\//i.test(trimmed) ? trimmed : `https://${trimmed}`
   try {
-    return new URL(withProtocol).toString().replace(/\/+$/g, "")
+    return preferWwwAbsonsUrl(new URL(withProtocol).toString())
   } catch {
     return ""
   }
@@ -64,7 +78,7 @@ function normalizeAbsoluteUrl(value: string) {
   if (!trimmed) return ""
   const withProtocol = /^https?:\/\//i.test(trimmed) ? trimmed : `https://${trimmed}`
   try {
-    return new URL(withProtocol).toString().replace(/\/+$/g, "")
+    return preferWwwAbsonsUrl(new URL(withProtocol).toString())
   } catch {
     return ""
   }
