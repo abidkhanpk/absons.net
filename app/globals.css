@@ -1081,7 +1081,9 @@ a[data-cms-button="true"]:hover [data-cms-fa] {
 /* Keep TipTap colgroup from collapsing cells in editor */
 .ProseMirror table colgroup col,
 .tiptap table colgroup col {
+  width: auto !important;
   min-width: 80px !important;
+  max-width: none !important;
 }
 
 @media (max-width: 768px) {

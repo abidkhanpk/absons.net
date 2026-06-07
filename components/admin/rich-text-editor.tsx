@@ -3299,15 +3299,6 @@ export function RichTextEditor({ content, onChange }: RichTextEditorProps) {
         const cellNode = rowNode.child(selectedColIndex)
         const styleText = typeof cellNode.attrs.style === "string" ? cellNode.attrs.style : ""
         initialWidth = readSizeFromStyle(styleText, ["--cms-col-width", "width", "min-width"], initialWidth)
-        if (initialWidth === "33%") {
-          const colWidthAttr = (cellNode.attrs as Record<string, unknown>).colwidth
-          if (Array.isArray(colWidthAttr) && colWidthAttr.length > 0) {
-            const px = Number(colWidthAttr[0])
-            if (Number.isFinite(px) && px > 0) {
-              initialWidth = `${Math.round(px)}px`
-            }
-          }
-        }
       }
     }
     const value = getLengthInput("Column width for selected column (e.g. 33% or 320px)", initialWidth)
@@ -3352,6 +3343,7 @@ export function RichTextEditor({ content, onChange }: RichTextEditorProps) {
                 styleVars["--cms-col-width"] = value
                 tr.setNodeMarkup(cellPos, undefined, {
                   ...cellNode.attrs,
+                  colwidth: null,
                   style: styleVarsToString(styleVars),
                 })
               }
