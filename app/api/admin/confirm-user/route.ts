@@ -13,11 +13,11 @@ export async function POST(request: Request) {
     const adminUser = await withRls(session.userId, (tx) =>
       tx.user.findUnique({
         where: { id: session.userId },
-        select: { role: true },
+        select: { role: true, isActive: true },
       }),
     )
 
-    if (!adminUser || (adminUser.role !== "admin" && adminUser.role !== "super_admin")) {
+    if (!adminUser?.isActive || (adminUser.role !== "admin" && adminUser.role !== "super_admin")) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 

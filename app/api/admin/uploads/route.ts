@@ -10,8 +10,8 @@ export async function POST(request: Request) {
     const session = await getSession()
     if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
 
-    const requester = await prisma.user.findUnique({ where: { id: session.userId }, select: { role: true } })
-    if (!requester || !ALLOWED_ROLES.has(requester.role)) {
+    const requester = await prisma.user.findUnique({ where: { id: session.userId }, select: { role: true, isActive: true } })
+    if (!requester?.isActive || !ALLOWED_ROLES.has(requester.role)) {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 })
     }
 

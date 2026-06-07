@@ -75,7 +75,7 @@ export async function POST(request: Request) {
     if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
 
     const requester = await prisma.user.findUnique({ where: { id: session.userId } })
-    if (requester?.role !== "super_admin") {
+    if (!requester?.isActive || requester.role !== "super_admin") {
       return NextResponse.json({ error: "Only super admins can test SMTP settings" }, { status: 403 })
     }
 

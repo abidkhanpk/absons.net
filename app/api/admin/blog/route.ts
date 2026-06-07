@@ -7,7 +7,7 @@ async function requireEditorAccess() {
   const session = await getSession()
   if (!session) return { session: null, user: null, error: NextResponse.json({ error: "Unauthorized" }, { status: 401 }) }
   const user = await prisma.user.findUnique({ where: { id: session.userId } })
-  if (!user || (user.role !== "admin" && user.role !== "super_admin" && user.role !== "editor")) {
+  if (!user?.isActive || (user.role !== "admin" && user.role !== "super_admin" && user.role !== "editor")) {
     return { session, user: null, error: NextResponse.json({ error: "Forbidden" }, { status: 403 }) }
   }
   return { session, user, error: null }

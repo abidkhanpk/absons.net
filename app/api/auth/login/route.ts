@@ -13,6 +13,9 @@ export async function POST(request: Request) {
     if (!user || !verifyPassword(password, user.passwordHash)) {
       return NextResponse.json({ error: "Invalid credentials" }, { status: 401 })
     }
+    if (!user.isActive) {
+      return NextResponse.json({ error: "This account has been disabled" }, { status: 403 })
+    }
 
     const token = await signSession({ userId: user.id, role: user.role, email: user.email })
     const response = NextResponse.json({ success: true })

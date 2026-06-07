@@ -14,11 +14,11 @@ async function getRequester() {
   const requester = await withRls(session.userId, (tx) =>
     tx.user.findUnique({
       where: { id: session.userId },
-      select: { role: true },
+      select: { role: true, isActive: true },
     }),
   )
 
-  return { session, requesterRole: (requester?.role as AllowedRole | null) ?? null }
+  return { session, requesterRole: requester?.isActive ? ((requester.role as AllowedRole | null) ?? null) : null }
 }
 
 export async function POST(request: Request) {
@@ -126,6 +126,55 @@ export async function DELETE(request: Request) {
   }
 }
 
+export async function PATCH(request: Request) {
+  try {
+    const { id, isActive }: { id?: string; isActive?: boolean } = await request.json()
+
+    if (!id || typeof isActive !== "boolean") {
+      return NextResponse.json({ error: "User id and active status are required" }, { status: 400 })
+    }
+
+    const { session, requesterRole } = await getRequester()
+    if (!session) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+    }
+
+    if (session.userId === id) {
+      return NextResponse.json({ error: "You cannot disable your own account" }, { status: 400 })
+    }
+
+    if (!requesterRole || (requesterRole !== "admin" && requesterRole !== "super_admin")) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+    }
+
+    const target = await withRls(session.userId, (tx) =>
+      tx.user.findUnique({
+        where: { id },
+        select: { role: true },
+      }),
+    )
+
+    if (!target) {
+      return NextResponse.json({ error: "User not found" }, { status: 404 })
+    }
+
+    if (target.role === "super_admin" && requesterRole !== "super_admin") {
+      return NextResponse.json({ error: "Only super admins can disable another super admin" }, { status: 403 })
+    }
+    if (requesterRole === "admin" && target.role !== "editor") {
+      return NextResponse.json({ error: "Admins can only enable or disable editors" }, { status: 403 })
+    }
+
+    await withRls(session.userId, (tx) => tx.user.update({ where: { id }, data: { isActive } }))
+
+    return NextResponse.json({ success: true, isActive })
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Failed to update user status"
+    console.error("Error updating user status:", error)
+    return NextResponse.json({ error: message }, { status: 500 })
+  }
+}
+
 export async function PUT(request: Request) {
   try {
     const { id, fullName, role, password }: { id?: string; fullName?: string; role?: AllowedRole; password?: string } =
@@ -135,21 +184,13 @@ export async function PUT(request: Request) {
       return NextResponse.json({ error: "User id and full name are required" }, { status: 400 })
     }
 
-    const { session } = await getRequester()
+    const { session, requesterRole } = await getRequester()
     const sessionData = session
 
     if (!sessionData) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
-    const requester = await withRls(sessionData.userId, (tx) =>
-      tx.user.findUnique({
-        where: { id: sessionData.userId },
-        select: { role: true },
-      }),
-    )
-
-    const requesterRole = (requester?.role as AllowedRole | null) ?? null
     const isSelf = sessionData.userId === id
 
     if (!isSelf && (!requesterRole || (requesterRole !== "admin" && requesterRole !== "super_admin"))) {

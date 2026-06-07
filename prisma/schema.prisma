@@ -12,6 +12,7 @@ model User {
   email     String
   fullName  String?  @map("full_name")
   role      String   @default("admin")
+  isActive  Boolean  @default(true) @map("is_active")
   passwordHash String @map("password_hash")
   createdAt DateTime @default(now()) @db.Timestamptz(6) @map("created_at")
 

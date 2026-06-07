@@ -6,6 +6,7 @@ import Link from "next/link"
 import { Plus, Pencil } from "lucide-react"
 import { DeleteUserButton } from "@/components/admin/delete-user-button"
 import { RequestAccountDeletionButton } from "@/components/admin/request-account-deletion-button"
+import { ToggleUserStatusButton } from "@/components/admin/toggle-user-status-button"
 import { redirect } from "next/navigation"
 import { getSession } from "@/lib/auth"
 import { withRls } from "@/lib/prisma"
@@ -47,6 +48,9 @@ export default async function UsersPage() {
     }
   }
 
+  const canToggleUser = (target: { id: string; role: string }) =>
+    target.id !== session.userId && (adminUser.role === "super_admin" || (adminUser.role === "admin" && target.role === "editor"))
+
   return (
     <div className="space-y-6 p-6 lg:p-8">
       <div className="flex justify-between items-center">
@@ -74,6 +78,7 @@ export default async function UsersPage() {
                 <TableHead>Name</TableHead>
                 <TableHead>Email</TableHead>
                 <TableHead>Role</TableHead>
+                <TableHead>Status</TableHead>
                 <TableHead>Created</TableHead>
                 <TableHead className="text-right">Actions</TableHead>
               </TableRow>
@@ -91,8 +96,12 @@ export default async function UsersPage() {
                   </TableCell>
                   <TableCell>{u.email}</TableCell>
                   <TableCell>{getRoleBadge(u.role)}</TableCell>
+                  <TableCell>
+                    {u.isActive ? <Badge variant="outline">Enabled</Badge> : <Badge variant="destructive">Disabled</Badge>}
+                  </TableCell>
                   <TableCell>{new Date(u.createdAt).toLocaleDateString()}</TableCell>
                   <TableCell className="text-right space-x-2">
+                    {canToggleUser(u) ? <ToggleUserStatusButton userId={u.id} userEmail={u.email} isActive={u.isActive} /> : null}
                     <Button asChild variant="ghost" size="sm">
                       <Link href={`/admin/users/edit/${u.id}`}>
                         <Pencil className="h-4 w-4" />

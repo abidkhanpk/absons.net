@@ -14,8 +14,8 @@ export async function PUT(request: Request) {
     const session = await getSession()
     if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
 
-    const requester = await prisma.user.findUnique({ where: { id: session.userId }, select: { role: true } })
-    if (!requester || (requester.role !== "admin" && requester.role !== "super_admin")) {
+    const requester = await prisma.user.findUnique({ where: { id: session.userId }, select: { role: true, isActive: true } })
+    if (!requester?.isActive || (requester.role !== "admin" && requester.role !== "super_admin")) {
       return NextResponse.json({ error: "Only admins can update section page settings" }, { status: 403 })
     }
 

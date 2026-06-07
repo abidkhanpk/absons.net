@@ -295,6 +295,7 @@ const DEFAULT_SECTION_INSERT_RADIUS: SectionRadius = "none"
 const DEFAULT_SECTION_INSERT_BORDER: SectionBorder = "none"
 const DEFAULT_SECTION_INSERT_SHADOW: SectionShadow = "none"
 const DEFAULT_SECTION_INSERT_FULL_WIDTH = true
+const DEFAULT_SECTION_INSERT_CONSTRAIN_CONTENT = false
 const DEFAULT_SECTION_INSERT_ANIMATE_ENTRANCE = true
 const DEFAULT_SECTION_INSERT_ANIMATE_EXIT = true
 
@@ -321,6 +322,7 @@ const normalizeSectionShadow = (value: unknown): SectionShadow =>
   includesValue(SECTION_SHADOW_VALUES, value) ? value : DEFAULT_SECTION_NODE_SHADOW
 
 const normalizeSectionFullWidth = (value: unknown) => value === true || value === "true"
+const normalizeSectionConstrainContent = (value: unknown) => value === true || value === "true"
 const normalizeSectionAnimateFlag = (value: unknown, fallback = true) =>
   value === undefined || value === null ? fallback : value !== false && value !== "false"
 
@@ -411,6 +413,7 @@ const buildSectionStyle = ({
 const buildSectionNodeAttrs = ({
   preset,
   fullWidth,
+  constrainContent,
   animateEntrance,
   animateExit,
   spacing,
@@ -422,6 +425,7 @@ const buildSectionNodeAttrs = ({
 }: {
   preset: SectionPresetId
   fullWidth: boolean
+  constrainContent: boolean
   animateEntrance: boolean
   animateExit: boolean
   spacing: SectionSpacing
@@ -435,6 +439,7 @@ const buildSectionNodeAttrs = ({
   style: buildSectionStyle({ presetId: preset, border }),
   preset,
   fullWidth,
+  constrainContent,
   animateEntrance,
   animateExit,
   spacing,
@@ -661,6 +666,13 @@ const CmsSection = Node.create({
         default: false,
         parseHTML: (element) => normalizeSectionFullWidth(element.getAttribute("data-cms-section-full-width")),
         renderHTML: (attributes) => ({ "data-cms-section-full-width": normalizeSectionFullWidth(attributes.fullWidth) ? "true" : "false" }),
+      },
+      constrainContent: {
+        default: false,
+        parseHTML: (element) => normalizeSectionConstrainContent(element.getAttribute("data-cms-section-constrain-content")),
+        renderHTML: (attributes) => ({
+          "data-cms-section-constrain-content": normalizeSectionConstrainContent(attributes.constrainContent) ? "true" : "false",
+        }),
       },
       animateEntrance: {
         default: DEFAULT_SECTION_NODE_ANIMATE_ENTRANCE,
@@ -927,10 +939,46 @@ const CmsFaIcon = Node.create({
   },
 })
 
+const removeImageAlignmentStyle = (style: string) =>
+  style
+    .split(";")
+    .map((part) => part.trim())
+    .filter((part) => part && !/^(display|margin-left|margin-right)\s*:/i.test(part))
+    .join(";")
+
 const CmsImage = Image.extend({
   addAttributes() {
     return {
       ...this.parent?.(),
+      textAlign: {
+        default: null,
+        parseHTML: (element) => {
+          const dataAlign = element.getAttribute("data-image-align")
+          if (dataAlign === "center" || dataAlign === "right" || dataAlign === "left") return dataAlign
+          const style = element.getAttribute("style") || ""
+          if (/margin-left:\s*auto/i.test(style) && /margin-right:\s*auto/i.test(style)) return "center"
+          if (/margin-left:\s*auto/i.test(style)) return "right"
+          if (/margin-right:\s*auto/i.test(style)) return "left"
+          return null
+        },
+        renderHTML: (attributes) => {
+          const value = attributes.textAlign
+          if (value !== "center" && value !== "right" && value !== "left") return {}
+          const alignStyle =
+            value === "center"
+              ? "display:block;margin-left:auto;margin-right:auto;"
+              : value === "right"
+                ? "display:block;margin-left:auto;margin-right:0;"
+                : "display:block;margin-left:0;margin-right:auto;"
+          const existingStyle = typeof attributes.style === "string" ? removeImageAlignmentStyle(attributes.style) : ""
+          return { "data-image-align": value, style: `${existingStyle ? `${existingStyle};` : ""}${alignStyle}` }
+        },
+      },
+      style: {
+        default: null,
+        parseHTML: (element) => element.getAttribute("style"),
+        renderHTML: (attributes) => (attributes.textAlign ? {} : attributes.style ? { style: attributes.style } : {}),
+      },
       linkHref: {
         default: null,
         parseHTML: (element) => element.getAttribute("data-image-link"),
@@ -1135,6 +1183,7 @@ export function RichTextEditor({ content, onChange }: RichTextEditorProps) {
   const [editingSectionPos, setEditingSectionPos] = useState<number | null>(null)
   const [sectionPreset, setSectionPreset] = useState<SectionPresetId>(DEFAULT_SECTION_INSERT_PRESET)
   const [sectionFullWidth, setSectionFullWidth] = useState(DEFAULT_SECTION_INSERT_FULL_WIDTH)
+  const [sectionConstrainContent, setSectionConstrainContent] = useState(DEFAULT_SECTION_INSERT_CONSTRAIN_CONTENT)
   const [sectionAnimateEntrance, setSectionAnimateEntrance] = useState(DEFAULT_SECTION_INSERT_ANIMATE_ENTRANCE)
   const [sectionAnimateExit, setSectionAnimateExit] = useState(DEFAULT_SECTION_INSERT_ANIMATE_EXIT)
   const [sectionSpacing, setSectionSpacing] = useState<SectionSpacing>(DEFAULT_SECTION_INSERT_SPACING)
@@ -1510,6 +1559,7 @@ export function RichTextEditor({ content, onChange }: RichTextEditorProps) {
   const resetSectionForm = () => {
     setSectionPreset(DEFAULT_SECTION_INSERT_PRESET)
     setSectionFullWidth(DEFAULT_SECTION_INSERT_FULL_WIDTH)
+    setSectionConstrainContent(DEFAULT_SECTION_INSERT_CONSTRAIN_CONTENT)
     setSectionAnimateEntrance(DEFAULT_SECTION_INSERT_ANIMATE_ENTRANCE)
     setSectionAnimateExit(DEFAULT_SECTION_INSERT_ANIMATE_EXIT)
     setSectionSpacing(DEFAULT_SECTION_INSERT_SPACING)
@@ -1550,6 +1600,7 @@ export function RichTextEditor({ content, onChange }: RichTextEditorProps) {
     const attrs = node.attrs as Record<string, unknown>
     setSectionPreset(normalizeSectionPreset(attrs.preset))
     setSectionFullWidth(normalizeSectionFullWidth(attrs.fullWidth))
+    setSectionConstrainContent(normalizeSectionConstrainContent(attrs.constrainContent))
     const legacyAnimateFlag = normalizeSectionAnimateFlag(attrs.animateContent, true)
     setSectionAnimateEntrance(normalizeSectionAnimateFlag(attrs.animateEntrance, legacyAnimateFlag))
     setSectionAnimateExit(normalizeSectionAnimateFlag(attrs.animateExit, legacyAnimateFlag))
@@ -1573,6 +1624,7 @@ export function RichTextEditor({ content, onChange }: RichTextEditorProps) {
     const nextAttrs = buildSectionNodeAttrs({
       preset: sectionPreset,
       fullWidth: sectionFullWidth,
+      constrainContent: sectionConstrainContent,
       animateEntrance: sectionAnimateEntrance,
       animateExit: sectionAnimateExit,
       spacing: sectionSpacing,
@@ -1730,7 +1782,7 @@ export function RichTextEditor({ content, onChange }: RichTextEditorProps) {
       CmsTableHeader,
       CmsTableCell,
       TextAlign.configure({
-        types: ["heading", "paragraph", "tableHeader", "tableCell"],
+        types: ["heading", "paragraph", "tableHeader", "tableCell", "image"],
       }),
       AccordionSummary,
       AccordionDetails,
@@ -2164,6 +2216,10 @@ export function RichTextEditor({ content, onChange }: RichTextEditorProps) {
   }
 
   const isAlignmentActive = (alignment: "left" | "center" | "right") => {
+    if (selectedImagePos !== null) {
+      const node = editor.state.doc.nodeAt(selectedImagePos)
+      return node?.type.name === "image" && node.attrs.textAlign === alignment
+    }
     if (selectedVideoPos !== null) {
       return getSelectedVideoAlign() === alignment
     }
@@ -2171,6 +2227,23 @@ export function RichTextEditor({ content, onChange }: RichTextEditorProps) {
   }
 
   const applyAlignment = (alignment: "left" | "center" | "right") => {
+    if (selectedImagePos !== null) {
+      const updated = editor
+        .chain()
+        .focus()
+        .command(({ tr, dispatch }) => {
+          const node = tr.doc.nodeAt(selectedImagePos)
+          if (!node || node.type.name !== "image") return false
+          tr.setNodeMarkup(selectedImagePos, undefined, { ...node.attrs, textAlign: alignment })
+          if (dispatch) dispatch(tr)
+          return true
+        })
+        .run()
+      if (updated) {
+        editor.commands.setNodeSelection(selectedImagePos)
+      }
+      return
+    }
     if (selectedVideoPos === null) {
       editor.chain().focus().setTextAlign(alignment).run()
       return
@@ -2302,15 +2375,26 @@ export function RichTextEditor({ content, onChange }: RichTextEditorProps) {
       return
     }
 
-    const imageAttrs: { src: string; alt?: string; title?: string; width?: string; height?: string; linkHref?: string } = { src }
+    const activeTextAlign = editor.getAttributes("paragraph").textAlign || editor.getAttributes("heading").textAlign
+    const currentTextAlign = activeTextAlign === "center" || activeTextAlign === "right" || activeTextAlign === "left" ? activeTextAlign : null
+    const imageAttrs: {
+      src: string
+      alt?: string
+      title?: string
+      width?: number
+      height?: number
+      linkHref?: string
+      textAlign?: "left" | "center" | "right"
+    } = { src }
     const alt = imageAltText.trim()
     const title = imageTitleText.trim()
     const linkHref = imageLinkUrl.trim()
     if (alt) imageAttrs.alt = alt
     if (title) imageAttrs.title = title
-    if (widthRaw) imageAttrs.width = widthRaw
-    if (heightRaw) imageAttrs.height = heightRaw
+    if (widthRaw) imageAttrs.width = Number(widthRaw)
+    if (heightRaw) imageAttrs.height = Number(heightRaw)
     if (linkHref) imageAttrs.linkHref = linkHref
+    if (currentTextAlign) imageAttrs.textAlign = currentTextAlign
 
     if (imageFormMode === "edit" && editingImagePos !== null) {
       const updated = editor
@@ -3923,16 +4007,26 @@ export function RichTextEditor({ content, onChange }: RichTextEditorProps) {
             </div>
             <div className="space-y-1.5 md:col-span-2 lg:col-span-3">
               <label className="text-xs font-medium text-muted-foreground">Section Width</label>
-              <label className="inline-flex items-center gap-2 text-xs">
-                <input
-                  type="checkbox"
-                  checked={sectionFullWidth}
-                  onChange={(event) => setSectionFullWidth(event.target.checked)}
-                />
-                Full width section band
-              </label>
+              <div className="grid gap-2 sm:grid-cols-2">
+                <label className="inline-flex items-center gap-2 text-xs">
+                  <input
+                    type="checkbox"
+                    checked={sectionFullWidth}
+                    onChange={(event) => setSectionFullWidth(event.target.checked)}
+                  />
+                  Full width section band
+                </label>
+                <label className="inline-flex items-center gap-2 text-xs">
+                  <input
+                    type="checkbox"
+                    checked={sectionConstrainContent}
+                    onChange={(event) => setSectionConstrainContent(event.target.checked)}
+                  />
+                  Restrict content to page width
+                </label>
+              </div>
               <p className="text-[11px] text-muted-foreground">
-                When enabled, section stretches like a page block. When disabled, it stays in normal content width.
+                The band controls the section background width. The content option keeps text and blocks inside the normal page container.
               </p>
             </div>
             <div className="space-y-1.5 md:col-span-2 lg:col-span-3">
