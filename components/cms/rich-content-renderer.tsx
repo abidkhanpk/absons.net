@@ -1,6 +1,7 @@
 "use client"
 
-import { useMemo } from "react"
+import type { CSSProperties } from "react"
+import { useEffect, useMemo, useRef, useState } from "react"
 import { CmsVideoPlayer, type CmsVideoConfig } from "@/components/cms/cms-video-player"
 import { resolveAssetUrl } from "@/lib/asset-url"
 
@@ -239,9 +240,31 @@ function splitContent(content: string): RenderPart[] {
 
 export function RichContentRenderer({ content, className }: { content: string; className?: string }) {
   const parts = useMemo(() => splitContent(content), [content])
+  const rootRef = useRef<HTMLDivElement | null>(null)
+  const [contentMaxWidth, setContentMaxWidth] = useState<number | null>(null)
+
+  useEffect(() => {
+    const element = rootRef.current
+    if (!element) return
+
+    const updateWidth = () => {
+      const width = element.getBoundingClientRect().width
+      setContentMaxWidth(width > 0 ? Math.round(width) : null)
+    }
+
+    updateWidth()
+    const resizeObserver = new ResizeObserver(updateWidth)
+    resizeObserver.observe(element)
+    return () => resizeObserver.disconnect()
+  }, [])
+
+  const style =
+    contentMaxWidth !== null
+      ? ({ "--cms-section-content-max-width": `${contentMaxWidth}px` } as CSSProperties)
+      : undefined
 
   return (
-    <div className={className}>
+    <div ref={rootRef} className={className} style={style}>
       {parts.map((part) =>
         part.type === "html" ? (
           part.html ? <div key={part.key} dangerouslySetInnerHTML={{ __html: part.html }} /> : null
