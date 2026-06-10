@@ -87,6 +87,7 @@ export function Header({ settings }: HeaderProps) {
       ref={headerRef}
       className="sticky top-0 z-50 w-full border-b border-border/50 bg-gradient-to-r from-background/95 via-background/92 to-primary/8 shadow-[0_10px_26px_color-mix(in_oklab,var(--primary)_10%,transparent)] backdrop-blur supports-[backdrop-filter]:bg-background/70"
     >
+      <div className="brand-accent-bar" aria-hidden="true" />
       <nav className="container mx-auto px-4 lg:px-8">
         <div className="flex h-16 items-center gap-6">
           <div className="flex items-center gap-2">

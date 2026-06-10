@@ -12,7 +12,7 @@ export async function generateMetadata() {
     description: override.description || `Get in touch with ${siteTitle} for software, training, and support.`,
     keywords: override.keywords || undefined,
     ogImage: override.ogImage || undefined,
-    canonical: override.canonical || undefined,
+    canonical: override.canonical || "/contact",
     noIndex: override.noIndex,
     noFollow: override.noFollow,
   })

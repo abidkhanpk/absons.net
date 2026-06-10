@@ -25,7 +25,7 @@ export async function generateMetadata() {
       override.description || `Professional vibration analysis training and certification from ${siteTitle}`,
     keywords: override.keywords || undefined,
     ogImage: override.ogImage || undefined,
-    canonical: override.canonical || undefined,
+    canonical: override.canonical || "/training",
     noIndex: override.noIndex,
     noFollow: override.noFollow,
   })

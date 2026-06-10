@@ -1,6 +1,7 @@
 import type { MetadataRoute } from "next"
 import { prisma } from "@/lib/prisma"
 import { getSiteSettings } from "@/lib/site-settings"
+import { DEFAULT_SITE_URL } from "@/lib/seo"
 
 export const dynamic = "force-dynamic"
 export const revalidate = 0
@@ -58,7 +59,9 @@ function resolvePublicBaseUrl(canonicalBase: string) {
   const fromVercel = normalizeBaseUrl(process.env.VERCEL_URL || "")
   if (fromVercel) return fromVercel
 
-  return "http://localhost:3000"
+  // Never emit localhost URLs in a production sitemap; fall back to the
+  // canonical public domain so crawlers can discover every page.
+  return DEFAULT_SITE_URL
 }
 
 function toAbsoluteUrl(baseUrl: string, path: string) {

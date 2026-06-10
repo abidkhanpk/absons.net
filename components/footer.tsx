@@ -21,7 +21,8 @@ export function Footer({ settings }: { settings: PublicFooterSettings }) {
   const showFooterTagline = settings.showFooterTagline !== false && Boolean(companyTagline)
 
   return (
-    <footer className="bg-muted/30 border-t border-border">
+    <footer className="relative bg-slate-950 text-slate-300 border-t border-white/10">
+      <div className="brand-accent-bar absolute inset-x-0 top-0" aria-hidden="true" />
       <div className={`container mx-auto px-4 lg:px-8 ${showFooterMenu ? "py-12" : "py-6"}`}>
         {showFooterMenu ? (
           <div className="grid grid-cols-1 gap-8 md:grid-cols-2 xl:grid-cols-4">
@@ -43,22 +44,22 @@ export function Footer({ settings }: { settings: PublicFooterSettings }) {
                     </div>
                   )}
                   <span className="flex flex-col leading-tight">
-                    <span className="font-bold text-lg">{companyName}</span>
-                    {showFooterTagline ? <span className="text-[11px] text-muted-foreground">{companyTagline}</span> : null}
+                    <span className="font-bold text-lg text-white">{companyName}</span>
+                    {showFooterTagline ? <span className="text-[11px] text-slate-500">{companyTagline}</span> : null}
                   </span>
                 </div>
-                <p className="text-sm text-muted-foreground leading-relaxed break-words">
+                <p className="text-sm text-slate-400 leading-relaxed break-words">
                   {companyDescription}
                 </p>
               </div>
             ) : null}
 
             <div className="min-w-0">
-              <h3 className="font-semibold mb-4">{settings.footerQuickLinksTitle || "Quick Links"}</h3>
+              <h3 className="font-semibold mb-4 text-white">{settings.footerQuickLinksTitle || "Quick Links"}</h3>
               <ul className="space-y-3">
                 {navItems.map((item) => (
                   <li key={item.id}>
-                    <Link href={item.href} className="text-sm text-muted-foreground hover:text-foreground transition-colors">
+                    <Link href={item.href} className="text-sm text-slate-400 hover:text-white transition-colors">
                       {item.label}
                     </Link>
                   </li>
@@ -68,11 +69,11 @@ export function Footer({ settings }: { settings: PublicFooterSettings }) {
 
             {showSecondary ? (
               <div className="min-w-0">
-                <h3 className="font-semibold mb-4">{settings.footerSecondaryTitle || "Services"}</h3>
+                <h3 className="font-semibold mb-4 text-white">{settings.footerSecondaryTitle || "Services"}</h3>
                 <ul className="space-y-3">
                   {secondaryItems.map((item) => (
                     <li key={item.id}>
-                      <Link href={item.href} className="text-sm text-muted-foreground hover:text-foreground transition-colors">
+                      <Link href={item.href} className="text-sm text-slate-400 hover:text-white transition-colors">
                         {item.label}
                       </Link>
                     </li>
@@ -83,19 +84,19 @@ export function Footer({ settings }: { settings: PublicFooterSettings }) {
 
             {showContact ? (
               <div className="min-w-0">
-                <h3 className="font-semibold mb-4">{settings.footerContactTitle || "Contact Info"}</h3>
+                <h3 className="font-semibold mb-4 text-white">{settings.footerContactTitle || "Contact Info"}</h3>
                 <ul className="space-y-3">
                   <li className="flex items-start gap-2">
-                    <Mail className="h-4 w-4 mt-1 text-muted-foreground flex-shrink-0" />
-                    <span className="text-sm text-muted-foreground">{settings.contactEmail || "info@absonsolutions.com"}</span>
+                    <Mail className="h-4 w-4 mt-1 text-teal-400 flex-shrink-0" />
+                    <span className="text-sm text-slate-400">{settings.contactEmail || "info@absonsolutions.com"}</span>
                   </li>
                   <li className="flex items-start gap-2">
-                    <Phone className="h-4 w-4 mt-1 text-muted-foreground flex-shrink-0" />
-                    <span className="text-sm text-muted-foreground">{settings.contactPhone || "+92 XXX XXXXXXX"}</span>
+                    <Phone className="h-4 w-4 mt-1 text-teal-400 flex-shrink-0" />
+                    <span className="text-sm text-slate-400">{settings.contactPhone || "+92 XXX XXXXXXX"}</span>
                   </li>
                   <li className="flex items-start gap-2">
-                    <MapPin className="h-4 w-4 mt-1 text-muted-foreground flex-shrink-0" />
-                    <span className="text-sm text-muted-foreground">{settings.contactAddress || "Pakistan"}</span>
+                    <MapPin className="h-4 w-4 mt-1 text-teal-400 flex-shrink-0" />
+                    <span className="text-sm text-slate-400">{settings.contactAddress || "Pakistan"}</span>
                   </li>
                 </ul>
               </div>
@@ -103,8 +104,8 @@ export function Footer({ settings }: { settings: PublicFooterSettings }) {
           </div>
         ) : null}
 
-        <div className={`${showFooterMenu ? "mt-12 pt-8 border-t border-border" : ""} text-center`}>
-          <p className="text-sm text-muted-foreground">
+        <div className={`${showFooterMenu ? "mt-12 pt-8 border-t border-white/10" : ""} text-center`}>
+          <p className="text-sm text-slate-500">
             © {new Date().getFullYear()} {siteTitle || "Site"}. All rights reserved.
           </p>
         </div>

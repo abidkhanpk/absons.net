@@ -97,7 +97,10 @@ export function HeroSlider({ slides, mode, staticIndex, autoplaySeconds, height 
         }
       : currentSlide?.bgColor
         ? { backgroundColor: currentSlide.bgColor }
-        : { backgroundColor: "#0f172a" }
+        : {
+            backgroundColor: "#0b1020",
+            backgroundImage: "linear-gradient(135deg, #0b1020 0%, #1e1b4b 52%, #0f2a44 100%)",
+          }
 
   useEffect(() => {
     const frame = frameRef.current
@@ -158,7 +161,7 @@ export function HeroSlider({ slides, mode, staticIndex, autoplaySeconds, height 
   return (
     <section className="relative border-b border-border" data-motion-skip>
       <div ref={frameRef} className="relative overflow-hidden" style={{ ...bgStyle, height: heroFrameHeight }}>
-        <div className={layout === "full" && currentSlide?.image ? "bg-black/50" : ""}>
+        <div className={layout === "full" && currentSlide?.image ? "bg-gradient-to-br from-slate-950/70 via-slate-900/45 to-indigo-950/55" : ""}>
           <div
             className={`container mx-auto px-4 lg:px-8 h-full flex items-start md:items-center pt-[calc((var(--mobile-sticky-header-h,0px)*0.25)+0.0rem)] md:pt-12 lg:pt-20 ${
               compactMode ? "py-4 md:py-10 lg:py-12" : "py-4 lg:py-20"

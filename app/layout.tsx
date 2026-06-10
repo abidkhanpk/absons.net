@@ -5,7 +5,7 @@ import { Analytics } from "@vercel/analytics/next"
 import { ServiceWorkerReset } from "@/components/service-worker-reset"
 import { SiteMotion } from "@/components/site-motion"
 import { getSiteSettings } from "@/lib/site-settings"
-import { buildSeoMetadata } from "@/lib/seo"
+import { buildSeoMetadata, resolveSiteBaseUrl } from "@/lib/seo"
 import { resolveAssetUrl } from "@/lib/asset-url"
 import { headingTypographyToCssVariables } from "@/lib/heading-typography"
 import "./globals.css"
@@ -229,8 +229,15 @@ export async function generateMetadata() {
       ]
 
   const baseMetadata = buildSeoMetadata(settings, {})
+  let metadataBase: URL | undefined
+  try {
+    metadataBase = new URL(resolveSiteBaseUrl(settings.seoDefaultCanonicalBase))
+  } catch {
+    metadataBase = undefined
+  }
   return {
     ...baseMetadata,
+    metadataBase,
     generator: "v0.app",
     icons: {
       icon: iconList,

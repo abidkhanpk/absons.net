@@ -97,7 +97,7 @@ export function WhyChooseSection({
         return (
           <div key={`${item.title}-${index}`} className="why-choose-grid-tile text-center space-y-3">
             <div className="flex justify-center">
-              <div className="flex h-14 w-14 items-center justify-center rounded-full bg-primary/10 text-primary">
+              <div className="flex h-14 w-14 items-center justify-center rounded-full icon-tile">
                 <Icon className="h-7 w-7" />
               </div>
             </div>
@@ -122,7 +122,7 @@ export function WhyChooseSection({
         return (
           <div key={`${item.title}-${index}`} className="why-choose-tile text-center space-y-3">
             <div className="flex justify-center">
-              <div className="flex h-14 w-14 items-center justify-center rounded-full bg-primary/10 text-primary">
+              <div className="flex h-14 w-14 items-center justify-center rounded-full icon-tile">
                 <Icon className="h-7 w-7" />
               </div>
             </div>
@@ -138,7 +138,7 @@ export function WhyChooseSection({
     <section className="py-12 md:py-14 bg-muted/30">
       <div className="container mx-auto px-4 lg:px-8">
         <div className="text-center mb-8 md:mb-10">
-          <h2 className="text-3xl md:text-4xl font-bold mb-4">{title}</h2>
+          <h2 className="section-title text-3xl md:text-4xl font-bold mb-4 text-gradient-brand">{title}</h2>
           <p className="text-lg text-muted-foreground max-w-2xl mx-auto text-pretty leading-relaxed">{subtitle}</p>
         </div>
 
