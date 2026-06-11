@@ -1354,3 +1354,20 @@ main [data-slot="card"]:hover::before {
 main [data-slot="card"] > * {
   position: relative;
 }
+
+/* The "Royal Blue" section theme mirrors the home page CTA band. Force the
+   brand gradient + white text on every royal-blue section — including ones
+   whose old flat-blue colors are already baked into saved content — so the
+   editor preview and the live page always match the CTA. */
+[data-cms-section-preset="royal-blue"] {
+  background: var(--brand-gradient-strong) !important;
+  background-color: oklch(0.5 0.18 232) !important;
+  color: #ffffff !important;
+  --tw-prose-body: #ffffff !important;
+  --tw-prose-headings: #ffffff !important;
+  --tw-prose-bold: #ffffff !important;
+  --tw-prose-links: #ffffff !important;
+  --tw-prose-bullets: #c7d2fe !important;
+  --tw-prose-counters: #c7d2fe !important;
+  --tw-prose-quote-borders: #c7d2fe !important;
+}
