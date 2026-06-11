@@ -4,7 +4,7 @@ import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import Link from "next/link"
-import { ArrowRight, Package, CheckCircle2 } from "lucide-react"
+import { ArrowRight, Package } from "lucide-react"
 import { prisma } from "@/lib/prisma"
 import { getSiteSettings } from "@/lib/site-settings"
 import { buildSeoMetadata } from "@/lib/seo"
@@ -94,21 +94,7 @@ export default async function ProductsPage() {
                           ))}
                         </div>
                         <h3 className="text-xl font-semibold">{productTitle}</h3>
-                        <p className="text-muted-foreground leading-relaxed">{productDescription}</p>
-                        <ul className="space-y-2">
-                          <li className="flex items-start gap-2 text-sm">
-                            <CheckCircle2 className="h-4 w-4 mt-0.5 text-primary flex-shrink-0" />
-                            <span className="text-muted-foreground">Scalable architecture</span>
-                          </li>
-                          <li className="flex items-start gap-2 text-sm">
-                            <CheckCircle2 className="h-4 w-4 mt-0.5 text-primary flex-shrink-0" />
-                            <span className="text-muted-foreground">Operational reporting</span>
-                          </li>
-                          <li className="flex items-start gap-2 text-sm">
-                            <CheckCircle2 className="h-4 w-4 mt-0.5 text-primary flex-shrink-0" />
-                            <span className="text-muted-foreground">Role-based access support</span>
-                          </li>
-                        </ul>
+                        <p className="text-muted-foreground leading-relaxed flex-1">{productDescription}</p>
                         <Button asChild variant="outline" className="w-full bg-transparent mt-auto">
                           <Link
                             href={resolveItemLink(product.linkUrl, "/products")}
