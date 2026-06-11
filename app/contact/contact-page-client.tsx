@@ -219,7 +219,7 @@ export function ContactPageClient({ headerSettings, footerSettings, contactSetti
                     {submitted ? (
                       <div className="text-center py-8 space-y-4">
                         <div className="flex justify-center">
-                          <div className="flex h-16 w-16 items-center justify-center rounded-full bg-primary/10 text-primary">
+                          <div className="flex h-16 w-16 items-center justify-center rounded-full icon-tile">
                             <Send className="h-8 w-8" />
                           </div>
                         </div>
@@ -380,7 +380,7 @@ export function ContactPageClient({ headerSettings, footerSettings, contactSetti
                     <h3 className="text-xl font-semibold">Contact Information</h3>
                     <div className="space-y-4">
                       <div className="flex items-start gap-3">
-                        <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10 text-primary flex-shrink-0">
+                        <div className="flex h-10 w-10 items-center justify-center rounded-lg icon-tile flex-shrink-0">
                           <Mail className="h-5 w-5" />
                         </div>
                         <div>
@@ -390,7 +390,7 @@ export function ContactPageClient({ headerSettings, footerSettings, contactSetti
                       </div>
 
                       <div className="flex items-start gap-3">
-                        <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10 text-primary flex-shrink-0">
+                        <div className="flex h-10 w-10 items-center justify-center rounded-lg icon-tile flex-shrink-0">
                           <Phone className="h-5 w-5" />
                         </div>
                         <div>
@@ -400,7 +400,7 @@ export function ContactPageClient({ headerSettings, footerSettings, contactSetti
                       </div>
 
                       <div className="flex items-start gap-3">
-                        <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10 text-primary flex-shrink-0">
+                        <div className="flex h-10 w-10 items-center justify-center rounded-lg icon-tile flex-shrink-0">
                           <MapPin className="h-5 w-5" />
                         </div>
                         <div>

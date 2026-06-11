@@ -26,7 +26,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   }
 
   const canonicalBase = settings.seoDefaultCanonicalBase?.replace(/\/$/, "")
-  const canonical = post.seoCanonicalUrl || (canonicalBase ? `${canonicalBase}/blog/${post.slug}` : undefined)
+  const canonical = post.seoCanonicalUrl || (canonicalBase ? `${canonicalBase}/blog/${post.slug}` : `/blog/${post.slug}`)
 
   return buildSeoMetadata(settings, {
     title: post.seoTitle || post.title,

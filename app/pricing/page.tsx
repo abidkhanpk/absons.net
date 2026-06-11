@@ -20,7 +20,7 @@ export async function generateMetadata() {
     description: override.description || "Choose a plan that fits your stage and team requirements.",
     keywords: override.keywords || undefined,
     ogImage: override.ogImage || undefined,
-    canonical: override.canonical || undefined,
+    canonical: override.canonical || "/pricing",
     noIndex: override.noIndex,
     noFollow: override.noFollow,
   })

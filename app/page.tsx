@@ -33,7 +33,7 @@ export async function generateMetadata() {
     description: override.description || settings.seoDefaultDescription || undefined,
     keywords: override.keywords || undefined,
     ogImage: override.ogImage || undefined,
-    canonical: override.canonical || undefined,
+    canonical: override.canonical || "/",
     noIndex: override.noIndex,
     noFollow: override.noFollow,
   })
@@ -279,7 +279,7 @@ export default async function HomePage() {
       <section className="py-12 md:py-14 bg-background">
         <div className="container mx-auto px-4 lg:px-8">
           <div className="text-center mb-8 md:mb-10">
-            <h2 className="text-3xl md:text-4xl font-bold mb-4">{getSectionConfig("services").title}</h2>
+            <h2 className="section-title text-3xl md:text-4xl font-bold mb-4 text-gradient-brand">{getSectionConfig("services").title}</h2>
             <p className="text-lg text-muted-foreground max-w-2xl mx-auto text-pretty leading-relaxed">
               {getSectionConfig("services").subtitle}
             </p>
@@ -303,7 +303,7 @@ export default async function HomePage() {
                         className="w-full h-44 object-cover rounded-md border border-border/60"
                       />
                     ) : (
-                      <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-primary/10 text-primary">
+                      <div className="flex h-12 w-12 items-center justify-center rounded-lg icon-tile">
                         <IconComponent className="h-6 w-6" />
                       </div>
                     )}
@@ -336,7 +336,7 @@ export default async function HomePage() {
       <section className="py-12 md:py-14 bg-muted/30">
         <div className="container mx-auto px-4 lg:px-8">
           <div className="text-center mb-8 md:mb-10">
-            <h2 className="text-3xl md:text-4xl font-bold mb-4">{getSectionConfig("products").title}</h2>
+            <h2 className="section-title text-3xl md:text-4xl font-bold mb-4 text-gradient-brand">{getSectionConfig("products").title}</h2>
             <p className="text-lg text-muted-foreground max-w-2xl mx-auto text-pretty leading-relaxed">
               {getSectionConfig("products").subtitle}
             </p>
@@ -394,7 +394,7 @@ export default async function HomePage() {
       <section className="py-12 md:py-14 bg-background">
         <div className="container mx-auto px-4 lg:px-8">
           <div className="text-center mb-8 md:mb-10">
-            <h2 className="text-3xl md:text-4xl font-bold mb-4">{getSectionConfig("pricing").title}</h2>
+            <h2 className="section-title text-3xl md:text-4xl font-bold mb-4 text-gradient-brand">{getSectionConfig("pricing").title}</h2>
             <p className="text-lg text-muted-foreground max-w-2xl mx-auto text-pretty leading-relaxed">
               {getSectionConfig("pricing").subtitle}
             </p>
@@ -445,7 +445,7 @@ export default async function HomePage() {
         <section className="py-12 md:py-14 bg-muted/30">
           <div className="container mx-auto px-4 lg:px-8">
             <div className="text-center mb-8 md:mb-10">
-              <h2 className="text-3xl md:text-4xl font-bold mb-4">{getSectionConfig("training").title}</h2>
+              <h2 className="section-title text-3xl md:text-4xl font-bold mb-4 text-gradient-brand">{getSectionConfig("training").title}</h2>
               <p className="text-lg text-muted-foreground max-w-2xl mx-auto text-pretty leading-relaxed">
                 {getSectionConfig("training").subtitle}
               </p>
@@ -502,7 +502,7 @@ export default async function HomePage() {
         <section className="py-12 md:py-14 bg-background">
           <div className="container mx-auto px-4 lg:px-8">
             <div className="text-center mb-8 md:mb-10">
-              <h2 className="text-3xl md:text-4xl font-bold mb-4">{getSectionConfig("departments").title}</h2>
+              <h2 className="section-title text-3xl md:text-4xl font-bold mb-4 text-gradient-brand">{getSectionConfig("departments").title}</h2>
               <p className="text-lg text-muted-foreground max-w-2xl mx-auto text-pretty leading-relaxed">
                 {getSectionConfig("departments").subtitle}
               </p>
@@ -526,7 +526,7 @@ export default async function HomePage() {
                           className="w-full h-44 object-cover rounded-md border border-border/60"
                         />
                       ) : (
-                        <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-primary/10 text-primary">
+                        <div className="flex h-12 w-12 items-center justify-center rounded-lg icon-tile">
                           <DepartmentIcon className="h-6 w-6" />
                         </div>
                       )}
@@ -560,7 +560,7 @@ export default async function HomePage() {
         <section className="py-12 md:py-14 bg-background">
           <div className="container mx-auto px-4 lg:px-8">
             <div className="text-center mb-8 md:mb-10">
-              <h2 className="text-3xl md:text-4xl font-bold mb-4">{getSectionConfig("testimonials").title}</h2>
+              <h2 className="section-title text-3xl md:text-4xl font-bold mb-4 text-gradient-brand">{getSectionConfig("testimonials").title}</h2>
               <p className="text-lg text-muted-foreground max-w-2xl mx-auto text-pretty leading-relaxed">
                 {getSectionConfig("testimonials").subtitle}
               </p>
@@ -594,7 +594,7 @@ export default async function HomePage() {
                     <CardContent className="p-6 space-y-4">
                       <div className="flex gap-1">
                         {Array.from({ length: testimonial.rating }).map((_, i) => (
-                          <Star key={i} className="h-5 w-5 fill-primary text-primary" />
+                          <Star key={i} className="h-5 w-5 fill-[var(--brand-amber)] text-[var(--brand-amber)]" />
                         ))}
                       </div>
                       <div className="max-h-20 overflow-hidden group-hover:max-h-[1000px] group-focus-within:max-h-[1000px] transition-all duration-300 ease-in-out">
@@ -621,7 +621,7 @@ export default async function HomePage() {
         <section className="py-12 md:py-14 bg-muted/30">
           <div className="container mx-auto px-4 lg:px-8">
             <div className="text-center mb-8 md:mb-10">
-              <h2 className="text-3xl md:text-4xl font-bold mb-4">{getSectionConfig("who-we-serve").title}</h2>
+              <h2 className="section-title text-3xl md:text-4xl font-bold mb-4 text-gradient-brand">{getSectionConfig("who-we-serve").title}</h2>
               <p className="text-lg text-muted-foreground max-w-2xl mx-auto text-pretty leading-relaxed">
                 {getSectionConfig("who-we-serve").subtitle}
               </p>
@@ -637,7 +637,7 @@ export default async function HomePage() {
                 return (
                   <Card key={segment.id} className="border-border hover:shadow-lg transition-shadow">
                     <CardContent className="p-6 space-y-4">
-                      <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-primary/10 text-primary">
+                      <div className="flex h-12 w-12 items-center justify-center rounded-lg icon-tile">
                         <SegmentIcon className="h-6 w-6" />
                       </div>
                       <h3 className="text-xl font-semibold">{segmentTitle}</h3>
@@ -664,7 +664,7 @@ export default async function HomePage() {
       />
     ),
     cta: (
-      <section className="py-12 md:py-14 bg-primary text-primary-foreground">
+      <section className="py-12 md:py-14 bg-gradient-brand-strong text-primary-foreground">
         <div className="container mx-auto px-4 lg:px-8">
           <div className="max-w-3xl mx-auto text-center space-y-6">
             <h2 className="text-3xl md:text-4xl font-bold text-balance">{getSectionConfig("cta").title}</h2>

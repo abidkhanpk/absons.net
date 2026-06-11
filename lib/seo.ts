@@ -13,6 +13,35 @@ type SeoOverrides = {
   noFollow?: boolean
 }
 
+/**
+ * Production fallback for the public site URL. Used when no canonical base is
+ * configured in settings and no deployment env var is available, so the
+ * generated sitemap/robots/canonical URLs never point at localhost in prod.
+ */
+export const DEFAULT_SITE_URL = "https://www.absons.net"
+
+/**
+ * Resolve the public base URL the site is served from, preferring the
+ * admin-configured canonical base, then deployment env vars, then a safe
+ * production default. `absons.net` is normalized to the canonical `www` host.
+ */
+export function resolveSiteBaseUrl(canonicalBase?: string | null): string {
+  const candidates = [canonicalBase, process.env.NEXT_PUBLIC_SITE_URL, process.env.VERCEL_URL]
+  for (const candidate of candidates) {
+    const trimmed = (candidate || "").trim().replace(/\/+$/g, "")
+    if (!trimmed) continue
+    const withProtocol = /^https?:\/\//i.test(trimmed) ? trimmed : `https://${trimmed}`
+    try {
+      const url = new URL(withProtocol)
+      if (url.hostname === "absons.net") url.hostname = "www.absons.net"
+      return url.toString().replace(/\/+$/g, "")
+    } catch {
+      continue
+    }
+  }
+  return DEFAULT_SITE_URL
+}
+
 const TITLE_TOKEN_REGEX = /\{\s*title\s*[}\]]/gi
 const SITE_TITLE_TOKEN_REGEX = /\{\s*(?:siteTitle|sitetitle|site_title|site-title|sitetile)\s*[}\]]/gi
 const TITLE_TOKEN_DETECT_REGEX = /\{\s*title\s*[}\]]/i

@@ -39,7 +39,7 @@ export async function generateMetadata() {
     description: override.description || `Latest news, insights, and updates from ${siteTitle}`,
     keywords: override.keywords || undefined,
     ogImage: override.ogImage || undefined,
-    canonical: override.canonical || undefined,
+    canonical: override.canonical || "/blog",
     noIndex: override.noIndex,
     noFollow: override.noFollow,
   })

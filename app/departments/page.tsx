@@ -24,7 +24,7 @@ export async function generateMetadata() {
     description: override.description || "Explore our core departments and their capabilities.",
     keywords: override.keywords || undefined,
     ogImage: override.ogImage || undefined,
-    canonical: override.canonical || undefined,
+    canonical: override.canonical || "/departments",
     noIndex: override.noIndex,
     noFollow: override.noFollow,
   })
@@ -79,7 +79,7 @@ export default async function DepartmentsPage() {
                             className="w-full h-44 object-cover rounded-md border border-border/60"
                           />
                         ) : (
-                          <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-primary/10 text-primary">
+                          <div className="flex h-12 w-12 items-center justify-center rounded-lg icon-tile">
                             <IconComponent className="h-6 w-6" />
                           </div>
                         )}
