@@ -175,13 +175,13 @@ const SECTION_PRESET_OPTIONS: SectionPresetOption[] = [
   {
     id: "royal-blue",
     label: "Royal Blue",
-    description: "Solid blue CTA section matching the classic service callout style.",
-    background: "#1f5f9e",
-    textColor: "#dbeafe",
+    description: "Brand gradient call-to-action band matching the home page CTA section.",
+    background: "linear-gradient(135deg, oklch(0.45 0.22 274), oklch(0.5 0.18 232), oklch(0.58 0.15 196))",
+    textColor: "#ffffff",
     headingColor: "#ffffff",
     linkColor: "#ffffff",
-    accentColor: "#bfdbfe",
-    borderColor: "rgba(191, 219, 254, 0.45)",
+    accentColor: "#c7d2fe",
+    borderColor: "rgba(199, 210, 254, 0.45)",
   },
   {
     id: "frosted-steel",
