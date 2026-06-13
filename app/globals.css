@@ -1094,7 +1094,7 @@ a[data-cms-button="true"]:hover [data-cms-fa] {
 }
 
 @media (max-width: 768px) {
-  .prose table.cms-table[data-responsive-mode="stack"] {
+  .prose table.cms-table:not([data-responsive-mode="scroll"]) {
     width: 100% !important;
     max-width: 100% !important;
     min-width: 0 !important;
@@ -1105,40 +1105,46 @@ a[data-cms-button="true"]:hover [data-cms-fa] {
     border-spacing: 0;
   }
 
-  .prose table.cms-table[data-responsive-mode="stack"] colgroup,
-  .prose table.cms-table[data-responsive-mode="stack"] colgroup col {
+  .prose table.cms-table:not([data-responsive-mode="scroll"]) colgroup,
+  .prose table.cms-table:not([data-responsive-mode="scroll"]) colgroup col {
     display: none !important;
     width: 0 !important;
     min-width: 0 !important;
     max-width: 0 !important;
   }
 
-  .prose table.cms-table[data-responsive-mode="stack"] thead,
-  .prose table.cms-table[data-responsive-mode="stack"] tbody,
-  .prose table.cms-table[data-responsive-mode="stack"] tr,
-  .prose table.cms-table[data-responsive-mode="stack"] th,
-  .prose table.cms-table[data-responsive-mode="stack"] td {
+  .prose table.cms-table:not([data-responsive-mode="scroll"]) thead,
+  .prose table.cms-table:not([data-responsive-mode="scroll"]) tbody,
+  .prose table.cms-table:not([data-responsive-mode="scroll"]) tr,
+  .prose table.cms-table:not([data-responsive-mode="scroll"]) th,
+  .prose table.cms-table:not([data-responsive-mode="scroll"]) td {
     display: block;
     width: 100% !important;
     min-width: 0 !important;
     max-width: 100% !important;
+    height: auto !important;
+    min-height: 0 !important;
     margin-left: 0 !important;
     margin-right: 0 !important;
   }
 
-  .prose table.cms-table[data-responsive-mode="stack"] tr {
+  .prose table.cms-table:not([data-responsive-mode="scroll"]) tr {
     margin-bottom: 0.8rem;
   }
 
-  .prose table.cms-table[data-responsive-mode="stack"] td > *,
-  .prose table.cms-table[data-responsive-mode="stack"] th > * {
+  .prose table.cms-table:not([data-responsive-mode="scroll"]) td > *,
+  .prose table.cms-table:not([data-responsive-mode="scroll"]) th > * {
     max-width: 100% !important;
+    height: auto !important;
+    min-height: 0 !important;
   }
 
-  .prose table.cms-table[data-responsive-mode="stack"] td [data-cms-card="true"],
-  .prose table.cms-table[data-responsive-mode="stack"] th [data-cms-card="true"] {
+  .prose table.cms-table:not([data-responsive-mode="scroll"]) td [data-cms-card="true"],
+  .prose table.cms-table:not([data-responsive-mode="scroll"]) th [data-cms-card="true"] {
     width: min(100%, calc(100vw - 2rem)) !important;
     max-width: min(100%, calc(100vw - 2rem)) !important;
+    height: auto !important;
+    min-height: 0 !important;
     margin-left: 0 !important;
     margin-right: 0 !important;
   }
