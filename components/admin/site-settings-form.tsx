@@ -3439,6 +3439,28 @@ export function SiteSettingsForm({ initial, pages }: { initial: SiteSettings; pa
                       </Select>
                     </div>
                   </div>
+                  <div className="space-y-2">
+                    <Label>Image Fit Mode</Label>
+                    <Select
+                      value={slide.imageFitMode || "cover"}
+                      onValueChange={(value: "cover" | "contain" | "fill") =>
+                        setFormData((prev) => {
+                          const copy = [...prev.heroSlides]
+                          copy[index] = { ...copy[index], imageFitMode: value }
+                          return { ...prev, heroSlides: copy }
+                        })
+                      }
+                    >
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="cover">Cover (fill &amp; crop)</SelectItem>
+                        <SelectItem value="contain">Contain (fit entirely)</SelectItem>
+                        <SelectItem value="fill">Fill (stretch)</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
                 </AccordionContent>
               </AccordionItem>
             ))}
@@ -3452,7 +3474,7 @@ export function SiteSettingsForm({ initial, pages }: { initial: SiteSettings; pa
                 ...prev,
                 heroSlides: [
                   ...prev.heroSlides,
-                  { title: "New Slide", subtitle: "", ctaText: "", ctaHref: "", image: "" },
+                  { title: "New Slide", subtitle: "", ctaText: "", ctaHref: "", image: "", imageFitMode: "cover" },
                 ],
               }))
             }

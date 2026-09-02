@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button"
 import { ArrowRight, ArrowLeft, ArrowRight as ArrowRightIcon } from "lucide-react"
 import Link from "next/link"
 import type { HeroSlide } from "@/lib/site-settings"
+import { getBackgroundSize } from "@/lib/image-fit"
 
 type HeroSliderProps = {
   slides: HeroSlide[]
@@ -90,7 +91,7 @@ export function HeroSlider({ slides, mode, staticIndex, autoplaySeconds, height 
     layout === "full" && currentSlide?.image
       ? {
           backgroundImage: `url(${currentSlide.image})`,
-          backgroundSize: "cover",
+          backgroundSize: getBackgroundSize(currentSlide?.imageFitMode),
           backgroundRepeat: "no-repeat",
           backgroundPosition: "center",
           backgroundAttachment: mode === "parallax" && !mobileParallaxFallback ? "fixed" : "scroll",
@@ -185,7 +186,7 @@ export function HeroSlider({ slides, mode, staticIndex, autoplaySeconds, height 
                       className="absolute inset-0"
                       style={{
                         backgroundImage: `url(${currentSlide.image})`,
-                        backgroundSize: "cover",
+                        backgroundSize: getBackgroundSize(currentSlide?.imageFitMode),
                         backgroundRepeat: "no-repeat",
                         backgroundPosition: "center",
                       }}
@@ -240,7 +241,7 @@ export function HeroSlider({ slides, mode, staticIndex, autoplaySeconds, height 
                       className="absolute inset-0"
                       style={{
                         backgroundImage: `url(${currentSlide.image})`,
-                        backgroundSize: "cover",
+                        backgroundSize: getBackgroundSize(currentSlide?.imageFitMode),
                         backgroundRepeat: "no-repeat",
                         backgroundPosition: "center",
                       }}

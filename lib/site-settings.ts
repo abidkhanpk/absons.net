@@ -118,6 +118,7 @@ export type HeroSlide = {
   image?: string
   layout?: "full" | "image-left" | "image-right" | "no-image"
   bgColor?: string
+  imageFitMode?: "cover" | "contain" | "fill"
 }
 
 export type BusinessHourEntry = {
@@ -578,6 +579,7 @@ function parseHeroSlides(raw: string | null | undefined): HeroSlide[] {
         image: resolveAssetUrl(typeof slide?.image === "string" ? slide.image : "") ?? "",
         layout: slide?.layout ?? "full",
         bgColor: slide?.bgColor ?? "",
+        imageFitMode: slide?.imageFitMode ?? "cover",
       }))
       return mapped.length > 0 ? mapped : defaultSettings.heroSlides
     }

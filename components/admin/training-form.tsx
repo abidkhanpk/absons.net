@@ -24,6 +24,7 @@ type TrainingCourse = {
   isActive: boolean
   displayOrder: number
   featuredImage?: string | null
+  imageFitMode?: string | null
   linkUrl?: string | null
   linkLabel?: string | null
 }
@@ -41,6 +42,7 @@ export function TrainingForm({ course }: { course?: TrainingCourse }) {
     is_active: course?.isActive !== undefined ? course.isActive : true,
     display_order: course?.displayOrder ?? 0,
     featured_image: course?.featuredImage || "",
+    image_fit_mode: course?.imageFitMode || "cover",
     link_url: initialLink.href,
     link_target: initialLink.target,
     link_label: course?.linkLabel || "Learn more",
@@ -160,6 +162,8 @@ export function TrainingForm({ course }: { course?: TrainingCourse }) {
               value={formData.featured_image}
               onChange={(value) => setFormData({ ...formData, featured_image: value })}
               folder="training"
+              fitMode={formData.image_fit_mode}
+              onFitModeChange={(value) => setFormData({ ...formData, image_fit_mode: value })}
             />
             <div className="space-y-2">
               <Label htmlFor="link_url">Custom Link URL</Label>

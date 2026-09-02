@@ -9,6 +9,7 @@ import { getSiteSettings } from "@/lib/site-settings"
 import { buildSeoMetadata } from "@/lib/seo"
 import { contentIconMap } from "@/lib/content-icons"
 import { resolveAssetUrl } from "@/lib/asset-url"
+import { getImageFitClass } from "@/lib/image-fit"
 import { findManyDepartmentsCompat } from "@/lib/department-compat"
 import { getItemLinkTargetProps, resolveItemLinkHref } from "@/lib/item-link"
 import { contentEndsWithSection, contentStartsWithSection } from "@/lib/section-page-layout"
@@ -76,7 +77,7 @@ export default async function DepartmentsPage() {
                           <img
                             src={resolveAssetUrl(department.imageUrl)}
                             alt={departmentTitle}
-                            className="w-full h-44 object-cover rounded-md border border-border/60"
+                            className={`w-full h-44 ${getImageFitClass((department as any).imageFitMode)} rounded-md border border-border/60`}
                           />
                         ) : (
                           <div className="flex h-12 w-12 items-center justify-center rounded-lg icon-tile">

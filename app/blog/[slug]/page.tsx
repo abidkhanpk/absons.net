@@ -9,6 +9,7 @@ import { prisma } from "@/lib/prisma"
 import { getSiteSettings } from "@/lib/site-settings"
 import { buildSeoMetadata } from "@/lib/seo"
 import { resolveAssetUrl } from "@/lib/asset-url"
+import { getImageFitClass } from "@/lib/image-fit"
 import { RichContentRenderer } from "@/components/cms/rich-content-renderer"
 import { resolveContentKeywordTokens } from "@/lib/content-keywords"
 import { toPublicFooterSettings, toPublicHeaderSettings } from "@/lib/site-public-settings"
@@ -77,7 +78,7 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
                   <img
                     src={resolveAssetUrl(post.featuredImage) || "/placeholder.svg"}
                     alt={postTitle}
-                    className="w-full h-full object-cover"
+                    className={`w-full h-full ${getImageFitClass(post.imageFitMode)}`}
                   />
                 </div>
               )}

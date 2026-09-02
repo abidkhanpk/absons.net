@@ -21,6 +21,7 @@ type Testimonial = {
   content: string
   rating: number
   avatar_url?: string
+  image_fit_mode?: string
   display_order: number
   submitter_email?: string
   is_published?: boolean
@@ -40,6 +41,7 @@ export function TestimonialForm({ testimonial }: { testimonial?: Testimonial }) 
     content: testimonial?.content || "",
     rating: testimonial?.rating || (testimonial as any)?.rating || 5,
     avatar_url: testimonial?.avatar_url || (testimonial as any)?.avatarUrl || "",
+    image_fit_mode: (testimonial as any)?.image_fit_mode || (testimonial as any)?.imageFitMode || "cover",
     display_order: testimonial?.display_order || (testimonial as any)?.displayOrder || 0,
     submitter_email: (testimonial as any)?.submitter_email || (testimonial as any)?.submitterEmail || "",
     is_published: defaultIsPublished,
@@ -57,6 +59,7 @@ export function TestimonialForm({ testimonial }: { testimonial?: Testimonial }) 
       content: testimonial?.content || "",
       rating: testimonial?.rating || (testimonial as any)?.rating || 5,
       avatar_url: testimonial?.avatar_url || (testimonial as any)?.avatarUrl || "",
+      image_fit_mode: (testimonial as any)?.image_fit_mode || (testimonial as any)?.imageFitMode || "cover",
       display_order: testimonial?.display_order || (testimonial as any)?.displayOrder || 0,
       submitter_email: (testimonial as any)?.submitter_email || (testimonial as any)?.submitterEmail || "",
       is_published: published,
@@ -178,6 +181,8 @@ export function TestimonialForm({ testimonial }: { testimonial?: Testimonial }) 
             onChange={(value) => setFormData({ ...formData, avatar_url: value })}
             placeholder="https://example.com/avatar.jpg"
             folder="testimonials"
+            fitMode={formData.image_fit_mode}
+            onFitModeChange={(value) => setFormData({ ...formData, image_fit_mode: value })}
           />
 
           <div className="space-y-2">

@@ -10,6 +10,7 @@ import { getSiteSettings } from "@/lib/site-settings"
 import { buildSeoMetadata } from "@/lib/seo"
 import { contentIconMap } from "@/lib/content-icons"
 import { resolveAssetUrl } from "@/lib/asset-url"
+import { getImageFitClass } from "@/lib/image-fit"
 import { findManyProductsCompat } from "@/lib/product-compat"
 import { getItemLinkTargetProps, resolveItemLinkHref } from "@/lib/item-link"
 import { contentEndsWithSection, contentStartsWithSection } from "@/lib/section-page-layout"
@@ -78,7 +79,7 @@ export default async function ProductsPage() {
                           <img
                             src={resolveAssetUrl(product.imageUrl)}
                             alt={productTitle}
-                            className="w-full h-44 object-cover rounded-md border border-border/60"
+                            className={`w-full h-44 ${getImageFitClass((product as any).imageFitMode)} rounded-md border border-border/60`}
                           />
                         ) : (
                           <div className="flex h-12 w-12 items-center justify-center rounded-lg icon-tile">

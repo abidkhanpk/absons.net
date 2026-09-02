@@ -24,6 +24,7 @@ type BlogPost = {
   approved?: boolean
   featured_image?: string
   featuredImage?: string
+  imageFitMode?: string | null
   publishedAt?: string | null
   rejectedAt?: string | null
   rejectedReason?: string | null
@@ -59,6 +60,7 @@ export function BlogForm({
     published: post?.published || false,
     approved: post?.approved ?? true,
     featured_image: post?.featured_image || post?.featuredImage || "",
+    image_fit_mode: post?.imageFitMode || "cover",
     seoTitle: post?.seoTitle || "",
     seoDescription: post?.seoDescription || "",
     seoKeywords: post?.seoKeywords || "",
@@ -249,6 +251,8 @@ export function BlogForm({
             value={formData.featured_image}
             onChange={(value) => setFormData({ ...formData, featured_image: value })}
             folder="blog"
+            fitMode={formData.image_fit_mode}
+            onFitModeChange={(value) => setFormData({ ...formData, image_fit_mode: value })}
           />
 
           <div className="space-y-4">

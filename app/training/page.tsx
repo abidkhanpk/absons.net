@@ -9,6 +9,7 @@ import { prisma } from "@/lib/prisma"
 import { getSiteSettings } from "@/lib/site-settings"
 import { buildSeoMetadata } from "@/lib/seo"
 import { resolveAssetUrl } from "@/lib/asset-url"
+import { getImageFitClass } from "@/lib/image-fit"
 import { getItemLinkTargetProps, resolveItemLinkHref } from "@/lib/item-link"
 import { contentEndsWithSection, contentStartsWithSection } from "@/lib/section-page-layout"
 import { RichContentRenderer } from "@/components/cms/rich-content-renderer"
@@ -78,7 +79,7 @@ export default async function TrainingPage() {
                           <img
                             src={resolveAssetUrl(course.featuredImage)}
                             alt={courseTitle}
-                            className="w-full h-56 object-cover rounded-md border border-border/60"
+                            className={`w-full h-56 ${getImageFitClass(course.imageFitMode)} rounded-md border border-border/60`}
                           />
                         ) : null}
 

@@ -92,7 +92,7 @@ export async function POST(request: Request) {
 
   try {
     const body = await request.json()
-    const { title, description, icon, image_url, link_url, link_label, is_featured, tags, is_active, display_order } = body
+    const { title, description, icon, image_url, image_fit_mode, link_url, link_label, is_featured, tags, is_active, display_order } = body
     const normalizedImageUrl = normalizeAssetDbValue(image_url)
     const normalizedTags = Array.isArray(tags)
       ? tags
@@ -119,6 +119,7 @@ export async function POST(request: Request) {
       isFeatured: is_featured ?? false,
       tags: Array.from(new Set(normalizedTags)),
       isActive: is_active ?? true,
+      imageFitMode: image_fit_mode || "cover",
       displayOrder: Number(display_order) || 0,
     })
     return NextResponse.json({ success: true })
@@ -134,7 +135,7 @@ export async function PUT(request: Request) {
 
   try {
     const body = await request.json()
-    const { id, title, description, icon, image_url, link_url, link_label, is_featured, tags, is_active, display_order } = body
+    const { id, title, description, icon, image_url, image_fit_mode, link_url, link_label, is_featured, tags, is_active, display_order } = body
     const normalizedImageUrl = normalizeAssetDbValue(image_url)
     const normalizedTags = Array.isArray(tags)
       ? tags
@@ -159,6 +160,7 @@ export async function PUT(request: Request) {
       isFeatured: is_featured ?? false,
       tags: Array.from(new Set(normalizedTags)),
       isActive: is_active ?? true,
+      imageFitMode: image_fit_mode || "cover",
       displayOrder: Number(display_order) || 0,
     })
     return NextResponse.json({ success: true })

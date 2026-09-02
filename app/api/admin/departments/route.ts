@@ -19,7 +19,7 @@ export async function POST(request: Request) {
 
   try {
     const body = await request.json()
-    const { title, description, icon, image_url, link_url, link_label, is_featured, is_active, display_order } = body
+    const { title, description, icon, image_url, image_fit_mode, link_url, link_label, is_featured, is_active, display_order } = body
     const normalizedImageUrl = normalizeAssetDbValue(image_url)
 
     if (!title || !description) {
@@ -36,6 +36,7 @@ export async function POST(request: Request) {
           linkUrl: link_url || null,
           linkLabel: link_label || null,
           isFeatured: is_featured ?? false,
+          imageFitMode: image_fit_mode || "cover",
           isActive: is_active ?? true,
           displayOrder: Number(display_order) || 0,
         },
@@ -54,7 +55,7 @@ export async function PUT(request: Request) {
 
   try {
     const body = await request.json()
-    const { id, title, description, icon, image_url, link_url, link_label, is_featured, is_active, display_order } = body
+    const { id, title, description, icon, image_url, image_fit_mode, link_url, link_label, is_featured, is_active, display_order } = body
     const normalizedImageUrl = normalizeAssetDbValue(image_url)
 
     if (!id) return NextResponse.json({ error: "Department id is required" }, { status: 400 })
@@ -70,6 +71,7 @@ export async function PUT(request: Request) {
           linkUrl: link_url || null,
           linkLabel: link_label || null,
           isFeatured: is_featured ?? false,
+          imageFitMode: image_fit_mode || "cover",
           isActive: is_active ?? true,
           displayOrder: Number(display_order) || 0,
         },

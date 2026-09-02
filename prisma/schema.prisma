@@ -25,6 +25,7 @@ model Service {
   description  String
   icon         String?
   imageUrl     String?  @map("image_url")
+  imageFitMode String?  @default("cover") @map("image_fit_mode")
   linkUrl      String?  @map("link_url")
   linkLabel    String?  @map("link_label")
   category     String
@@ -44,6 +45,7 @@ model BlogPost {
   excerpt     String
   content     String
   featuredImage String? @map("featured_image")
+  imageFitMode  String? @default("cover") @map("image_fit_mode")
   seoTitle    String?  @map("seo_title")
   seoDescription String? @map("seo_description")
   seoKeywords String?  @map("seo_keywords")
@@ -103,6 +105,7 @@ model TrainingCourse {
   level         String?
   provider      String?  @default("Mobius Institute")
   featuredImage String?  @map("featured_image")
+  imageFitMode  String?  @default("cover") @map("image_fit_mode")
   linkUrl       String?  @map("link_url")
   linkLabel     String?  @map("link_label")
   isActive      Boolean  @default(true) @map("is_active")
@@ -119,6 +122,7 @@ model Product {
   description  String
   icon         String?
   imageUrl     String?  @map("image_url")
+  imageFitMode String?  @default("cover") @map("image_fit_mode")
   linkUrl      String?  @map("link_url")
   linkLabel    String?  @map("link_label")
   isFeatured   Boolean  @default(false) @map("is_featured")
@@ -150,6 +154,7 @@ model Department {
   description  String
   icon         String?
   imageUrl     String?  @map("image_url")
+  imageFitMode String?  @default("cover") @map("image_fit_mode")
   linkUrl      String?  @map("link_url")
   linkLabel    String?  @map("link_label")
   isFeatured   Boolean  @default(false) @map("is_featured")
@@ -183,6 +188,7 @@ model Testimonial {
   content        String
   rating         Int
   avatarUrl      String?  @map("avatar_url")
+  imageFitMode   String?  @default("cover") @map("image_fit_mode")
   isFeatured     Boolean  @default(false) @map("is_featured")
   submitterEmail String?  @map("submitter_email")
   isPublished    Boolean  @default(true) @map("is_published")

@@ -9,6 +9,7 @@ import { prisma } from "@/lib/prisma"
 import { getSiteSettings } from "@/lib/site-settings"
 import { buildSeoMetadata } from "@/lib/seo"
 import { resolveAssetUrl } from "@/lib/asset-url"
+import { getImageFitClass } from "@/lib/image-fit"
 import { contentEndsWithSection, contentStartsWithSection } from "@/lib/section-page-layout"
 import { RichContentRenderer } from "@/components/cms/rich-content-renderer"
 import { resolveContentKeywordTokens } from "@/lib/content-keywords"
@@ -110,7 +111,7 @@ export default async function BlogPage({
                               <img
                                 src={resolveAssetUrl(post.featuredImage) || "/placeholder.svg"}
                                 alt={postTitle}
-                                className="w-full h-full object-cover"
+                                className={`w-full h-full ${getImageFitClass(post.imageFitMode)}`}
                               />
                             </div>
                           )}
@@ -166,7 +167,7 @@ export default async function BlogPage({
                                 <img
                                   src={resolveAssetUrl(post.featuredImage) || "/placeholder.svg"}
                                   alt={postTitle}
-                                  className="w-full h-full object-cover"
+                                  className={`w-full h-full ${getImageFitClass(post.imageFitMode)}`}
                                 />
                               </div>
                             ) : null}

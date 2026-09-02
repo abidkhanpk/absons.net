@@ -21,6 +21,7 @@ type Service = {
   description: string
   icon: string | null
   imageUrl?: string | null
+  imageFitMode?: string | null
   linkUrl?: string | null
   linkLabel?: string | null
   category: string
@@ -37,6 +38,7 @@ export function ServiceForm({ service }: { service?: Service }) {
     description: service?.description || "",
     icon: service?.icon || "Package",
     image_url: service?.imageUrl || "",
+    image_fit_mode: service?.imageFitMode || "cover",
     link_url: initialLink.href,
     link_target: initialLink.target,
     link_label: service?.linkLabel || "Learn more",
@@ -148,6 +150,8 @@ export function ServiceForm({ service }: { service?: Service }) {
               value={formData.image_url}
               onChange={(value) => setFormData({ ...formData, image_url: value })}
               folder="services"
+              fitMode={formData.image_fit_mode}
+              onFitModeChange={(value) => setFormData({ ...formData, image_fit_mode: value })}
             />
             <div className="space-y-2">
               <Label htmlFor="link_url">Custom Link URL</Label>

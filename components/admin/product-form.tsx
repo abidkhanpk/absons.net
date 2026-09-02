@@ -20,6 +20,7 @@ type Product = {
   description: string
   icon: string | null
   imageUrl?: string | null
+  imageFitMode?: string | null
   linkUrl?: string | null
   linkLabel?: string | null
   isFeatured?: boolean
@@ -37,6 +38,7 @@ export function ProductForm({ product }: { product?: Product }) {
     description: product?.description || "",
     icon: product?.icon || "Package",
     image_url: product?.imageUrl || "",
+    image_fit_mode: product?.imageFitMode || "cover",
     link_url: initialLink.href,
     link_target: initialLink.target,
     link_label: product?.linkLabel || "Explore product",
@@ -136,6 +138,8 @@ export function ProductForm({ product }: { product?: Product }) {
               value={formData.image_url}
               onChange={(value) => setFormData({ ...formData, image_url: value })}
               folder="products"
+              fitMode={formData.image_fit_mode}
+              onFitModeChange={(value) => setFormData({ ...formData, image_fit_mode: value })}
             />
             <div className="space-y-2">
               <Label htmlFor="link_url">Custom Link URL</Label>

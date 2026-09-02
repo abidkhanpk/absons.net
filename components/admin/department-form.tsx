@@ -20,6 +20,7 @@ type Department = {
   description: string
   icon: string | null
   imageUrl?: string | null
+  imageFitMode?: string | null
   linkUrl?: string | null
   linkLabel?: string | null
   isFeatured?: boolean
@@ -36,6 +37,7 @@ export function DepartmentForm({ department }: { department?: Department }) {
     description: department?.description || "",
     icon: department?.icon || "Building2",
     image_url: department?.imageUrl || "",
+    image_fit_mode: department?.imageFitMode || "cover",
     link_url: initialLink.href,
     link_target: initialLink.target,
     link_label: department?.linkLabel || "Learn more",
@@ -134,6 +136,8 @@ export function DepartmentForm({ department }: { department?: Department }) {
               value={formData.image_url}
               onChange={(value) => setFormData({ ...formData, image_url: value })}
               folder="departments"
+              fitMode={formData.image_fit_mode}
+              onFitModeChange={(value) => setFormData({ ...formData, image_fit_mode: value })}
             />
             <div className="space-y-2">
               <Label htmlFor="link_url">Custom Link URL</Label>

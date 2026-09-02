@@ -9,6 +9,7 @@ import { getSiteSettings } from "@/lib/site-settings"
 import { buildSeoMetadata } from "@/lib/seo"
 import { contentIconMap } from "@/lib/content-icons"
 import { resolveAssetUrl } from "@/lib/asset-url"
+import { getImageFitClass } from "@/lib/image-fit"
 import { getItemLinkTargetProps, resolveItemLinkHref } from "@/lib/item-link"
 import { contentEndsWithSection, contentStartsWithSection } from "@/lib/section-page-layout"
 import { RichContentRenderer } from "@/components/cms/rich-content-renderer"
@@ -70,7 +71,7 @@ export default async function ServicesPage() {
                         <img
                           src={resolveAssetUrl(service.imageUrl)}
                           alt={serviceTitle}
-                          className="w-full h-44 object-cover rounded-md border border-border/60"
+                        className={`w-full h-44 ${getImageFitClass(service.imageFitMode)} rounded-md border border-border/60`}
                         />
                       ) : (
                         <div className="flex h-12 w-12 items-center justify-center rounded-lg icon-tile">

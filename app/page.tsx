@@ -15,6 +15,7 @@ import { buildSeoMetadata } from "@/lib/seo"
 import TestimonialSubmittedBanner from "@/components/testimonial-submitted-banner"
 import { contentIconMap } from "@/lib/content-icons"
 import { resolveAssetUrl } from "@/lib/asset-url"
+import { getImageFitClass } from "@/lib/image-fit"
 import { findManyProductsCompat } from "@/lib/product-compat"
 import { findManyDepartmentsCompat } from "@/lib/department-compat"
 import { getItemLinkTargetProps, resolveItemLinkHref } from "@/lib/item-link"
@@ -300,7 +301,7 @@ export default async function HomePage() {
                       <img
                         src={resolveAssetUrl(service.imageUrl)}
                         alt={serviceTitle}
-                        className="w-full h-44 object-cover rounded-md border border-border/60"
+                        className={`w-full h-44 ${getImageFitClass(service.imageFitMode)} rounded-md border border-border/60`}
                       />
                     ) : (
                       <div className="flex h-12 w-12 items-center justify-center rounded-lg icon-tile">
@@ -361,7 +362,7 @@ export default async function HomePage() {
                     <img
                       src={resolveAssetUrl(product.imageUrl)}
                       alt={product.title}
-                      className="w-full h-44 object-cover rounded-md border border-border/60"
+                      className={`w-full h-44 ${getImageFitClass((product as any).imageFitMode)} rounded-md border border-border/60`}
                     />
                   ) : null}
                   <div className="flex flex-wrap items-center gap-2">
@@ -466,7 +467,7 @@ export default async function HomePage() {
                         <img
                           src={resolveAssetUrl(course.featuredImage)}
                           alt={courseTitle}
-                          className="w-full h-44 object-cover rounded-md border border-border/60"
+                          className={`w-full h-44 ${getImageFitClass(course.imageFitMode)} rounded-md border border-border/60`}
                         />
                       ) : null}
                       <h3 className="text-xl font-semibold">{courseTitle}</h3>
@@ -523,7 +524,7 @@ export default async function HomePage() {
                         <img
                           src={resolveAssetUrl(department.imageUrl)}
                           alt={departmentTitle}
-                          className="w-full h-44 object-cover rounded-md border border-border/60"
+                          className={`w-full h-44 ${getImageFitClass(department.imageFitMode)} rounded-md border border-border/60`}
                         />
                       ) : (
                         <div className="flex h-12 w-12 items-center justify-center rounded-lg icon-tile">

@@ -19,7 +19,7 @@ export async function POST(request: Request) {
 
   try {
     const body = await request.json()
-    const { client_name, client_company, client_position, content, rating, avatar_url, display_order, submitter_email, is_published } = body
+    const { client_name, client_company, client_position, content, rating, avatar_url, image_fit_mode, display_order, submitter_email, is_published } = body
     const normalizedAvatarUrl = normalizeAssetDbValue(avatar_url)
     if (!client_name || !content || !rating) {
       return NextResponse.json({ error: "Missing required fields" }, { status: 400 })
@@ -34,6 +34,7 @@ export async function POST(request: Request) {
           content,
           rating: Number(rating),
           avatarUrl: typeof normalizedAvatarUrl === "string" && normalizedAvatarUrl ? normalizedAvatarUrl : null,
+          imageFitMode: image_fit_mode || "cover",
           isFeatured: false,
           displayOrder: Number(display_order) || 0,
           submitterEmail: submitter_email || null,
@@ -55,7 +56,7 @@ export async function PUT(request: Request) {
 
   try {
     const body = await request.json()
-    const { id, client_name, client_company, client_position, content, rating, avatar_url, display_order, submitter_email, is_published } =
+    const { id, client_name, client_company, client_position, content, rating, avatar_url, image_fit_mode, display_order, submitter_email, is_published } =
       body
     const normalizedAvatarUrl = normalizeAssetDbValue(avatar_url)
     if (!id) return NextResponse.json({ error: "Testimonial id is required" }, { status: 400 })
@@ -70,6 +71,7 @@ export async function PUT(request: Request) {
           content,
           rating: Number(rating),
           avatarUrl: typeof normalizedAvatarUrl === "string" && normalizedAvatarUrl ? normalizedAvatarUrl : null,
+          imageFitMode: image_fit_mode || "cover",
           isFeatured: false,
           displayOrder: Number(display_order) || 0,
           submitterEmail: submitter_email || null,

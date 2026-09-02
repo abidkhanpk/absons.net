@@ -4,6 +4,7 @@ import { useRef, useState } from "react"
 import { UploadCloud } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 
 type ImageUrlUploadFieldProps = {
   id: string
@@ -12,6 +13,9 @@ type ImageUrlUploadFieldProps = {
   onChange: (value: string) => void
   placeholder?: string
   folder?: string
+  fitMode?: string
+  onFitModeChange?: (value: string) => void
+  showFitMode?: boolean
 }
 
 export function ImageUrlUploadField({
@@ -21,6 +25,9 @@ export function ImageUrlUploadField({
   onChange,
   placeholder = "https://example.com/image.jpg",
   folder = "images",
+  fitMode,
+  onFitModeChange,
+  showFitMode = true,
 }: ImageUrlUploadFieldProps) {
   const [uploading, setUploading] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -70,6 +77,23 @@ export function ImageUrlUploadField({
         {uploading ? <span className="text-xs text-muted-foreground">Uploading...</span> : null}
         {error ? <p className="text-xs text-destructive">{error}</p> : null}
       </div>
+      {showFitMode && onFitModeChange && (
+        <div className="space-y-1">
+          <Label htmlFor={`${id}-fit-mode`} className="text-xs text-muted-foreground font-normal">
+            Image Fit Mode
+          </Label>
+          <Select value={fitMode || "cover"} onValueChange={onFitModeChange}>
+            <SelectTrigger id={`${id}-fit-mode`} className="h-8 text-xs">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="cover">Cover (fill &amp; crop)</SelectItem>
+              <SelectItem value="contain">Contain (fit entirely)</SelectItem>
+              <SelectItem value="fill">Fill (stretch)</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+      )}
     </div>
   )
 }
