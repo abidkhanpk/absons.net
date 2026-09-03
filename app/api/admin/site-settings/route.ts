@@ -167,6 +167,7 @@ function normalizeHeroSlides(raw: unknown): { serialized?: string; wasExplicitly
         image: typeof image === "string" ? image : "",
         layout: typeof slide.layout === "string" ? slide.layout : "full",
         bgColor: typeof slide.bgColor === "string" ? slide.bgColor : "",
+        imageFitMode: typeof slide.imageFitMode === "string" ? slide.imageFitMode : "cover",
       }
     })
 
