@@ -79,7 +79,7 @@ export default async function ProductsPage() {
                           <img
                             src={resolveAssetUrl(product.imageUrl)}
                             alt={productTitle}
-                            className={`w-full h-44 ${getImageFitClass((product as any).imageFitMode)} rounded-md border border-border/60`}
+                            className={`w-full h-44 ${getImageFitClass((product).imageFitMode)} rounded-md border border-border/60`}
                           />
                         ) : (
                           <div className="flex h-12 w-12 items-center justify-center rounded-lg icon-tile">

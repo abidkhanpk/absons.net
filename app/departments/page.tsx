@@ -77,7 +77,7 @@ export default async function DepartmentsPage() {
                           <img
                             src={resolveAssetUrl(department.imageUrl)}
                             alt={departmentTitle}
-                            className={`w-full h-44 ${getImageFitClass((department as any).imageFitMode)} rounded-md border border-border/60`}
+                            className={`w-full h-44 ${getImageFitClass((department).imageFitMode)} rounded-md border border-border/60`}
                           />
                         ) : (
                           <div className="flex h-12 w-12 items-center justify-center rounded-lg icon-tile">

@@ -6,6 +6,7 @@ const DEPARTMENT_SELECT_TEMPLATE = {
   description: true,
   icon: true,
   imageUrl: true,
+  imageFitMode: true,
   linkUrl: true,
   linkLabel: true,
   isFeatured: true,
@@ -40,6 +41,7 @@ export type DepartmentCompatRecord = {
   description: string
   icon: string | null
   imageUrl: string | null
+  imageFitMode: string | null
   linkUrl: string | null
   linkLabel: string | null
   isFeatured: boolean
@@ -81,6 +83,7 @@ function normalizeDepartment(record: Record<string, unknown>): DepartmentCompatR
     description: typeof record.description === "string" ? record.description : "",
     icon: typeof record.icon === "string" ? record.icon : null,
     imageUrl: typeof record.imageUrl === "string" ? record.imageUrl : null,
+    imageFitMode: typeof record.imageFitMode === "string" ? record.imageFitMode : null,
     linkUrl: typeof record.linkUrl === "string" ? record.linkUrl : null,
     linkLabel: typeof record.linkLabel === "string" ? record.linkLabel : null,
     isFeatured: record.isFeatured === true,
