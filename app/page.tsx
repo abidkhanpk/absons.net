@@ -350,6 +350,7 @@ export default async function HomePage() {
               title: resolveText(product.title),
               description: resolveText(product.description),
               imageUrl: product.imageUrl,
+              imageFitMode: product.imageFitMode,
               linkUrl: product.linkUrl,
               linkLabel: resolveText(product.linkLabel || "") || "Explore product",
               isFeatured: product.isFeatured,
